@@ -18,13 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: ISOBuilder.pm,v 1.1 2004/04/02 19:04:29 danpb Exp $
+# $Id: ISOBuilder.pm,v 1.1.2.1 2004/06/13 13:30:45 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::Output::ISOBuilder - creates CD ISO images
+Test::AutoBuild::Output::ISOBuilder - Create CD ISO images
 
 =head1 SYNOPSIS
 
@@ -33,7 +33,8 @@ Test::AutoBuild::Output::ISOBuilder - creates CD ISO images
 
 =head1 DESCRIPTION
 
-Description
+This module creates CD ISO images containing packages for
+a number of modules
 
 =head1 METHODS
 
@@ -57,7 +58,7 @@ use vars qw(@ISA);
 
 =pod
 
-=item my $???? = Test::AutoBuild::Output::ISOBuilder->new(  );
+=item my $mod = Test::AutoBuild::Output::ISOBuilder->new(  );
 
 =cut
 
@@ -87,14 +88,6 @@ sub process {
     
     my $scratchdir = $self->option("scratch-dir");
     $scratchdir = "/var/tmp" unless defined $scratchdir;
-    
-    my $cycle_time = time - $self->start_time + 1;
-    my $overall_status = 'success';
-    foreach my $name (keys %{$modules}) {
-        if ($modules->{$name}->build_status() eq 'failed') {
-            $overall_status = 'failed';
-        }
-    }
     
     my @isos;
     
@@ -201,11 +194,6 @@ sub process {
     }
     
     my %vars = (
-                'status' => $overall_status,
-                'date' => strftime ("%a %b %e %Y", gmtime),
-                'time' => strftime ("%H:%M:%S", gmtime),
-                'cycle-time' => Test::AutoBuild::Lib::pretty_time($cycle_time),
-                'build-counter', $ENV{AUTO_BUILD_COUNTER},
 		'isos', \@isos
                 );
     $self->_generate_templates($modules, $groups, $repositories, $package_types, \%vars);

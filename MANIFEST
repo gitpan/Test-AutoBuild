@@ -6,7 +6,6 @@ MANIFEST
 Makefile.PL
 README
 TODO
-Test-AutoBuild.spec
 Test-AutoBuild.spec.PL
 bin/auto-build.pl
 conf/auto-build.conf
@@ -49,11 +48,16 @@ t/120-Output.t
 t/130-Cache.t
 t/140-Lib.t
 t/200-AutoBuild.t
+templates/bluecurve.css
 templates/email.txt
 templates/header.html
 templates/index-group.html
 templates/index-iso.html
 templates/index-module.html
 templates/index-repository.html
+templates/index.rss
 templates/module.html
+templates/page.tt
+templates/redhat.css
 templates/stylesheet.html
+Test-AutoBuild.spec

@@ -18,13 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Repository.pm,v 1.2 2004/05/04 16:21:40 danpb Exp $
+# $Id: Repository.pm,v 1.2.2.1 2004/06/13 13:25:00 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::Repository - source control repository access
+Test::AutoBuild::Repository - Source control repository access
 
 =head1 SYNOPSIS
 

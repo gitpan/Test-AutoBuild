@@ -18,13 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Lib.pm,v 1.3 2004/05/06 16:35:05 danpb Exp $
+# $Id: Lib.pm,v 1.3.2.1 2004/06/13 13:28:20 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::Lib - a library of useful routines
+Test::AutoBuild::Lib - A library of useful routines
 
 =head1 SYNOPSIS
 
@@ -85,7 +85,7 @@ Test::AutoBuild::Group class.
 sub load_groups {
     my $config = shift;
 
-    my $data = $config->param("groups", {
+    my $data = $config->get("groups", {
         global => {
             label => "Global",
             }
@@ -120,7 +120,7 @@ Test::AutoBuild::Repository class.
 sub load_repositories {
     my $config = shift;
 
-    my $data = $config->param("repositories", {
+    my $data = $config->get("repositories", {
         cvs => {
             module => "Test::AutoBuild::Repository::CVS",
             label => "CVS Repository"
@@ -171,7 +171,7 @@ sub load_outputs {
 
     my $start_time = time;
 
-    my $data = $config->param("output", {
+    my $data = $config->get("output", {
         http => {
             module => 'Test::AutoBuild::Output::PackageCopier',
             label => 'Web Distribution Site',
@@ -222,7 +222,7 @@ Test::AutoBuild::PackageType class.
 sub load_package_types {
     my $config = shift;
 
-    my $data = $config->param("package-types", {
+    my $data = $config->get("package-types", {
         rpm => {
             label => 'Linux RPM',
             extension => '.rpm',
@@ -256,7 +256,7 @@ Test::AutoBuild::Module class.
 sub load_modules {
     my $config = shift;
 
-    my $data = $config->param("modules", {
+    my $data = $config->get("modules", {
         test => {
             label => 'Test Application',
             paths => 'test/test-app:HEAD',

@@ -1,8 +1,8 @@
 # -*- perl -*-
 #
-# Test::AutoBuild::Output::EmailAlert by %author%
+# Test::AutoBuild::Output::EmailAlert by Daniel Berrange <dan@berrange.com>
 #
-# Copyright (C) 2002 %author%
+# Copyright (C) 2002-2004 Daniel Berrange <dan@berrange.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,13 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: EmailAlert.pm,v 1.1 2004/04/02 19:04:29 danpb Exp $
+# $Id: EmailAlert.pm,v 1.1.2.1 2004/06/13 13:26:05 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::Output::EmailAlert - what does this module do ?
+Test::AutoBuild::Output::EmailAlert - Sends email alerts with build status
 
 =head1 SYNOPSIS
 
@@ -33,7 +33,9 @@ Test::AutoBuild::Output::EmailAlert - what does this module do ?
 
 =head1 DESCRIPTION
 
-Description
+This module generates email alerts at the end of a build containing
+status information. They can be sent on every cycle, or just when
+the cycle has a failure.
 
 =head1 METHODS
 
@@ -57,7 +59,7 @@ use vars qw(@ISA);
 
 =pod
 
-=item my $???? = Test::AutoBuild::Output::EmailAlert->new(  );
+=item my $mod = Test::AutoBuild::Output::EmailAlert->new(  );
 
 =cut
 
@@ -163,11 +165,11 @@ __END__
 
 =head1 AUTHORS
 
-%author%
+Daniel Berrange <dan@berrange.com>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2002 %author%
+Copyright (C) 2002-2004 Daniel Berrange <dan@berrange.com>
 
 =head1 SEE ALSO
 

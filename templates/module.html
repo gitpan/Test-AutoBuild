@@ -1,67 +1,53 @@
-<html>
-  <head>
-    <title>Auto Build: [% module %]</title>
-    [% INCLUDE 'stylesheet.html' %]
-  </head>
+[% WRAPPER page.tt %]
 
-  <body bgcolor="white" text="black">
+[% FOREACH modules %]
+  [% IF name == module %]
+  <h2>Module: [% name %]</h2>
 
-  [% INCLUDE 'header.html' %]
+  <table id="summary">
+    <tr>
+      <th>Log file:</th>
+      <td class="logfile"><a href="logs/[% logFilename %]">[% logFilename %]</a></td>
+    </tr>
+    <tr>
+      <th>Build time:</th>
+      <td>[% buildTime %]</td>
+    </tr>
+  </table>
 
-    [% FOREACH modules %]
-    [% IF module == name %]
-    [% IF status == 'failed' %]
-    <h3 style="background: rgb(192,128,128)">[% label %]</h3>
-    [% ELSE %]
-    <h3 style="background: rgb(232,232,232)">[% label %]</h3>
-    [% END %]
+  [% IF status == 'success' or status == 'cache' %]
+    [% IF packages %]
+      <h3>Packages</h3>
 
-      <p><b>Log File:</b> <code><a href="[% logURL %]">[% logFilename %]</a></code></p>
-      <p><b>Build Time:</b> [% buildTime %]</p>
-      
-      [% IF status == 'success' or status == 'cache' %]
-      [% IF packages %]
-      <h4>Packages</h4>
-      <table border="0" cellspacing="3" cellpadding="0">
-        <tr>
-          <th>Filename</th>
-          <th>Size</th>
-          <th>MD5 Sum</th>
-        </tr>
-      [% FOREACH packages %]
-        <tr>
-          <td><code><a href="[% httpURL %]">[% filename %]</a></code>
-          <code><a href="[% ftpURL %]">[FTP]</a></code></td>
-          <td><code>[% prettysize %]</code></td>
-          <td><code>[% md5sum %]</code></td>
-        </tr>
-      [% END %]
+      <table id="packages">
+        <thead>
+          <tr>
+            <th>Filename</th>
+            <th>Size</th>
+            <th>MD5 Sum</th>
+          </tr>
+        <tbody>
+          [% FOREACH packages %]
+            <tr class="[% IF loop.index() % 2 == 0 %]odd[%ELSE%]even[%END%]">
+              <td class="filename"><a href="dist/[% filename %]">[% filename %]</a></td>
+              <td class="size">[% prettysize %]</td>
+              <td class="md5sum">[% md5sum %]</td>
+            </tr>
+          [% END %]
+        </tbody>
       </table>
-      [% ELSE %]
-      <div>
-      No packages found
-      </div>
-      [% END %]
-      [% ELSE %]
-      [% IF status == 'failed' %]
-      <p>
-        <strong style="color: rgb(200,0,0)">Build failed on this module</strong>
-      </p>
-      [% ELSIF status %] eq 'skipped')$
-      <p>
-        <strong style="color: rgb(200,0,200)">Module skipped because dependency failed during build</strong>
-      </p>
-      [% ELSE %]
-      <p>
-        Module not built. Status: [% status %]
-      </P>
-      [% END %]
-      [% END %]
+    [% ELSE %]
+      <p>No packages were built/found for this module</p>
     [% END %]
+  [% ELSE %]
+    [% IF status == 'failed' %]
+      <p class="failed">Build failed on this module</p>
+    [% ELSIF status %] eq 'skipped')$
+      <p class="skipped">Module skipped because dependency failed during build</p>
+    [% ELSE %]
+      <p>Module not built. Status: [% status %]</p>
     [% END %]
-<hr>
-<p align="right">
-Administrator: <a href="mailto:berrange@redhat.com">Daniel Berrange</a>
-</p>
-  </body>
-</html>
+  [% END %]
+  [% END %]
+  [% END %]
+[% END %]

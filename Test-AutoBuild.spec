@@ -10,7 +10,7 @@
 
 Summary: Framework for performing continuous, unattended, automated software builds
 Name: perl-%{appname}
-Version: 1.0.0
+Version: 1.0.1
 Release: 1
 Copyright: GPL
 Group: Applications/Internet
@@ -20,7 +20,9 @@ BuildArchitectures: noarch
 Requires: perl >= %{perlversion}
 Requires: perl-BSD-Resource >= 1.15
 Requires: perl-Config-Record >= 1.0.0
-
+Requires: perl-Template
+Requires: perl-IO-stringy
+Requires: perl-Digest-MD5
 
 %description
 Test-AutoBuild is a PERL framework for performing continuous, unattended, 
@@ -36,7 +38,7 @@ make
 %install
 rm -rf $RPM_BUILD_ROOT
 
-make sysconfdir=$RPM_BUILD_ROOT/etc INSTALLvendorMAN3DIR=$RPM_BUILD_ROOT%{perlvendorman3} install
+make sysconfdir=$RPM_BUILD_ROOT/etc INSTALLVENDORMAN3DIR=$RPM_BUILD_ROOT%{perlvendorman3} install
 find $RPM_BUILD_ROOT%{perlvendorarch} -name perllocal.pod -exec rm -f {} \;
 
 

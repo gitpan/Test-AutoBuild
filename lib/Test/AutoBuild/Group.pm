@@ -18,13 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Group.pm,v 1.2 2004/05/06 16:35:05 danpb Exp $
+# $Id: Group.pm,v 1.3.2.1 2004/06/13 13:24:21 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::Group - simple grouping of modules
+Test::AutoBuild::Group - Simple grouping of modules
 
 =head1 SYNOPSIS
 

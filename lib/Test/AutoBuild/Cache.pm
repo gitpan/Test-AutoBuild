@@ -18,13 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Cache.pm,v 1.3 2004/05/06 16:35:05 danpb Exp $
+# $Id: Cache.pm,v 1.3.2.1 2004/06/13 13:24:21 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::Cache - caching of build results
+Test::AutoBuild::Cache - Caching of build results
 
 =head1 SYNOPSIS
 
@@ -37,7 +37,9 @@ Test::AutoBuild::Cache - caching of build results
 
 =head1 DESCRIPTION
 
-Description
+This module provides caching for module builds. It caches
+installed files in the virtual root, generated packages,
+and status metadata.
 
 =head1 METHODS
 

@@ -18,13 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: TemplateGenerator.pm,v 1.1 2004/04/02 19:04:29 danpb Exp $
+# $Id: TemplateGenerator.pm,v 1.1.2.1 2004/06/13 13:30:45 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::Output::TemplateGenerator - what does this module do ?
+Test::AutoBuild::Output::TemplateGenerator - The base for HTML template generators
 
 =head1 SYNOPSIS
 
@@ -33,7 +33,8 @@ Test::AutoBuild::Output::TemplateGenerator - what does this module do ?
 
 =head1 DESCRIPTION
 
-Description
+This module provides an abstract base for output modules wishing to
+generate HTML using the Template-Toolkit.
 
 =head1 METHODS
 
@@ -46,6 +47,7 @@ package Test::AutoBuild::Output::TemplateGenerator;
 use Carp qw(confess);
 use Test::AutoBuild::Output;
 
+use POSIX qw(strftime);
 use Template;
 use File::Spec;
 
@@ -57,7 +59,7 @@ use vars qw(@ISA);
 
 =pod
 
-=item my $???? = Test::AutoBuild::Output::TemplateGenerator->new(  );
+=item my $mod = Test::AutoBuild::Output::TemplateGenerator->new(  );
 
 =cut
 
@@ -81,7 +83,7 @@ sub _generate_templates {
     my $globalvars = shift;
     
     my $files = $self->option("files");
-    $files = [ { src => "index.html", dst => "index.html" } ] unless defined $files;
+    $files = [ "index.html" ] unless defined $files;
     $files = $self->_expand_templates($files, $modules, $groups, $repositories, $package_types);
     
     my $path = $self->option("template-src-dir");
@@ -90,24 +92,43 @@ sub _generate_templates {
                   );
     my $template = Template->new(\%config);
 
+    my $overall_status = 'success';
+    foreach my $name (keys %{$modules}) {
+        if ($modules->{$name}->build_status() eq 'failed') {
+            $overall_status = 'failed';
+        }
+    }
+
+    my $cycle_time = time - $self->start_time + 1;
+
+    $globalvars->{'status'} = $overall_status;
+    $globalvars->{'date'} = strftime ("%a %b %e %Y", gmtime);
+    $globalvars->{'gmtime'} = strftime ("%H:%M:%S", gmtime) . " UTC";
+    $globalvars->{'localtime'} = strftime ("%H:%M:%S %Z", localtime);
+    $globalvars->{'cycleTime'} = Test::AutoBuild::Lib::pretty_time($cycle_time);
+    $globalvars->{'buildCounter'} = $ENV{AUTO_BUILD_COUNTER};
+
     foreach my $file (@{$files}) {
         my ($src, $dst, $localvars) = @{$file};
         
-        print "Got $src, $dst: " . join (',', map {$_ . "=" . $localvars->{$_}} keys %{$localvars}) . "\n"; 
+        #print "Got $src, $dst: " . join (',', map {$_ . "=" . $localvars->{$_}} keys %{$localvars}) . "\n"; 
 	
         my $dest = File::Spec->catfile($self->option("template-dest-dir"), $dst);
         my $fh = IO::File->new(">$dest")
 	    or die "cannot  create $dest: $!";
+        my $customvars = $self->option("variables") || {};
         
 	my %vars;
+        foreach (keys %{$customvars}) {
+            $vars{$_} = $customvars->{$_};
+        }
 	foreach (keys %{$globalvars}) {
-	  $vars{$_} = $globalvars->{$_};
+	    $vars{$_} = $globalvars->{$_};
 	}
 	foreach (keys %{$localvars}) {
-	  $vars{$_} = $localvars->{$_};
+	    $vars{$_} = $localvars->{$_};
 	}
 	
-        # XXX globalvars
         if (!$template->process($src, \%vars, $fh)) {
 	    warn $template->error->as_string;
 	}
@@ -127,9 +148,14 @@ sub _expand_templates {
     
     my @in;
     foreach (@{$files}) {
-        my ($src, $dst, $name) = ($_->{src}, $_->{dst}, $_->{name});
-        print "Adding $src, $dst\n";
-        push @in, [ $src, $dst, { name => $name } ];
+	my ($src, $dst);
+	if (ref($_) eq "HASH") {
+	    ($src, $dst) = ($_->{src}, $_->{dst});
+	} else {
+	    $src = $dst = $_;
+	}
+	print "Adding $src, $dst\n";
+	push @in, [ $src, $dst, { templateSrc => $src, templateDst => $dst } ];
     }
 
     my $out = $self->_expand_macro(\@in, "%m", "module", keys %{$modules});

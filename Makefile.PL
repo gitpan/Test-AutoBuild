@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.4 2004/05/07 14:27:43 danpb Exp $
+# $Id: Makefile.PL,v 1.4.2.1 2004/06/13 13:32:51 danpb Exp $
 # -*- perl -*-
 
 use ExtUtils::MakeMaker;
@@ -19,7 +19,7 @@ WriteMakefile(
                  'Sys::Hostname' => '0',
                  'Digest::MD5' => '0',
                  'Fcntl' => '0',
-                 'Config::Record' => '1.0.1',
+                 'Config::Record' => '1.0.3',
                  'Template' => '0',
                  'POSIX' => '0'
               },
@@ -68,8 +68,11 @@ install ::
 	fi
 	install -c -D -m 0644 conf/auto-build.cron $(pkgsysconfdir)/auto-build.cron;
 	install -d -m 0755 $(pkgsysconfdir)/templates
-	install -c -D -m 0644 templates/email.txt $(pkgsysconfdir)/templates/email.txt
-	install -c -D -m 0644 templates/*.html $(pkgsysconfdir)/templates
+	install -c -m 0644 templates/*.txt $(pkgsysconfdir)/templates/
+	install -c -m 0644 templates/*.html $(pkgsysconfdir)/templates/
+	install -c -m 0644 templates/*.tt $(pkgsysconfdir)/templates/
+	install -c -m 0644 templates/*.css $(pkgsysconfdir)/templates/
+	install -c -m 0644 templates/*.rss $(pkgsysconfdir)/templates/
 ';
   }
 

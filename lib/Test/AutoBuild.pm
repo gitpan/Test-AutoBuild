@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: AutoBuild.pm,v 1.6 2004/05/06 16:35:05 danpb Exp $
+# $Id: AutoBuild.pm,v 1.6.2.1 2004/06/13 13:23:33 danpb Exp $
 
 =pod
 
@@ -66,7 +66,7 @@ use POSIX qw(strftime);
 use Sys::Hostname;
 
 use vars qw($VERSION);
-$VERSION = '1.0.0';
+$VERSION = '1.0.1';
 
 =pod
 
@@ -110,7 +110,7 @@ sub config
 
     if (@_) {
         my $name = shift;
-        return $self->{config}->param($name, @_);
+        return $self->{config}->get($name, @_);
     }
     return $self->{config};
 }

@@ -1,8 +1,8 @@
 # -*- perl -*-
 #
-# Test::AutoBuild::Output::PackageCopier by %author%
+# Test::AutoBuild::Output::PackageCopier by Daniel Berrange <dan@berrange.com>
 #
-# Copyright (C) 2002 %author%
+# Copyright (C) 2002-2004 Daniel Berrange <dan@berrange.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,13 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: PackageCopier.pm,v 1.1 2004/04/02 19:04:29 danpb Exp $
+# $Id: PackageCopier.pm,v 1.1.2.1 2004/06/13 13:26:05 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::Output::PackageCopier - what does this module do ?
+Test::AutoBuild::Output::PackageCopier - Copies packages to a directory
 
 =head1 SYNOPSIS
 
@@ -33,7 +33,8 @@ Test::AutoBuild::Output::PackageCopier - what does this module do ?
 
 =head1 DESCRIPTION
 
-Description
+This module copies packages generated during a module's build
+to a directory, typically under a Web / FTP root.
 
 =head1 METHODS
 
@@ -54,7 +55,7 @@ use vars qw(@ISA);
 
 =pod
 
-=item my $???? = Test::AutoBuild::Output::PackageCopier->new(  );
+=item my $mod = Test::AutoBuild::Output::PackageCopier->new(  );
 
 =cut
 
@@ -96,7 +97,6 @@ sub process {
     }
 
     foreach my $name (keys %{$modules}) {
-	warn "Process $name\n";
         $directory = $self->option("directory");
         $directory =~ s,\%m,$name,g;
         my $packages = $modules->{$name}->packages();
@@ -105,7 +105,7 @@ sub process {
             my $newdir = "$directory";
             $newdir =~ s,\%p,$type,g;
             mkpath($newdir);
-	    warn "Copy $filename $newdir\n";
+
             Test::AutoBuild::Lib::_copy($filename,$newdir);
         }
     }
@@ -121,11 +121,11 @@ __END__
 
 =head1 AUTHORS
 
-%author%
+Daniel Berrange <dan@berrange.com>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2002 %author%
+Copyright (C) 2002-2004 Daniel Berrange <dan@berrange.com>
 
 =head1 SEE ALSO
 

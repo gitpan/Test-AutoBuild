@@ -1,39 +1,26 @@
-<html>
-  <head>
-    <title>Auto Build: [% status %]</title>
-    [% INCLUDE 'stylesheet.html' %]
-  </head>
+[% WRAPPER page.tt %]
+  <h2>ISO Images</h2>
 
-  <body bgcolor="white" text="black">
-
-  [% INCLUDE 'header.html' %]
-
-    <h3 style="background: rgb(232,232,232)">ISO Images</h3>
-
-    [% IF isos.size > 0 %]
-      <table border="0" cellspacing="3" cellpadding="0">
+  [% IF isos.size > 0 %]
+    <table id="isos">
+      <thead>
         <tr>
           <th>Filename</th>
           <th>Size</th>
           <th>MD5 Sum</th>
         </tr>
-      [% FOREACH isos %]
-        <tr>
-          <td><code><a href="isos/[% filename %]">[% label %]</a></code></td>
-          <td><code>[% size %]</code></td>
-          <td><code>[% md5sum %]</code></td>
-        </tr>
-      [% END %]
-      </table>
-    [% ELSE %]
-    <p>
-    No ISO images were generated
-    </p>
-    [% END %]
-
-<hr>
-<p align="right">
-Administrator: <a href="mailto:berrange@redhat.com">Daniel Berrange</a>
-</p>
-  </body>
-</html>
+      </thead>
+      <tbody>
+        [% FOREACH isos %]
+          <tr>
+            <td class="filename"><a href="isos/[% filename %]">[% label %]</a></td>
+            <td class="size">[% size %]</td>
+            <td class="md5sum">[% md5sum %]</td>
+          </tr>
+        [% END %]
+      </tbody>
+    </table>
+  [% ELSE %]
+    <p>There are no ISO images defined</p>
+  [% END %]
+[% END %]

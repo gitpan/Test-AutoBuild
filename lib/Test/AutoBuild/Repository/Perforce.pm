@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Perforce.pm,v 1.2 2004/04/06 11:21:24 danpb Exp $
+# $Id: Perforce.pm,v 1.2.2.1 2004/06/13 13:25:00 danpb Exp $
 
 =pod
 
@@ -33,7 +33,8 @@ Test::AutoBuild::Repository::Perforce - A repository for Perforce
 
 =head1 DESCRIPTION
 
-Description
+This module provides access to source stored in a Perforce 
+repository.
 
 =head1 METHODS
 
@@ -54,7 +55,7 @@ use vars qw(@ISA);
 
 =pod
 
-=item my $???? = Test::AutoBuild::Repository::Perforce->new(  );
+=item my $mod = Test::AutoBuild::Repository::Perforce->new(  );
 
 =cut
 

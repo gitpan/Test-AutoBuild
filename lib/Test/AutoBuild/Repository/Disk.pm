@@ -1,8 +1,8 @@
 # -*- perl -*-
 #
-# Test::AutoBuild::Repository::Disk by %author%
+# Test::AutoBuild::Repository::Disk by Daniel Berrange <dan@berrange.com>
 #
-# Copyright (C) 2002 %author%
+# Copyright (C) 2002 Daniel Berrange <dan@berrange.com>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,13 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Disk.pm,v 1.1 2004/04/02 19:04:29 danpb Exp $
+# $Id: Disk.pm,v 1.1.2.1 2004/06/13 13:25:00 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::Repository::Disk - what does this module do ?
+Test::AutoBuild::Repository::Disk - Access to source locally on disk
 
 =head1 SYNOPSIS
 
@@ -33,7 +33,8 @@ Test::AutoBuild::Repository::Disk - what does this module do ?
 
 =head1 DESCRIPTION
 
-Description
+This module provides access to source stored in an exploded
+directory tree on local disk.
 
 =head1 METHODS
 
@@ -54,7 +55,7 @@ use Test::AutoBuild::Lib;
 
 =pod
 
-=item my $???? = Test::AutoBuild::Repository::Disk->new(  );
+=item my $mod = Test::AutoBuild::Repository::Disk->new(  );
 
 =cut
 
@@ -91,11 +92,11 @@ __END__
 
 =head1 AUTHORS
 
-%author%
+Daniel Berrange <dan@berrange.com>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2002 %author%
+Copyright (C) 2002-2004 Daniel Berrange <dan@berrange.com>
 
 =head1 SEE ALSO
 

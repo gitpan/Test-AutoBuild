@@ -18,13 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: PackageType.pm,v 1.1 2004/04/02 19:04:29 danpb Exp $
+# $Id: PackageType.pm,v 1.1.2.1 2004/06/13 13:24:21 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::PackageType - Package type section.
+Test::AutoBuild::PackageType - Package type handling
 
 =head1 SYNOPSIS
 
@@ -33,7 +33,8 @@ Test::AutoBuild::PackageType - Package type section.
 
 =head1 DESCRIPTION
 
-Description
+This module provides handling for package types (ie RPMs,
+Debs, Tar.gz, etc).
 
 =head1 METHODS
 
@@ -51,7 +52,7 @@ use File::Path;
 
 =pod
 
-=item my $???? = Test::AutoBuild::PackageType->new(  );
+=item my $mod = Test::AutoBuild::PackageType->new(  );
 
 =cut
 

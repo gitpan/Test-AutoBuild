@@ -1,6 +1,6 @@
 # Copyright (C) 2001-2004 Daniel Berrange <dan@berrange.com>
 #
-# $Id: Test-AutoBuild.spec.PL,v 1.3 2004/04/30 11:44:48 danpb Exp $
+# $Id: Test-AutoBuild.spec.PL,v 1.3.2.1 2004/06/13 13:32:51 danpb Exp $
 
 use strict;
 
@@ -42,7 +42,9 @@ BuildArchitectures: noarch
 Requires: perl >= %{perlversion}
 Requires: perl-BSD-Resource >= 1.15
 Requires: perl-Config-Record >= 1.0.0
-
+Requires: perl-Template
+Requires: perl-IO-stringy
+Requires: perl-Digest-MD5
 
 %description
 Test-AutoBuild is a PERL framework for performing continuous, unattended, 
@@ -58,7 +60,7 @@ make
 %install
 rm -rf $RPM_BUILD_ROOT
 
-make sysconfdir=$RPM_BUILD_ROOT/etc INSTALLvendorMAN3DIR=$RPM_BUILD_ROOT%{perlvendorman3} install
+make sysconfdir=$RPM_BUILD_ROOT/etc INSTALLVENDORMAN3DIR=$RPM_BUILD_ROOT%{perlvendorman3} install
 find $RPM_BUILD_ROOT%{perlvendorarch} -name perllocal.pod -exec rm -f {} \;
 
 

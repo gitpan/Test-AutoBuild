@@ -28,9 +28,6 @@ discussions on the developers mailing list
    
  * Subversion: Support for subversion source control repository
  
- * CVS Updates: Allow detection of CVS updates for complete integration 
-   with build caching system.
-
  * Co-ordinated parallelisation: Allow multiple instances to be run
    on different machines each performing separate task. For example,
    one machine would perform builds. At end of each cycle this would

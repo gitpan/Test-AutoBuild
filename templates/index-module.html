@@ -1,46 +1,17 @@
-<html>
-  <head>
-    <title>Auto Build: [% status %]</title>
-    [% INCLUDE 'stylesheet.html' %]
-  </head>
+[% WRAPPER page.tt %]
+  <h2>Modules</h2>
 
-  <body bgcolor="white" text="black">
-
-  [% INCLUDE 'header.html' %]
-
-    <h3 style="background: rgb(232,232,232)">Modules</h3>
-
-    [% IF modules.size > 0 %]
-    
-    <table cellspacing="0" cellpadding="2" border="0">
-    [% FOREACH modules %]
-    <tr>
-    <th align="left">
-    <a href="module-[% name %].html">[% label %]</a>
-    </th>
-    
-    <td>
-    [% IF status == 'failed' %]
-    <span style="color: rgb(200,0,0)">
-    [% ELSIF status == 'skipped' %]
-    <span style="color: rgb(200,0,200)">
-    [% ELSE %]
-    <span style="color: rgb(0,200,0)">
-    [% END %]
-    [% status %]</span></td>
-    </tr>
-    [% END %]
+  [% IF modules.size > 0 %]
+    <table class="modules">
+      [% FOREACH modules %]
+        <tr>
+          <th><a href="module-[% name %].html">[% label %]</a></th>
+          <td class="[% status %]">[% status %]</td>
+        </tr>
+      [% END %]
     </table>
     
-    [% ELSE %]
-    <p>
-    No modules were built
-    </p>
-    [% END %]
-
-<hr>
-<p align="right">
-Administrator: <a href="mailto:berrange@redhat.com">Daniel Berrange</a>
-</p>
-  </body>
-</html>
+  [% ELSE %]
+    <p>There are no modules defined</p>
+  [% END %]
+[% END %]
