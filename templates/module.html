@@ -1,0 +1,67 @@
+<html>
+  <head>
+    <title>Auto Build: [% module %]</title>
+    [% INCLUDE 'stylesheet.html' %]
+  </head>
+
+  <body bgcolor="white" text="black">
+
+  [% INCLUDE 'header.html' %]
+
+    [% FOREACH modules %]
+    [% IF module == name %]
+    [% IF status == 'failed' %]
+    <h3 style="background: rgb(192,128,128)">[% label %]</h3>
+    [% ELSE %]
+    <h3 style="background: rgb(232,232,232)">[% label %]</h3>
+    [% END %]
+
+      <p><b>Log File:</b> <code><a href="[% logURL %]">[% logFilename %]</a></code></p>
+      <p><b>Build Time:</b> [% buildTime %]</p>
+      
+      [% IF status == 'success' or status == 'cache' %]
+      [% IF packages %]
+      <h4>Packages</h4>
+      <table border="0" cellspacing="3" cellpadding="0">
+        <tr>
+          <th>Filename</th>
+          <th>Size</th>
+          <th>MD5 Sum</th>
+        </tr>
+      [% FOREACH packages %]
+        <tr>
+          <td><code><a href="[% httpURL %]">[% filename %]</a></code>
+          <code><a href="[% ftpURL %]">[FTP]</a></code></td>
+          <td><code>[% prettysize %]</code></td>
+          <td><code>[% md5sum %]</code></td>
+        </tr>
+      [% END %]
+      </table>
+      [% ELSE %]
+      <div>
+      No packages found
+      </div>
+      [% END %]
+      [% ELSE %]
+      [% IF status == 'failed' %]
+      <p>
+        <strong style="color: rgb(200,0,0)">Build failed on this module</strong>
+      </p>
+      [% ELSIF status %] eq 'skipped')$
+      <p>
+        <strong style="color: rgb(200,0,200)">Module skipped because dependency failed during build</strong>
+      </p>
+      [% ELSE %]
+      <p>
+        Module not built. Status: [% status %]
+      </P>
+      [% END %]
+      [% END %]
+    [% END %]
+    [% END %]
+<hr>
+<p align="right">
+Administrator: <a href="mailto:berrange@redhat.com">Daniel Berrange</a>
+</p>
+  </body>
+</html>

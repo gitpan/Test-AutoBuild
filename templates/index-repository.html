@@ -1,0 +1,41 @@
+<html>
+  <head>
+    <title>Auto Build: [% status %]</title>
+    [% INCLUDE 'stylesheet.html' %]
+  </head>
+
+  <body bgcolor="white" text="black">
+
+  [% INCLUDE 'header.html' %]
+    
+    [% FOREACH repositories %]
+    [% IF modules.size > 0 %]
+    <h3 style="background: rgb(232,232,232)">[% label %]</h3>
+    <table cellspacing="0" cellpadding="2" border="0">
+    [% FOREACH modules %]
+    <tr>
+    <th align="left">
+    <a href="module-[% name %].html">[% label %]</a>
+    </th>
+    
+    <td>
+    [% IF status == 'failed' %]
+    <span style="color: rgb(200,0,0)">
+    [% ELSIF status == 'skipped' %]
+    <span style="color: rgb(200,0,200)">
+    [% ELSE %]
+    <span style="color: rgb(0,200,0)">
+    [% END %]
+    [% status %]</span></td>
+    </tr>
+    [% END %]
+    </table>
+    [% END %]
+    [% END %]
+
+<hr>
+<p align="right">
+Administrator: <a href="mailto:berrange@redhat.com">Daniel Berrange</a>
+</p>
+  </body>
+</html>
