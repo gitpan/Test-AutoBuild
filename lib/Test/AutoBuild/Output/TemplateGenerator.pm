@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: TemplateGenerator.pm,v 1.1.2.3 2004/09/16 09:23:38 danpb Exp $
+# $Id: TemplateGenerator.pm,v 1.1.2.4 2005/01/30 13:52:18 danpb Exp $
 
 =pod
 
@@ -121,15 +121,15 @@ sub _generate_templates {
         my $customvars = $self->option("variables") || {};
         
 	my %vars;
-        foreach (keys %{$customvars}) {
-            $vars{$_} = $customvars->{$_};
-        }
 	foreach (keys %{$globalvars}) {
 	    $vars{$_} = $globalvars->{$_};
 	}
 	foreach (keys %{$localvars}) {
 	    $vars{$_} = $localvars->{$_};
 	}
+        foreach (keys %{$customvars}) {
+            $vars{$_} = $customvars->{$_};
+        }
 	
         if (!$template->process($src, \%vars, $fh)) {
 	    warn $template->error->as_string;

@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: CVS.pm,v 1.3.2.1 2004/06/13 13:25:00 danpb Exp $
+# $Id: CVS.pm,v 1.3.2.2 2005/04/02 16:53:31 danpb Exp $
 
 =pod
 
@@ -93,6 +93,7 @@ sub export {
     my $changed = 0;
     foreach (split /\n/, $output) {
 	next if /^cvs server:/;
+        next if /^\s*\?/;
 	$changed = 1;
     }
 

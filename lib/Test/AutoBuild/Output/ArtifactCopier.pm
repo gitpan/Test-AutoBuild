@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: ArtifactCopier.pm,v 1.1.2.2 2004/09/16 09:23:00 danpb Exp $
+# $Id: ArtifactCopier.pm,v 1.1.2.3 2005/03/28 22:15:17 danpb Exp $
 
 =pod
 
@@ -117,7 +117,9 @@ sub process {
 	    confess "cannot find publisher $artifact->{publisher}\n"
 		unless $publisher;
 	    
-	    if (-e $src) {
+            # Allow throw if its a single file that exists,
+            # or if its a glob
+	    if (-e $src or $src =~ /\*/) {
 		#print "Publishing $src to $dst\n";
 		
 		$publisher->publish($src, $dst);

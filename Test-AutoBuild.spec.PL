@@ -1,6 +1,6 @@
 # Copyright (C) 2001-2004 Daniel Berrange <dan@berrange.com>
 #
-# $Id: Test-AutoBuild.spec.PL,v 1.3.2.1 2004/06/13 13:32:51 danpb Exp $
+# $Id: Test-AutoBuild.spec.PL,v 1.3.2.3 2005/03/28 22:16:28 danpb Exp $
 
 use strict;
 
@@ -41,10 +41,10 @@ BuildRoot: /var/tmp/%{appname}-%{version}-root
 BuildArchitectures: noarch
 Requires: perl >= %{perlversion}
 Requires: perl-BSD-Resource >= 1.15
-Requires: perl-Config-Record >= 1.0.0
-Requires: perl-Template
+Requires: perl-Config-Record >= 1.1.0
+Requires: perl-Template-Toolkit
 Requires: perl-IO-stringy
-Requires: perl-Digest-MD5
+#Requires: perl-Digest-MD5
 
 %description
 Test-AutoBuild is a PERL framework for performing continuous, unattended, 
@@ -61,8 +61,8 @@ make
 rm -rf $RPM_BUILD_ROOT
 
 make sysconfdir=$RPM_BUILD_ROOT/etc INSTALLVENDORMAN3DIR=$RPM_BUILD_ROOT%{perlvendorman3} install
-find $RPM_BUILD_ROOT%{perlvendorarch} -name perllocal.pod -exec rm -f {} \;
-
+find $RPM_BUILD_ROOT -name perllocal.pod -exec rm -f {} \;
+find $RPM_BUILD_ROOT -name .packlist -exec rm -f {} \;
 
 install -d -m 0755 $RPM_BUILD_ROOT/var/builder/build-home
 install -d -m 0755 $RPM_BUILD_ROOT/var/builder/build-root
@@ -91,6 +91,8 @@ install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/debian
 
 echo "/1 :pserver:anonymous@cvs.gna.org:2401/cvs/testautobuild A" >> $RPM_BUILD_ROOT/var/builder/.cvspass
 chmod 0600 $RPM_BUILD_ROOT/var/builder/.cvspass
+
+echo "%%_topdir /var/builder/packages/rpm" >> $RPM_BUILD_ROOT/var/builder/.rpmmacros
 
 %clean
 rm -rf $RPM_BUILD_ROOT

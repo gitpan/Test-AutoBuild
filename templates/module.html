@@ -5,18 +5,18 @@
   <h2>Module: [% name %]</h2>
 
   <table id="summary">
-    <tr>
+    <tr class="odd">
       <th>Log file:</th>
       <td class="logfile"><a href="logs/[% logFilename %]">[% logFilename %]</a></td>
     </tr>
-    <tr>
+    <tr class="even">
       <th>Build time:</th>
       <td>[% buildTime %]</td>
     </tr>
     [% IF status == 'success' or status == 'cache' %]
       [% IF links.size > 0 %]
       [% FOREACH links %]
-      <tr>
+      <tr class="[% IF loop.index() % 2 == 0 %]odd[%ELSE%]even[%END%]">
         <th>[%IF loop.index() == 0 %]Links[%END%]</th>
         <td><a href="[% href %]">[% label %]</a></td>
       </tr>
@@ -25,9 +25,9 @@
 
       [% IF artifacts.size > 0 %]
       [% FOREACH artifacts %]
-      <tr>
+      <tr class="[% IF (links.size + loop.index()) % 2 == 0 %]odd[%ELSE%]even[%END%]">
         <th>[%IF loop.index() == 0 %]Artifacts[%END%]</th>
-        <td><a href="artifacts/[% path %]">[% label %]</a></td>
+        <td><a href="artifacts/[%name%]/[% path %]">[% label %]</a></td>
       </tr>
       [% END %]
       [% END %]
@@ -62,7 +62,7 @@
   [% ELSE %]
     [% IF status == 'failed' %]
       <p class="failed">Build failed on this module</p>
-    [% ELSIF status %] eq 'skipped')$
+    [% ELSIF status == 'skipped' %]
       <p class="skipped">Module skipped because dependency failed during build</p>
     [% ELSE %]
       <p>Module not built. Status: [% status %]</p>

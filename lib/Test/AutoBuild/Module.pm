@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Module.pm,v 1.2.2.2 2004/09/16 09:22:20 danpb Exp $
+# $Id: Module.pm,v 1.2.2.4 2005/01/30 13:54:29 danpb Exp $
 
 =pod
 
@@ -117,7 +117,7 @@ sub new {
     $self->{build_log} = '';
     $self->{build_date} = undef;
     $self->{build_time} = undef;
-    $self->{build_log_filename} = "$self->{name}." . time . ".log";
+    $self->{build_log_filename} = $self->{name} . ".log";
     $self->{build_status} = 'pending';
     $self->{control_file} = exists $params{controlfile} ? $params{controlfile} : './rollingbuild.sh';
 
@@ -437,7 +437,7 @@ sub do_build {
     $self->build_log($cmd_output);
 
     if ($? == 0) {
-        $self->build_status_from_log($cmd_output);
+        $self->build_status('success');
     } else {
         $self->build_status('failed');
     }
@@ -511,22 +511,6 @@ sub build {
     }
 
     $self->do_build($cache, $modules);
-}
-
-sub build_status_from_log {
-    my $self = shift;
-    my $log = shift;
-
-    # This is a pretty grotty hack. In fact, this whole function is
-    # a nasty piece of work. Scripts should fail by dieing. It's only
-    # a strangeness of ant that they don't.
-
-    if ($log =~ m/\s+FAILED\s+/ || $log =~ m/\s+ERROR\s+/) {
-        $self->build_status('failed');
-        return;
-    }
-
-    $self->build_status('success');
 }
 
 

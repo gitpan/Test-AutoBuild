@@ -1,61 +1,4 @@
- /***********************************************
- * First of all are some generic style settings 
- * for the whole page. These are specifically
- * designed to work around some fsckups in 
- * netscapes css implemenetation, while keeping
- * forwards compatability
- ***********************************************/
-
-/* Set out the default styles for the document */
-body {
-  font-family: Verdana,Helvetica,Arial,sans-serif;
-  font-size: 76%;
-}
-
-p,ul,ol,dl {
-  font-size: 1em;
-}
-
-th {
-  font-weight: bold;
-}
-
-/* Set the attributes which are common to all headings */
-h1,h2,h3,h4,h5,h6 {
-  font-weight: bold;
-}
-
-/* Now simply give each heading its own font size */
-h1 { font-size: 2em; }
-h2 { font-size: 1.8em; }
-h3 { font-size: 1.6em; }
-h4 { font-size: 1.4em; }
-h5 { font-size: 1.2em; }
-h6 { font-size: 1em; }
-
-/* Want to make sure that pre uses a fixed width font */
-pre { font-family: Courier, monospace; font-size: 1em }
-
-/* All of these tags are use bold font by default */
-strong,b { font-weight: bold; }
-
-/* All of these tags use italic font by default */
-em,i,cite,dfn,var { font-style: italic; }
-
-/* All of these tags use fixed width font by default */
-samp,code,tt,kbd { font-family: Courier, monospace; }
-
-/**************************************************
- * Now the auto build specific styles
- **************************************************/
-
-/*
-# Red 2c406d 
-# Dark red 4464ac 4464ac
-# Gray 777777 777777
-# light gray e6e6e6 - e6e6e6
-# 
-*/
+@import url(generic.css);
 
 * {
   padding: 0px;
@@ -87,7 +30,13 @@ h2 {
   border-top: 1px solid #000000;  
 }
 
-#status {
+#logo {
+  position: absolute;
+  top: 100px;
+  right: 20px;
+}
+
+#status table {
   border: 1px solid black;
   background-color: #ffffff;
   color: #000000;
@@ -208,12 +157,12 @@ table.modules td.failed {
   color: #000000;
 }
 
-#packages tbody tr.odd, #isos tbody tr.odd {
+#packages tbody tr.odd, #isos tbody tr.odd, #status tr.odd, #summary tr.odd {
   background-color: #ffffff;
   color: #000000;
 }
 
-#packages tbody tr.even, #isos tbody tr.event {
+#packages tbody tr.even, #isos tbody tr.even, #status tr.even, #summary tr.even {
   background-color: #e6e6e6;
   color: #000000;
 }

@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: AutoBuild.pm,v 1.6.2.3 2004/10/10 19:14:33 danpb Exp $
+# $Id: AutoBuild.pm,v 1.6.2.4 2005/03/28 22:16:28 danpb Exp $
 
 =pod
 
@@ -362,7 +362,7 @@ use File::Spec;
 use POSIX qw(strftime);
 
 use vars qw($VERSION);
-$VERSION = '1.0.2';
+$VERSION = '1.0.3';
 
 =pod
 
@@ -454,12 +454,12 @@ sub run
 
     my $abort_on_fail = $self->config("abort-on-fail", 0);
 
-    my $lockfile = $self->config("lock.file", "$ENV{HOME}/.build.mutex");
-    my $flocking = $self->config("lock.use-flock", "0");
+    my $lockfile = $self->config("lock/file", "$ENV{HOME}/.build.mutex");
+    my $flocking = $self->config("lock/use-flock", "0");
 
-    my $use_cache = $self->config("build.cache", "0");
-    my $cache_timestamp = $self->config("build.cache-timestamp", "0");
-    my $cache_dir = $self->config("build.cache-dir", "$ENV{HOME}/.build-cache");
+    my $use_cache = $self->config("build/cache", "0");
+    my $cache_timestamp = $self->config("build/cache-timestamp", "0");
+    my $cache_dir = $self->config("build/cache-dir", "$ENV{HOME}/.build-cache");
     my $cache = undef;
 
     if ($use_cache) {
@@ -469,13 +469,13 @@ sub run
 
     # $build_home is where we check out the source to (for CVS). Pretty
     # much unused for Perforce builds.
-    my $build_home = $self->config("build.home", "$ENV{HOME}/build_home");
+    my $build_home = $self->config("build/home", "$ENV{HOME}/build_home");
 
     # $build_root can be used as the fake "root" directory for
     # configure --prefix $AUTO_BUILD_ROOT/usr (if you wish).
-    my $build_root = $self->config("build.root", "$ENV{HOME}/.build");
+    my $build_root = $self->config("build/root", "$ENV{HOME}/.build");
 
-    my $package_dir = $self->config("package.dir", "$ENV{HOME}/public_html");
+    my $package_dir = $self->config("package/dir", "$ENV{HOME}/public_html");
 
     my $repositories
         = Test::AutoBuild::Lib::load_repositories($self->{config});

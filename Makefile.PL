@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.4.2.1 2004/06/13 13:32:51 danpb Exp $
+# $Id: Makefile.PL,v 1.4.2.2 2005/03/28 22:16:28 danpb Exp $
 # -*- perl -*-
 
 use ExtUtils::MakeMaker;
@@ -19,7 +19,7 @@ WriteMakefile(
                  'Sys::Hostname' => '0',
                  'Digest::MD5' => '0',
                  'Fcntl' => '0',
-                 'Config::Record' => '1.0.3',
+                 'Config::Record' => '1.1.0',
                  'Template' => '0',
                  'POSIX' => '0'
               },
@@ -71,6 +71,7 @@ install ::
 	install -c -m 0644 templates/*.txt $(pkgsysconfdir)/templates/
 	install -c -m 0644 templates/*.html $(pkgsysconfdir)/templates/
 	install -c -m 0644 templates/*.tt $(pkgsysconfdir)/templates/
+	install -c -m 0644 templates/*.png $(pkgsysconfdir)/templates/
 	install -c -m 0644 templates/*.css $(pkgsysconfdir)/templates/
 	install -c -m 0644 templates/*.rss $(pkgsysconfdir)/templates/
 ';

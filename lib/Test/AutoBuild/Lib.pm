@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Lib.pm,v 1.3.2.3 2004/09/16 09:24:26 danpb Exp $
+# $Id: Lib.pm,v 1.3.2.5 2005/04/02 16:26:38 danpb Exp $
 
 =pod
 
@@ -65,6 +65,7 @@ use Carp qw(confess);
 use Test::AutoBuild::Group;
 use Test::AutoBuild::Module;
 use Test::AutoBuild::PackageType;
+use File::Glob ':glob';
 use File::Copy;
 use File::Path;
 use File::stat;
@@ -549,9 +550,32 @@ sub run {
 }
 
 sub _copy {
+    my $attrs = ['mode','ownership','timestamps','links'];
+    my $default_options = {
+        "link" => 0,
+        "preserve" => {
+            'mode' => 0,
+            'ownership' => 0,
+            'links' => 0
+            },
+        "symbolic-link" => 0,
+    };
+    my $options = shift;
+    if (ref($options) ne "HASH") {
+        unshift @_, $options;
+        $options = $default_options;
+    } else {
+        while (my ($key, $value) = each %$default_options) {
+            $options->{$key} = $value unless exists $options->{$key};
+        }
+    }
+    if ($options->{preserve}->{all}) {
+        for (@$attrs) {
+            $options->{preserve}->{$_} = 1;
+        }
+    }
+    my $target = pop;
     my @source = @_;
-    my $target = pop @source;
-
     if (@source < 1) {
         if (defined $target) {
             die "no target specified";
@@ -559,45 +583,66 @@ sub _copy {
             die "no source or target specified";
         }
     }
-    if (@source > 1 && -e $target && ! -d $target) {
-        die "multiple sources specified but '$target' exists and is not a directory";
+    my @expanded_sources;
+    for (@source) {
+        push @expanded_sources, bsd_glob($_);
     }
-    my $cat_dirs = 0;
-    if (-d $target) {
-	$cat_dirs = 1;
-    }
-    foreach (@source) {
-        $_ = File::Spec->canonpath($_);
-	if (!-e) {
-	    confess "Source file $_ to copy does not exist\n";
-	}
 
-        if (-d && !-l) {
-            my $dir = $_;
-            my @dirs = File::Spec->splitdir($dir);
-            my $new_target = $cat_dirs ? File::Spec->catdir($target, $dirs[$#dirs]) : $target;
-            my @files;
-            opendir(DIR, $dir) or die("can't opendir $dir: $!");
-            push @files, grep { !m/^\.$/ && !m/^\.\.$/ } readdir(DIR);
-            closedir DIR;
-            foreach (@files) { $_ = File::Spec->catfile($dir, $_) };
-            mkpath($new_target);
-            @files > 0 && _copy (@files, $new_target);
+    if (@expanded_sources > 1 && ! -d $target) {
+        if (-e $target) {
+            die "multiple sources specified but '$target' is not a directory";
+	}
+        eval {
+            mkpath($target);
+        };
+        if ($@) {
+            die "could not create directory '$target': $@";
+        }
+    }
+    foreach (@expanded_sources) {
+        $_ = File::Spec->canonpath($_);
+        my $newfile = -d $target ? File::Spec->catfile($target,(File::Spec->splitpath($_))[-1]) : $target;
+        if (-l && $options->{preserve}->{links}) {
+            symlink (readlink, $newfile);
+            &setStats($newfile, lstat($_));
         } else {
-	    my @dirs = File::Spec->splitdir($target);
-	    if (@dirs > 1) {
-		pop @dirs;
-		mkpath(File::Spec->catfile(@dirs));
-	    }
-            my $newfile = -d $target ? File::Spec->catfile($target,(reverse File::Spec->splitpath($_))[0]) : $target;
-            if (-l $_) {
-                symlink (readlink, $newfile);
-                &setStats($newfile, lstat($_));
+            if (!-e) {
+                confess "cannot stat '$_': No such file or directory";
+            } elsif (-d) {
+                my $dir = $_;
+                my @dirs = File::Spec->splitdir($dir);
+                my $new_target = File::Spec->catdir($target, $dirs[$#dirs]);
+                my @files;
+                opendir(DIR, $dir) or die("can't opendir $dir: $!");
+                push @files, grep { !m/^\.$/ && !m/^\.\.$/ } readdir(DIR);
+                closedir DIR;
+                foreach (@files) { $_ = File::Spec->catfile($dir, $_) };
+                eval {
+                    mkpath($new_target);
+                };
+                if ($@) {
+                    die "could not create directory '$new_target': $@";
+                }
+                @files > 0 && _copy (@files, $new_target);
             } else {
-                if (!copy($_, $target)) {
-		    confess "cannot copy $_ to $target: $!";
-		}
-                &setStats($newfile, stat($_));
+                my @dir = File::Spec->splitdir($newfile);
+                pop @dir;
+                my $basedir = File::Spec->catdir(@dir);
+                eval {
+                    mkpath($basedir);
+                };
+                if ($@) {
+                    die "could not create directory '$basedir': $@";
+                }
+
+                if (-f && $options->{'symbolic-link'}){
+                    symlink ($_, $newfile);
+                } elsif (-f && $options->{link}){
+                    link ($_, $newfile);
+                } else {
+                    copy($_, $newfile);
+                    &setStats($newfile, stat($_));
+                }
             }
         }
     }
@@ -606,6 +651,8 @@ sub _copy {
 sub setStats {
     my $file = shift;
     my $sb = shift;
+    confess "called setStats with an undefined file" unless defined $file;
+    confess "called setStats with an undefined sb" unless defined $sb;
     chmod ($sb->mode, $file);
     chown ($sb->uid, $sb->gid, $file);
 }
