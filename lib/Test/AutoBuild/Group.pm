@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Group.pm,v 1.3.2.1 2004/06/13 13:24:21 danpb Exp $
+# $Id: Group.pm,v 1.3.2.2 2004/08/16 09:05:37 danpb Exp $
 
 =pod
 
@@ -47,6 +47,10 @@ The Test::AutoBuild::Group module provides for simple
 grouping of modules. Its primary purpose is to allow
 the list of modules in HTML status pages to be split
 up into groups for easy browsing.
+
+=head1 CONFIGURATION
+
+The valid configuration options for the C<groups> block are
 
 =head1 METHODS
 

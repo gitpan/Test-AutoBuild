@@ -30,4 +30,8 @@ to suit your environment & modules. The build can be invoked with
    
    autobuild.pl --config /etc/autobuild/autobuild.conf
 
+
+More details on installation can be found in the manual page for
+the Test::AutoBuild module
+
 -- End of file

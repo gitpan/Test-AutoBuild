@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: HTMLStatus.pm,v 1.1.2.1 2004/06/13 13:30:45 danpb Exp $
+# $Id: HTMLStatus.pm,v 1.1.2.3 2004/09/23 23:12:03 danpb Exp $
 
 =pod
 
@@ -75,6 +75,7 @@ sub process {
     my $groups = shift;
     my $repositories = shift;
     my $package_types = shift;
+    my $publishers = shift;
 
     my @modules;
 
@@ -102,6 +103,19 @@ sub process {
 
         my $logfile = $modules->{$name}->build_log_filename;
 
+	my $links = $modules->{$name}->links();
+	my $artifacts = $modules->{$name}->artifacts();
+	
+	my @artifacts;
+	foreach my $artifact (@{$artifacts}) {
+	    next unless $artifact->{label};
+
+	    push @artifacts, {
+		label => $artifact->{label},
+		path => $artifact->{dst},
+	    };
+	}
+
         my $mod = {
             'name' => $name,
             'label' => $modules->{$name}->label,
@@ -109,9 +123,11 @@ sub process {
             'group' => $modules->{$name}->group,
             'repository' => $modules->{$name}->repository,
             'buildTime' => Test::AutoBuild::Lib::pretty_time($modules->{$name}->build_time),
-            'buildDate' => scalar (Test::AutoBuild::Lib::pretty_date($modules->{$name}->build_date)),
+            'buildDate' => Test::AutoBuild::Lib::pretty_date($modules->{$name}->build_date),
             'logFilename' => $logfile,
             'packages' => \@packs,
+	    'links' => $links,
+	    'artifacts' => \@artifacts
         };
 
         push @modules, $mod;
@@ -147,10 +163,23 @@ sub process {
         push @repositories, $entry;
     }
     
+    my @package_types;
+    foreach my $name (sort keys %{$package_types}) {
+        my $package_type = $package_types->{$name};
+        
+        my $entry = {
+            name => $name,
+            label => $package_type->label,
+        };
+        
+        push @package_types, $entry;
+    }
+    
     my %vars = (
                 'modules' => \@modules,
                 'groups' => \@groups,
                 'repositories' => \@repositories,
+                'package_types' => \@package_types,
                 );
     $self->_generate_templates($modules, $groups, $repositories, $package_types, \%vars);
 }

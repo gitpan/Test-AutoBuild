@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: TemplateGenerator.pm,v 1.1.2.1 2004/06/13 13:30:45 danpb Exp $
+# $Id: TemplateGenerator.pm,v 1.1.2.3 2004/09/16 09:23:38 danpb Exp $
 
 =pod
 
@@ -50,6 +50,7 @@ use Test::AutoBuild::Output;
 use POSIX qw(strftime);
 use Template;
 use File::Spec;
+use Sys::Hostname;
 
 use strict;
 use vars qw(@ISA);
@@ -107,6 +108,7 @@ sub _generate_templates {
     $globalvars->{'localtime'} = strftime ("%H:%M:%S %Z", localtime);
     $globalvars->{'cycleTime'} = Test::AutoBuild::Lib::pretty_time($cycle_time);
     $globalvars->{'buildCounter'} = $ENV{AUTO_BUILD_COUNTER};
+    $globalvars->{'hostname'} = hostname();
 
     foreach my $file (@{$files}) {
         my ($src, $dst, $localvars) = @{$file};
@@ -154,7 +156,7 @@ sub _expand_templates {
 	} else {
 	    $src = $dst = $_;
 	}
-	print "Adding $src, $dst\n";
+	#print "Adding $src, $dst\n";
 	push @in, [ $src, $dst, { templateSrc => $src, templateDst => $dst } ];
     }
 

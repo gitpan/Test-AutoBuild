@@ -1,6 +1,16 @@
 Change Log for Test::AutoBuild
 ==============================
 
+v1.0.2: (10-10-2004)
+--------------------
+
+ * Added installation documentation to Test::AutoBuild module
+ * Added configuration option documentation to many modules
+ * Backported Subversion repository plugin
+ * Fixed manifest to include CVS repository plugin
+ * Added ability to specify arbitrary hyper links per module
+ * Added ability to copy arbitrary build artifacts to web root
+
 v1.0.1: (14-06-2004)
 --------------------
 

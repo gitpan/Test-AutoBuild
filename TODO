@@ -26,8 +26,6 @@ discussions on the developers mailing list
    build & installed to be performed within a UML session representing
    a pristine installed distribution.
    
- * Subversion: Support for subversion source control repository
- 
  * Co-ordinated parallelisation: Allow multiple instances to be run
    on different machines each performing separate task. For example,
    one machine would perform builds. At end of each cycle this would

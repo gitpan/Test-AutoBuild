@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: AutoBuild.pm,v 1.6.2.1 2004/06/13 13:23:33 danpb Exp $
+# $Id: AutoBuild.pm,v 1.6.2.3 2004/10/10 19:14:33 danpb Exp $
 
 =pod
 
@@ -46,6 +46,303 @@ workflow process for running the build. In a future release of
 autobuild, this module will be re-written to allow the workflow
 to be defined through the configuration file.
 
+=head1 SETUP
+
+After installing the modules, the first setup step is to create
+an unprivileged user to run the build as. By convention the 
+user is called 'builder', in a similarly named group and a home 
+directory of /var/builder. So as root, execute the following 
+commands:
+
+ $ groupadd builder
+ $ useradd -g builder -m -d /var/builder builder
+
+NB, with the combined contents of the source checkout, the cache 
+and the virtual installed root, and HTTP site, the disk space
+requirements can be pretty large for any non-trivial software.
+Based on the applications being built, anywhere between 100MB
+and many GB of disk space make be neccessary. For Linux, making
+/var/builder a dedicated partition with LVM (Logical Volume
+Manager) will enable additional space to be easily grafted on
+without requiring a re-build.
+
+The next step is to create the basic directory structure within
+the user's home directory for storing the various files. This
+should all be done while logged in as the build user:
+
+  # Where source code will be checked out to  
+  $ mkdir /var/builder/build-home
+
+  # Where packages will install themselves
+  $ mkdir /var/builder/build-root
+
+  # Where the builder will cache installed files
+  $ mkdir /var/builder/build-cache
+
+  # Where HTML status pages will be generated
+  # and packages / logs copied
+  $ mkdir /var/builder/public_html
+
+  # Where FTPable packages will be copied
+  $ mkdir /var/builder/public_ftp
+
+  # Required output dirs when building various 
+  # different types of packages
+  $ mkdir /var/builder/packages
+  $ mkdir /var/builder/packages/rpm
+  $ mkdir /var/builder/packages/rpm/BUILD
+  $ mkdir /var/builder/packages/rpm/RPMS
+  $ mkdir /var/builder/packages/rpm/RPMS/noarch
+  $ mkdir /var/builder/packages/rpm/RPMS/i386
+  $ mkdir /var/builder/packages/rpm/RPMS/i486
+  $ mkdir /var/builder/packages/rpm/RPMS/i586
+  $ mkdir /var/builder/packages/rpm/RPMS/i686
+  $ mkdir /var/builder/packages/rpm/RPMS/i786
+  $ mkdir /var/builder/packages/rpm/RPMS/sparc
+  $ mkdir /var/builder/packages/rpm/SPECS
+  $ mkdir /var/builder/packages/rpm/SOURCES
+  $ mkdir /var/builder/packages/rpm/SRPMS
+  $ mkdir /var/builder/packages/zips
+  $ mkdir /var/builder/packages/tars
+  $ mkdir /var/builder/packages/debian
+
+=head1 CONFIGURATION
+
+The first level of parameters in the configuration file
+are processed by this module. The currently supported
+parameters are:
+
+=over 4
+
+=item debug = 0
+
+Boolean value to turns on/off debugging output
+of build workflow engine
+
+=item checkout-source = 0
+
+Boolean value to turn on/off checkout of source
+code. When debugging build configuration, it is
+sometimes useful to turn off checkout of the
+module source files. By setting this value to 1,
+checkout will be disabled, letting the build run
+against the previously checked out source.
+
+=item nice-level = 20
+
+Sets the schedular 'nice' priority. Software builds can
+impose a considerable load on a machine, so by setting
+the nice-level to +20, the operating system schedular
+is informed that the automatic build should be run with
+lowest priority on the system. This often helps interactivity
+of command line shells on the build server. Since builds
+should never be run as root, the values for this setting
+can range from 0 (normal) to 20 (low).
+
+=item control-file = rollingbuild.sh
+
+Sets name of the shell file to execute to perform the
+build on a module. There is generally no need to change
+this value.
+
+=item abort-on-fail = 0
+
+Boolean value determining whether the build cycle terminates
+immediately when a module fails to build. Since the build
+engine will automatically skip any dependant modules upon
+failure of their pre-requisite, there is generally no need to 
+set this value to 1. 
+
+=item tmp-dir = /var/tmp
+
+Occassionally the build engine needs to maintain temporary
+files. This setting determines which directory the files
+will be saved in.
+
+=back
+
+=head2 Build sub-configuration
+
+The C<build> sub-configuration block defines options specifically
+related to the build process. These are all defined within a 
+block:
+
+  build = {
+     .. options ...
+  }
+
+=over 4
+
+=item home = /var/builder/build-home
+
+Build home refers to the directory into which modules are
+checked out from source control repository.
+
+=item root = /var/builder/build-root
+
+Build root refers to the virtual root directory into which
+module builds will install files. When the module build is
+invoked, this parameter will be provided in the AUTO_BUILD_ROOT
+environment variable, allowing it to be used when running
+make install (or equivalent action). eg 'make install DESTDIR=$AUTO_BUILD_ROOT'
+
+=item cache-dir = /var/builder/build-cache
+
+Build cache refers to the directory in which the build
+engine caches files between cycles. There are currently 
+two sets of files which are cached, generated packages
+(ie RPMs, ZIPs, etc), and installed files from the virtual
+root directory.
+
+=item cache = 1
+
+Boolean flag to determine whether to use the build cache.
+The build engine detects whether there have been any changes 
+in source control for a module & if none were made, then it
+will skip build of the module & install files from the cache
+into the build root & use previously detected packages. If 
+you want to force all modules to be re-built even when there
+were no changes, then set this to 0.
+
+=item cache-timestamp = 0
+
+As an alternative to having the build engine use the source
+control tools to detect any changes, it is possible to have
+it scan the local build home directory, comparing last
+modification timestamp to the last build cycle time. If any
+files are newer, then it will assume there were changes to
+the module. This option is only needed when the source control
+repository module does not support detection of changes. At
+this time all source control modules support change detection
+so there is no need to set this parameter to 1.
+
+=back
+
+=head2 Lock sub-configuration
+
+The C<lock> sub-configuration block defines options specifically
+related to the locking between build instances. These are all 
+defined within a block:
+
+    lock = {
+        ....options....
+    }
+
+=over 4
+
+=item file = /var/builder/.build.mutex
+
+The file to use to prevent multiple instances of the builder
+running concurrently. The typical cron configuration starts
+the builder every 5 minutes. The first action the builder will
+take is to try and lock the files, if it fails it will exit
+immediately.
+
+=item use-flock = 1
+
+The flock() system call is not safe on NFS partitions. If
+the lock file is on an NFS partition then set this value to
+zero to have the builder use an alternative lock mechanism,
+albeit one with a small race condition. This race condition
+generally does not matter, unless two instances are started
+at *exactly* the same time.
+
+=back
+
+=head2 Environment sub-configuration
+
+The C<env> configuration block allows arbitrary environment
+variales to be defined for the duration of the build
+process. The options should all be within a block
+
+    env = {
+        ...options...
+    }
+
+=over 4
+
+=item key = value
+
+The C<key> is the name of the environment variable (eg C<PATH>)
+while the value is an arbitrary string (eg C</usr/bin:/bin>).
+
+=back
+
+=head2 Group sub-configuration
+
+The C<group> configuration block defines a set of module
+groups. These groups are typically used in the build status
+HTML pages for splitting up the display of a large number
+of modules. Refer to the L<Test::AutoBuild::Group> module
+for details of the configuration options. The options should
+all be within a block
+
+    groups = {
+	....options...
+    }
+
+=head2 Package type sub-configuration
+
+The C<package-types> configuration block defines a set
+of package types to handle. The directory defined for
+each package type will be scanned before & after a module
+build to pick up any packages which were generated during
+the build. Refer to the L<Test::AutoBuild::PackageType>
+module for details of the configuration options.The options should
+all be within a block
+
+    package-types = {
+	....options...
+    }
+
+=head2 Repository sub-configuration
+
+The C<repositories> configuration block defines a set
+of source control repositories from which modules will
+be checked out. Refer to the L<Test::AutoBuild::Repository>
+module for details of the configuration options. The options should
+all be within a block
+
+    repositories = {
+	....options...
+    }
+
+=head2 Publisher sub-configuration
+
+The C<publisher> configuration block defines a set of
+publishers to use for copying module build artifacts to
+an output directory, typically within the HTTP site.
+Refer to the L<Test::AutoBuild::Publisher> module for
+details of the configuration options. The options should
+all be within a block
+
+    publishers = {
+	....options...
+    }
+
+=head2 Module sub-configuration
+
+The C<module> configuration block defines a set of modules
+to build on each cycle. Refer to the L<Test::AutoBuild::Module>
+module for details of the configuration options.The options should
+all be within a block
+
+    modules = {
+	....options...
+    }
+
+=head2 Output module sub-configuration
+
+The C<output> configuration block defines a set of output
+modules to run at the end of each build cycle.Refer to
+the L<Test::AutoBuild::Output> module for details of the
+configuration options.The options should
+all be within a block
+
+    output = {
+	....options...
+    }
+
 =head1 METHODS
 
 =over 4
@@ -63,10 +360,9 @@ use Fcntl ':flock';
 use File::Path;
 use File::Spec;
 use POSIX qw(strftime);
-use Sys::Hostname;
 
 use vars qw($VERSION);
-$VERSION = '1.0.1';
+$VERSION = '1.0.2';
 
 =pod
 
@@ -119,7 +415,32 @@ sub config
 
 =item $builder-run();
 
-Executes the build process.
+Executes the build process. This is the heart of the auto build
+engine. It performs the following actions:
+
+ * Reads the list of modules, source control repositories,
+   package types and output modules from the configuration
+   file
+ * Initializes the build cache
+ * Takes out an exclusive file lock to prevent > 1 builder 
+   running at the same time.
+ * Changes the (nice) priority of the AutoBuild process
+ * Checks the code for each module out of its respective 
+   source control repository.
+ * Does a topological sort to determine the build order
+   for all modules
+ * For each module to be built:
+    - Take a snapshot of the package & virtual root install 
+      directories
+    - Change to the top level source directory of the module
+    - Run the rollingbuild.sh script
+    - Take another snapshot & compare to determine which
+      files were install in the virtual root & which packages
+      were generated
+    - Save the intsalled files and packages in the cache.
+ * Invoke each requested output module, for example, HTML
+   status generator, package & log file copiers, email
+   alerts
 
 =cut
 
@@ -131,10 +452,7 @@ sub run
     my $checkout = $self->config("checkout-source", 1);
     my $nice_level = $self->config("nice-level", 20);
 
-    my $control_file = $self->config("control-file", "rollingbuild.sh");
-    my $cvsweb_url = $self->config("cvsweb-url", undef);
     my $abort_on_fail = $self->config("abort-on-fail", 0);
-    my $hostname = $self->config("hostname", hostname());
 
     my $lockfile = $self->config("lock.file", "$ENV{HOME}/.build.mutex");
     my $flocking = $self->config("lock.use-flock", "0");
@@ -165,6 +483,8 @@ sub run
         = Test::AutoBuild::Lib::load_outputs($self->{config});
     my $groups
         = Test::AutoBuild::Lib::load_groups($self->{config});
+    my $publishers
+        = Test::AutoBuild::Lib::load_publishers($self->{config});
 
     # %$package_types maps "name" => PackageType objects, where "name"
     # is a string like "rpm" or "pkg".
@@ -178,8 +498,6 @@ sub run
 
     my $tmpdir = $self->config("tmp-dir", "/var/tmp");
 
-    my $log_file_dir = "$tmpdir/buildlogs";
-    my $cvs_log_file = "$log_file_dir/cvs";
     my $tsort_input_file = "$tmpdir/tsort.in";
 
     #----------------------------------------------------------------------
@@ -208,14 +526,6 @@ sub run
     chdir $build_home or die "chdir: $build_home: $!";
 
     my $start_time = time;              # NB: Also used for epoch number.
-
-    #----------------------------------------------------------------------
-    # Make our log file directory.
-
-    if (-d $log_file_dir) {
-        rmtree($log_file_dir);
-    }
-    mkdir $log_file_dir, 0755 or die "cannot create log file directory: $log_file_dir $!";
 
     #----------------------------------------------------------------------
     # Global environment overrides
@@ -269,7 +579,7 @@ sub run
 
             my $changed = $repository->export ($name, $module, $groups);
 	    if ($changed) {
-		print "Module $module changed, so clearing cache\n" if $debug;
+		print "Module " . $module->name() . " changed, so clearing cache\n" if $debug;
 		$cache->clear($module->name());
 	    }
         }
@@ -371,7 +681,7 @@ sub run
             last;
         }
 
-        print "Done Building $name (" . Test::AutoBuild::Lib::pretty_date(time()) . ")\n" if $debug;
+        print "Done building $name (" . Test::AutoBuild::Lib::pretty_date(time()) . ")\n" if $debug;
 
         my $after
             = Test::AutoBuild::Lib::package_snapshot ($package_types);
@@ -396,7 +706,7 @@ sub run
         my $output = $outputs->{$name};
         print "Running output module " . ref($output) . "\n" if $debug;
         $0 = "Running: " . ref($output); # Change our name to reflect what we're doing.
-        $output->process ($modules, $groups, $repositories, $package_types);
+        $output->process ($modules, $groups, $repositories, $package_types, $publishers);
     }
 
     #----------------------------------------------------------------------
@@ -417,14 +727,14 @@ __END__
 
 =head1 AUTHORS
 
-%author%
+Daniel P. Berrange, Dennis Gregorovic
 
 =head1 COPYRIGHT
 
-Copyright (C) 2002 %author%
+Copyright (C) 2002 Daniel Berrange <dan@berrange.com>
 
 =head1 SEE ALSO
 
-L<perl(1)>
+L<perl(1)>, L<http://www.autobuild.org>
 
 =cut

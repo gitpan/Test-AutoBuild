@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Module.pm,v 1.2 2004/05/06 16:35:05 danpb Exp $
+# $Id: Module.pm,v 1.2.2.2 2004/09/16 09:22:20 danpb Exp $
 
 =pod
 
@@ -49,6 +49,10 @@ Test::AutoBuild::Module - represents a code module to be built
 
 The Test::AutoBuild::Module manages a single code module
 in the build.
+
+=head1 CONFIGURATION
+
+The valid configuration options for the C<modules> block are
 
 =head1 METHODS
 
@@ -102,6 +106,8 @@ sub new {
     $self->{label} = exists $params{label} ? $params{label} : confess "label parameter is required";
     $self->{paths} = exists $params{paths} ? $params{paths} : confess "paths parameter is required";
     $self->{repository} = exists $params{repository} ? $params{repository} : confess "repository parameter is required";
+    $self->{links} = exists $params{links} ? $params{links} : [];
+    $self->{artifacts} = exists $params{artifacts} ? $params{artifacts} : [];
     $self->{packages} = {};
     $self->{depends} = exists $params{depends} ? $params{depends} : [];
     $self->{env} = exists $params{env} ? $params{env} : {};
@@ -348,6 +354,41 @@ sub group {
     return $self->{group};
 }
 
+
+=pod
+
+=item my \@links = $module->links([\@links]);
+
+Returns an array ref of links associated with this
+module. Each element in the array is a hash reference.
+The keys in the hash reference are, C<title>, C<description>
+and C<href>.
+
+=cut
+
+sub links {
+    my $self = shift;
+    $self->{links} = shift if @_;
+    return $self->{links};
+}
+
+=pod
+
+=item my \@artifacts = $module->artifacts([\@artifacts]);
+
+Returns an array ref of artifacts to publish at the end
+of each build cycle. Each element in the array is a hash
+reference. The keys in the hash reference are, C<title>,
+C<destionation>, C<src>, C<dst>, and C<publisher>. 
+
+=cut
+
+sub artifacts {
+    my $self = shift;
+    $self->{artifacts} = shift if @_;
+    return $self->{artifacts};
+}
+
 sub build_log {
     my $self = shift;
     $self->{build_log} = shift if @_;
@@ -424,7 +465,7 @@ sub build {
         }
 
         if ( ! $all_deps_ok ) {
-            print "Not using cache because dependencies were not cached\n";
+            #print "Not using cache because dependencies were not cached\n";
         }
 
         if ( $cache_good && $all_deps_ok) {

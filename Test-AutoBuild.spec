@@ -10,7 +10,7 @@
 
 Summary: Framework for performing continuous, unattended, automated software builds
 Name: perl-%{appname}
-Version: 1.0.1
+Version: 1.0.2
 Release: 1
 Copyright: GPL
 Group: Applications/Internet

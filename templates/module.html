@@ -13,10 +13,29 @@
       <th>Build time:</th>
       <td>[% buildTime %]</td>
     </tr>
+    [% IF status == 'success' or status == 'cache' %]
+      [% IF links.size > 0 %]
+      [% FOREACH links %]
+      <tr>
+        <th>[%IF loop.index() == 0 %]Links[%END%]</th>
+        <td><a href="[% href %]">[% label %]</a></td>
+      </tr>
+      [% END %]
+      [% END %]
+
+      [% IF artifacts.size > 0 %]
+      [% FOREACH artifacts %]
+      <tr>
+        <th>[%IF loop.index() == 0 %]Artifacts[%END%]</th>
+        <td><a href="artifacts/[% path %]">[% label %]</a></td>
+      </tr>
+      [% END %]
+      [% END %]
+    [% END %]
   </table>
 
   [% IF status == 'success' or status == 'cache' %]
-    [% IF packages %]
+    [% IF packages.size > 0 %]
       <h3>Packages</h3>
 
       <table id="packages">
@@ -39,6 +58,7 @@
     [% ELSE %]
       <p>No packages were built/found for this module</p>
     [% END %]
+
   [% ELSE %]
     [% IF status == 'failed' %]
       <p class="failed">Build failed on this module</p>

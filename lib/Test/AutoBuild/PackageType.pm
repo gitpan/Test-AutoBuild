@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: PackageType.pm,v 1.1.2.1 2004/06/13 13:24:21 danpb Exp $
+# $Id: PackageType.pm,v 1.1.2.3 2004/09/16 09:22:31 danpb Exp $
 
 =pod
 
@@ -35,6 +35,10 @@ Test::AutoBuild::PackageType - Package type handling
 
 This module provides handling for package types (ie RPMs,
 Debs, Tar.gz, etc).
+
+=head1 CONFIGURATION
+
+The valid configuration options for the C<package-types> block are
 
 =head1 METHODS
 
@@ -167,7 +171,7 @@ sub do_clean {
     my $mins = $self->{clean};
 
     if (@spooldirs == 0) {
-        print "warning: no spool directories for $self->{name}\n";
+        warn "warning: no spool directories for $self->{name}\n";
     } else {
         if ($self->{filetype} eq "directory") {
             foreach (@spooldirs) {

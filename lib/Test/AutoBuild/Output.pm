@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Output.pm,v 1.3.2.1 2004/06/13 13:24:21 danpb Exp $
+# $Id: Output.pm,v 1.3.2.2 2004/08/16 09:05:37 danpb Exp $
 
 =pod
 
@@ -48,6 +48,10 @@ This module is used to generate post-build output such
 as HTML pages, email alerts. Subclasses must implement
 the C<process> method to perform whatever processing
 they require.
+
+=head1 CONFIGURATION
+
+The valid configuration options for the C<output> block are
 
 =head1 METHODS
 

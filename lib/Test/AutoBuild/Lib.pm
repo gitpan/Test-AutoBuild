@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Lib.pm,v 1.3.2.1 2004/06/13 13:28:20 danpb Exp $
+# $Id: Lib.pm,v 1.3.2.3 2004/09/16 09:24:26 danpb Exp $
 
 =pod
 
@@ -104,6 +104,44 @@ sub load_groups {
         unless exists $groups->{global};
 
     return $groups;
+}
+
+=pod
+
+=item my \@publishers = Test::AutoBuild::Lib::load_publishers($config);
+
+Loads the artifact publishing modules defined in the configuration 
+object C<config>. The config object is an instance of the 
+C<Config::Record> class. The elements in the returned array reference 
+are instances of a subclass of Test::AutoBuild::Publisher.
+
+=cut
+
+sub load_publishers {
+    my $config = shift;
+
+    my $data = $config->get("publishers", {
+      copy => {
+        label => "File Copier",
+        module => "Test::AutoBuild::Publisher::Copy"
+      }
+    });
+    my $publishers = {};
+
+    foreach my $name (keys %{$data}) {
+        my $params = $data->{$name};
+        confess "no label for $name group" unless exists $params->{label};
+
+        my $module = $data->{$name}->{module};
+        confess "no module for $name publisher" unless defined $module;
+
+        eval "use $module;";
+        die $@ if $@;
+        my $publisher = $module->new(name => $name, %{$params});
+        $publishers->{$name} = $publisher;
+    }
+
+    return $publishers;
 }
 
 =pod
@@ -511,8 +549,8 @@ sub run {
 }
 
 sub _copy {
-    my $target = pop;
     my @source = @_;
+    my $target = pop @source;
 
     if (@source < 1) {
         if (defined $target) {
@@ -521,16 +559,23 @@ sub _copy {
             die "no source or target specified";
         }
     }
-    if (@source > 1 && ! -d $target) {
-        mkpath($target);
-        -d $target or die "multiple sources specified but '$target' is not a directory";
+    if (@source > 1 && -e $target && ! -d $target) {
+        die "multiple sources specified but '$target' exists and is not a directory";
+    }
+    my $cat_dirs = 0;
+    if (-d $target) {
+	$cat_dirs = 1;
     }
     foreach (@source) {
         $_ = File::Spec->canonpath($_);
+	if (!-e) {
+	    confess "Source file $_ to copy does not exist\n";
+	}
+
         if (-d && !-l) {
             my $dir = $_;
             my @dirs = File::Spec->splitdir($dir);
-            my $new_target = File::Spec->catdir($target, $dirs[$#dirs]);
+            my $new_target = $cat_dirs ? File::Spec->catdir($target, $dirs[$#dirs]) : $target;
             my @files;
             opendir(DIR, $dir) or die("can't opendir $dir: $!");
             push @files, grep { !m/^\.$/ && !m/^\.\.$/ } readdir(DIR);
@@ -539,12 +584,19 @@ sub _copy {
             mkpath($new_target);
             @files > 0 && _copy (@files, $new_target);
         } else {
+	    my @dirs = File::Spec->splitdir($target);
+	    if (@dirs > 1) {
+		pop @dirs;
+		mkpath(File::Spec->catfile(@dirs));
+	    }
             my $newfile = -d $target ? File::Spec->catfile($target,(reverse File::Spec->splitpath($_))[0]) : $target;
             if (-l $_) {
                 symlink (readlink, $newfile);
                 &setStats($newfile, lstat($_));
             } else {
-                copy($_, $target);
+                if (!copy($_, $target)) {
+		    confess "cannot copy $_ to $target: $!";
+		}
                 &setStats($newfile, stat($_));
             }
         }

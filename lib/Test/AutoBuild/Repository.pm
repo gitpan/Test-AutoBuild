@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Repository.pm,v 1.2.2.1 2004/06/13 13:25:00 danpb Exp $
+# $Id: Repository.pm,v 1.2.2.2 2004/08/16 09:05:37 danpb Exp $
 
 =pod
 
@@ -54,6 +54,10 @@ able to do two main things
  * Get a checkout of a new module
  * Update an existing checkout, determining if any
    changes where made
+
+=head1 CONFIGURATION
+
+The valid configuration options for the C<repositories> block are
 
 =head1 METHODS
 

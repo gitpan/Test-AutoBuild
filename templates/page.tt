@@ -20,6 +20,7 @@
   <head>
     <title>[% title %]</title>
 
+    <link rel="stylesheet" href="[%defaultCSS%]" title="Default Theme" type="text/css">
     <link rel="stylesheet" href="redhat.css" title="Red Hat Theme" type="text/css">
     <link rel="stylesheet" href="bluecurve.css" title="Blue Curve Theme" type="text/css">
 
