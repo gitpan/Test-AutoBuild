@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: CVS.pm,v 1.3.2.2 2005/04/02 16:53:31 danpb Exp $
+# $Id: CVS.pm,v 1.15 2006/02/02 10:30:48 danpb Exp $
 
 =pod
 
@@ -44,56 +44,55 @@ This module provides access to source within a CVS repository.
 package Test::AutoBuild::Repository::CVS;
 
 use strict;
-use Carp qw(confess);
+use warnings;
+use POSIX qw(strftime);
+use Log::Log4perl;
 
-use Test::AutoBuild::Repository;
-
-use vars qw(@ISA);
-
-@ISA = qw(Test::AutoBuild::Repository);
-
-
-=pod
-
-=item my $???? = Test::AutoBuild::Repository::CVS->new(  );
-
-=cut
-    
-sub new {
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
-    my $self = $class->SUPER::new(@_);
-    
-    bless $self, $class;
-    
-    return $self;
-}
+use base qw(Test::AutoBuild::Repository);
 
 
 sub export {
-    my $self = shift;
-    my $name = shift;		# Name of the module to export.
-    my $module = shift;		# Module object.
+    my $self = shift; 
+    my $runtime = shift;
+    my $src = shift;
+    my $dst = shift;
 
-    # Don't support using multiple paths yet
-    my $path = $module->paths->[0];	# Path (from the configuration file).
-    
-    my $branch = "HEAD";
+    my $log = Log::Log4perl->get_logger();
 
-    if ($path =~ /(.*):((?:\w|-)+)$/) {
+    my $branch;
+    if ($src =~ /(.*):((?:\w|-)+)$/) {
 	$branch = $2;
-	$path = $1;
+	$src = $1;
     }
-        
-    my $output = $self->_run("cvs checkout -d $name -r $branch -P $path");
+
+    if ($branch &&
+	$branch eq "HEAD") {
+	$log->warn("Illegal tag HEAD - only branch tags are allowed");
+	$branch = undef;
+    }
+
+    my $date = strftime("%d %b %Y %H:%M:%S +0000", gmtime $runtime->timestamp);
     
+    my $output;
+    if (-e $dst) {
+	$output = $branch ? 
+	    $self->_run("cd $dst && cvs -q update -D '$date' -r $branch -APdC") :
+	    $self->_run("cd $dst && cvs -q update -D '$date' -APdC");
+    } else {
+	$output = $branch ? 
+	    $self->_run("cvs -q checkout -D '$date' -d $dst -r $branch -P $src") :
+	    $self->_run("cvs -q checkout -D '$date' -d $dst -P $src");
+    }
+
+    $log->debug($output);
+
     # Crude change checking - any line which doesn't
     # look like a directrory traversal message treated
     # as indicating a change
     my $changed = 0;
     foreach (split /\n/, $output) {
 	next if /^cvs server:/;
-        next if /^\s*\?/;
+	next if /^\s*\?/;
 	$changed = 1;
     }
 
@@ -106,7 +105,7 @@ sub export {
 
 __END__
 
-=back 4
+=back
 
 =head1 AUTHORS
 
@@ -118,6 +117,6 @@ Copyright (C) 2002-2004 Daniel Berrange <dan@berrange.com>
 
 =head1 SEE ALSO
 
-L<perl(1)>
+C<perl(1)>, L<Test::AutoBuild::Repository>
 
 =cut

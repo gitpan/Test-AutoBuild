@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Group.pm,v 1.3.2.2 2004/08/16 09:05:37 danpb Exp $
+# $Id: Group.pm,v 1.5 2006/02/02 10:30:48 danpb Exp $
 
 =pod
 
@@ -62,11 +62,9 @@ package Test::AutoBuild::Group;
 
 use strict;
 use Carp qw(confess);
-
-
+use Class::MethodMaker
+    get_set => [qw( name label modules admin enabled )];
 use Digest::MD5;
-
-=pod
 
 =item my $group = Test::AutoBuild::Group->new(name => $name, 
                                               label => $label,
@@ -92,6 +90,7 @@ sub new {
     $self->{name} = exists $params{name} ? $params{name} : confess "name parameter is required";
     $self->{label} = exists $params{label} ? $params{label} : confess "label parameter is required";
     $self->{admin} = exists $params{admin} ? $params{admin} : undef;
+    $self->{enabled} = exists $params{enabled} ? $params{enabled} : 1;
     $self->{modules} = exists $params{modules} ? $params{modules} : [];
     $self->{options} = exists $params{options} ? $params{options} : {};
 
@@ -100,7 +99,6 @@ sub new {
     return $self;
 }
 
-=pod
 
 =item my $name = $group->name([$newname]);
 
@@ -108,31 +106,11 @@ Gets the name of the group. The name is a short alphanumeric
 token. If the C<newname> parameter is supplied then the name
 is updated.
 
-=cut
-
-sub name {
-    my $self = shift;
-    $self->{name} = shift if @_;
-    return $self->{name};
-}
-
-=pod
-
 =item my $label = $group->label([$newlabel]);
 
 Gets the label of the group. The label is a free text title for
 the group. If the C<newlabel> parameter is supplied then the label
 is updated.
-
-=cut
-
-sub label {
-    my $self = shift;
-    $self->{label} = shift if @_;
-    return $self->{label};
-}
-
-=pod
 
 =item my $admin = $group->admin([$newadmin]);
 
@@ -141,16 +119,6 @@ representing the group admin name and contact details. If the
 C<newadmin> parameter is supplied then the admin property is 
 updated.
 
-=cut
-
-sub admin {
-    my $self = shift;
-    $self->{admin} = shift if @_;
-    return $self->{admin};
-}
-
-=pod
-
 =item my \@modules = $group->modules([\@newmodules]);
 
 Gets an array ref representing the members of the
@@ -158,16 +126,6 @@ group. Each element in the array is an instance of
 the Test::AutoBuild::Module class. If the C<newmodules>
 array ref is supplied, then the members of the group
 are updated.
-
-=cut
-
-sub modules {
-    my $self = shift;
-    $self->{modules} = shift if @_;
-    return $self->{modules};
-}
-
-=pod
 
 =item my $value = $group->option($name, [$newvalue]);
 
@@ -191,7 +149,7 @@ sub option {
 
 __END__
 
-=back 4
+=back
 
 =head1 AUTHORS
 
@@ -203,6 +161,6 @@ Copyright (C) 2002-2004 Daniel Berrange <dan@berrange.com>
 
 =head1 SEE ALSO
 
-L<perl(1)>
+C<perl(1)>
 
 =cut

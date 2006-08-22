@@ -1,6 +1,7 @@
-# -*- perl -*-
+# -*- cperl -*-
+# $Id: 070-Lib.t,v 1.11 2005/12/01 16:53:20 danpb Exp $
 
-use Test::More tests => 28;
+use Test::More tests => 31;
 
 BEGIN {
   use_ok("Test::AutoBuild::Lib") or die $@;
@@ -8,9 +9,11 @@ BEGIN {
 
 use warnings;
 use strict;
+use Log::Log4perl;
+Log::Log4perl::init("t/log4perl.conf");
 use File::Temp qw(tempdir);
-use File::Spec::Functions;
 use File::Path;
+use File::Spec::Functions;
 
 # Test cases for copy
 #
@@ -129,18 +132,37 @@ Test::AutoBuild::Lib::_copy(catfile($scratch, "dir-src-*"),
 
 ok(-d catfile($scratch, "dir-dst-e" , "dir-src-a"), "Copy many dirs -> new dir ($scratch/dir-dst-e/dir-src-a is a dir)");
 ok(-d catfile($scratch, "dir-dst-e" , "dir-src-b"), "Copy many dirs -> new dir ($scratch/dir-dst-e/dir-src-b is a dir)");
+
+
 # Single file -> deep directory
 mkpath catfile($scratch, "one","two","three-a");
 Test::AutoBuild::Lib::_copy(catfile($scratch, "file-src-a.txt"),
-                            catfile($scratch, "one","two","three-a"));
+			    catfile($scratch, "one","two","three-a"));
 
 ok(-f catfile($scratch, "one","two","three-a","file-src-a.txt"), "Copy file -> new deep dir ($scratch/one/two/three-a/file-src-a.txt)");
 
 # Single file -> deep directory
 Test::AutoBuild::Lib::_copy(catfile($scratch, "file-src-a.txt"),
-                            catfile($scratch, "one","two","three-b","file-src-a.txt"));
+			    catfile($scratch, "one","two","three-b","file-src-a.txt"));
 
 ok(-f catfile($scratch, "one","two","three-b","file-src-a.txt"), "Copy file -> new deep dir ($scratch/one/two/three-b/file-src-a.txt)");
+
+
+&create_dir($scratch, "remove-test");
+&create_file($scratch, catfile("remove-test","file-a"));
+&create_file($scratch, catfile("remove-test","file-b"));
+&create_dir($scratch, catdir("remove-test","subdir-a"));
+&create_file($scratch, catfile("remove-test","subdir-a","file-c"));
+
+Test::AutoBuild::Lib::delete_files(catdir($scratch, "remove-test"));
+
+opendir DIR, catdir($scratch, "remove-test")
+  or die "cannot read $scratch/remove-test: $!";
+my @files = sort readdir DIR;
+ok($#files == 1, "two entries in directory");
+is($files[0], ".", "entry '.' in directory");
+is($files[1], "..", "entry '..' in directory");
+closedir DIR;
 
 
 sub create_file {

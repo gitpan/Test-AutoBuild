@@ -1,4 +1,4 @@
-# $Id: 130-Publisher.t,v 1.1.2.1 2004/08/16 09:10:55 danpb Exp $
+# $Id: 130-Publisher.t,v 1.3 2004/12/21 18:17:06 danpb Exp $
 
 BEGIN { $| = 1; print "1..1\n"; }
 END { print "not ok 1\n" unless $loaded; }

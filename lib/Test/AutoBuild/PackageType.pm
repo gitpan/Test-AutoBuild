@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: PackageType.pm,v 1.1.2.3 2004/09/16 09:22:31 danpb Exp $
+# $Id: PackageType.pm,v 1.6 2006/02/02 10:30:48 danpb Exp $
 
 =pod
 
@@ -50,11 +50,10 @@ package Test::AutoBuild::PackageType;
 
 use strict;
 use Carp qw(confess);
-use Test::AutoBuild::Package;
 use File::Find;
 use File::Path;
-
-=pod
+use Log::Log4perl;
+use Test::AutoBuild::Package;
 
 =item my $mod = Test::AutoBuild::PackageType->new(  );
 
@@ -134,7 +133,6 @@ sub filetype {
     return $self->{filetype};
 }
 
-
 sub clean {
     my $self = shift;
     if (@_) {
@@ -166,12 +164,13 @@ sub do_clean {
 
     return unless $self->{clean};
 
+    my $log = Log::Log4perl->get_logger();
     my @spooldirs = grep { -d $_ } @{$self->{spool}};
     my $ext = $self->{extension};
     my $mins = $self->{clean};
 
     if (@spooldirs == 0) {
-        warn "warning: no spool directories for $self->{name}\n";
+        $log->info("warning: no spool directories for $self->{name}");
     } else {
         if ($self->{filetype} eq "directory") {
             foreach (@spooldirs) {
@@ -196,9 +195,8 @@ sub snapshot {
 
     my @spooldirs = grep { -d $_ } @{$self->{spool}};
     my $ext = $self->{extension};
-    my $ext_re = "$ext";
-    $ext_re =~ s/\./\\./g;
     my $cmd = "";
+    (my $ext_re = "$ext") =~ s/\./\\./g;
 
     my $packages = {};
 
@@ -233,7 +231,7 @@ sub snapshot {
 
 __END__
 
-=back 4
+=back
 
 =head1 AUTHORS
 
@@ -242,8 +240,9 @@ Daniel Berrange <dan@berrange.com>
 =head1 COPYRIGHT
 
 Copyright (C) 2002 Daniel Berrange <dan@berrange.com>
+
 =head1 SEE ALSO
 
-L<perl(1)>
+C<perl(1)>
 
 =cut

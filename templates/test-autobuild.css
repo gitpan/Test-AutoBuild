@@ -29,7 +29,7 @@ h1 {
   margin-bottom: 30px;
 }
 
-h2 {
+h2, h3 {
   border-bottom: 1px solid #000000;  
   border-top: 1px solid #000000;  
   background-color: rgb(235,235,235);
@@ -42,28 +42,10 @@ h2 {
 }
 
 #status table {
-  border: 1px solid black;
-  background-color: #ffffff;
-  color: #000000;
-  vertical-align: bottom;
   position: relative;
   margin: 1em;
   margin-top: 2em;
 }
-
-#status td, #status th {
-  vertical-align: top;
-  border-bottom: 1px solid #cccccc;
-}
-
-#status td {
-  padding-top: 1px;
-}
-
-#status th {
-  text-align: right;
-}
-
 
 #menu {
   margin-top: 10px;
@@ -106,34 +88,6 @@ h2 {
   background-color: transparent;
 }
 
-table.modules {
-  background-color: #ffffff;
-  color: #000000;
-  border: 1px solid #000000;
-  margin: 1em;
-  width: 90%;
-}
-
-table.modules th {
-  width: 100%;
-  text-align: left;
-}
-
-table.modules td {
-  text-align: right;
-}
-
-table.modules tr {
-  vertical-align: middle;
-}
-
-table.modules td.failed {
-  background-color: #ff0000;
-  color: #000000;
-  font-size: 1.2em;
-  padding: 2px;
-}
-
 #footer {
   border-top: 2px solid black;
 }
@@ -142,41 +96,90 @@ table.modules td.failed {
   color: #000000;
 }
 
-#summary {
+.properties {
   border: 1px solid black;
   background-color: #ffffff;
   color: #000000;
   vertical-align: bottom;
   margin: 1em;
+  border-spacing: 0px;
 }
 
-#summary td, #summary th {
+.properties td, #properties th {
   vertical-align: top;
-  border-bottom: 1px solid #cccccc;
+  padding: 2px;
 }
 
-#summary th {
+.properties th {
   text-align: right
 }
 
-#packages, #isos {
+.data {
   border: 1px solid black;
   margin: 1em;
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  border-spacing: 0px;
 }
 
-#packages thead, #isos thead {
-  background-color: #777777;
+.data thead {
+  background-color: #999999;
   color: #000000;
+  text-align: left;
 }
 
-#packages tbody tr.odd, #isos tbody tr.odd, #status tr.odd, #summary tr.odd {
+.data thead th, .data tbody td {
+  padding: 2px;
+}
+
+.data thead th {
+  border-bottom: 2px solid #333333;
+}
+
+tbody tr th, tbody tr td {
+  valign: top;
+}
+
+tbody tr.odd {
   background-color: #ffffff;
   color: #000000;
 }
 
-#packages tbody tr.even, #isos tbody tr.even, #status tr.even, #summary tr.even {
+tbody tr.even {
   background-color: #e6e6e6;
   color: #000000;
+}
+
+tbody tr.even td, tbody tr.even th {
+  border-top: 1px solid #a6a6a6;
+  border-bottom: 1px solid #a6a6a6;
+}
+
+#changes td, #changes th {
+  vertical-align: top;
+}
+
+#changes tbody tr td, #changes tbody tr th {
+  border-top: 0px;
+  border-bottom: 0px;
+}
+
+#changes table td, #changes table th{
+  font-size: 0.8em;
+}
+
+#changes .description {
+  white-space: pre;
+}
+
+ul, ol {
+  margin-left: 1em;
+  list-style-position: inside;
+}
+
+ul li, ol li {
+  padding: 3px;
 }
 
 .filename, .md5sum {
@@ -209,6 +212,39 @@ table.modules td.failed {
 }
 
 
+
+tbody tr.even .failed {
+  border-top: 1px solid #cc0000;
+  border-bottom: 1px solid #cc0000;
+}
+
+tbody tr.even .skipped {
+  border-top: 1px solid #cc00cc;
+  border-bottom: 1px solid #cc00cc;
+}
+
+tbody tr.even .pending {
+  border-top: 1px solid #cccc00;
+  border-bottom: 1px solid #cccc00;
+}
+
+tbody tr.even .cache {
+  border-top: 1px solid #00cc00;
+  border-bottom: 1px solid #00cc00;
+}
+
+tbody tr.even .success {
+  border-top: 1px solid #00cc00;
+  border-bottom: 1px solid #00cc00;
+}
+
+h1,h2,h3,h4 {
+  margin-bottom: 1em;
+}
+
+p {
+  margin: 1em;
+}
 
 
 

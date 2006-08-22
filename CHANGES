@@ -1,6 +1,42 @@
 Change Log for Test::AutoBuild
 ==============================
 
+v1.2.0: (21-08-2006)
+--------------------
+
+ * Completely modular build workflow engine to allow the operation
+   of the builder to be extended & customized at will
+ * Extract changelogs since last build cycle for most repository
+   types
+ * Addition of Mercurial repository type
+ * Lock file can now be obtained using Fcntl to allow reliable
+   operation over NFS
+ * Additional RSS feed showing only failed modules
+ * Addition of Monitor module to enable builder progress to be monitored
+   via an external system. Implementations for monitoring via process
+   command name, FIFO pipe, and log4perl output
+ * Addition of Counter module to enable alternative algorithms to be plugged
+   in for generating unique build counters 
+ * Expose more environment variables to build control file 
+ * Pass through a temporary filename to build control file to allow unit
+   test results to be captured.
+ * Re-written cache as a general purpose archive, allowing storage of 
+   arbitrary metadata, and files. Multiple archives can be saved over
+   time, and duplicated files will be hardlinked to save space
+ * Generate a RPM repository index using createrepo tool
+ * Simplified configuration file format to lower learning curve
+ * Allow for arbitrary test scripts to be run independantly of the
+   main build control file
+ * HTML status pages now include changelogs since last build cycle
+ * E-Mail alerts can be more fine grained, allowing spamming of specific
+   developers per module
+ * Package spool directories will be purged periodically to avoid them
+   growing in size indefinitely.
+ * Clearer error reporting if problems occurr during build cycle
+ * Significantly increased POD documentation coverage
+ * Almost 50 test suites, comprising 1000 test cases to test all critical
+   operational areas of the build engine 
+
 v1.0.3: (1-4-2005)
 ------------------
 
@@ -15,7 +51,7 @@ v1.0.3: (1-4-2005)
    component
  * Fix template syntax bugs
 
-v1.0.2: (10-10-2004)
+v1.0.2: (17-09-2004)
 --------------------
 
  * Added installation documentation to Test::AutoBuild module

@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: XSLTransform.pm,v 1.1.2.1 2004/08/16 09:10:55 danpb Exp $
+# $Id: XSLTransform.pm,v 1.3 2006/02/02 10:30:48 danpb Exp $
 
 =pod
 
@@ -53,8 +53,6 @@ use vars qw(@ISA);
 @ISA = qw(Test::AutoBuild::Publisher);
 
 
-=pod
-
 =item my $mod = Test::AutoBuild::Publisher::XSLTransform->new(  );
 
 =cut
@@ -86,7 +84,7 @@ sub publish {
 
 __END__
 
-=back 4
+=back
 
 =head1 AUTHORS
 
@@ -98,6 +96,6 @@ Copyright (C) 2002-2004 Daniel Berrange <dan@berrange.com>
 
 =head1 SEE ALSO
 
-L<perl(1)>
+C<perl(1)>, L<Test::AutoBuild::XSLTransform>
 
 =cut

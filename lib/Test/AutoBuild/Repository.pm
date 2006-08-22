@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Repository.pm,v 1.2.2.2 2004/08/16 09:05:37 danpb Exp $
+# $Id: Repository.pm,v 1.9 2006/04/09 02:10:41 danpb Exp $
 
 =pod
 
@@ -36,14 +36,13 @@ Test::AutoBuild::Repository - Source control repository access
                env => \%env,
                label => $label);
 
-  # Add a module to the repository
-  $rep->module($module);
+  # Checkout / update the location '$src_path'
+  # into local directory '$dst_path'
+  my ($changed, $changes) = $rep->export($runtime, $src_path, $dst_path);
 
-  # Initialize the repository
-  $rep->init();
- 
-  # Checkout / update the module
-  my $changed = $rep->export($name, $module);
+  # If the repository impl supports it, get the more
+  # recent repository global changelist number
+  my $changelist = $rep->changelist($runtime);
 
 =head1 DESCRIPTION
 
@@ -54,6 +53,9 @@ able to do two main things
  * Get a checkout of a new module
  * Update an existing checkout, determining if any
    changes where made
+
+Optionally, it can also extract & return the details of all
+changelists committed since the previous checkout operation.
 
 =head1 CONFIGURATION
 
@@ -69,10 +71,10 @@ package Test::AutoBuild::Repository;
 
 use strict;
 use Test::AutoBuild::Lib;
-use Carp qw(confess);
 
-
-=pod
+use Class::MethodMaker
+    new_with_init => "new",
+    get_set => [qw(name label)];
 
 =item my $rep = Test::AutoBuild::Repository->new(name => $name,
            label => $label,
@@ -89,24 +91,34 @@ the repository.
 
 =cut
 
-sub new {
-    my $proto = shift;
-    my $class = ref($proto) || $proto;
-    my $self = {};
+sub init {
+    my $self = shift;
     my %params = @_;
 
-    $self->{name} = exists $params{name} ? $params{name} : confess "name parameter is required";
+    $self->name(exists $params{name} ? $params{name} : die "name parameter is required");
+    $self->label(exists $params{label} ? $params{label} : die "label parameter is required");
     $self->{options} = exists $params{options} ? $params{options} : {};
     $self->{env} = exists $params{env} ? $params{env} : {};
-    $self->{label} = exists $params{label} ? $params{label} : confess "label parameter is required";
     $self->{modules} = {};
-
-    bless $self, $class;
-
-    return $self;
 }
 
-=pod
+
+=item my $value = $rep->changelist($runtime);
+
+Returns the changelist to which the repository is synchronized. This
+is defined to be the most recent changelist, not newer than the timestamp
+to which the build runtime is set. This method should be implemented by
+any repository types which support changelists. For those that don't the
+default implementation will throw an error.
+
+=cut
+
+sub changelist {
+    my $self = shift;
+    my $runtime = shift;
+    
+    die "module " . ref($self) . " does not support changelists";
+}
 
 =item my $name = $rep->name([$name]);
 
@@ -114,15 +126,11 @@ When run without any arguments, returns the alphanumeric token representing
 the name of the repository. If a single argument is supplied, this is use to
 update the name.
 
-=cut
+=item my $label = $rep->label([$label]);
 
-sub name {
-    my $self = shift;
-    $self->{name} = shift if @_;
-    return $self->{name};
-}
-
-=pod
+When run without any arguments, returns the human friendly string representing
+the label of the repository. If a single argument is supplied, this is use to
+update the label.
 
 =item my $value = $rep->option($name[, $value]);
 
@@ -141,11 +149,9 @@ sub option {
    return $self->{options}->{$name};
 }
 
-=pod
-
 =item my $value = $rep->env($name[, $value]);
 
-When run with a single argument, retuns the environment variable corresponding 
+When run with a single argument, retuns the environment variable corresponding
 to the name specified in the first argument. If a second argument is supplied,
 then the environment variable is updated.
 
@@ -159,73 +165,26 @@ sub env {
    return $self->{env}->{$name};
 }
 
-=pod
-
-=item my $label = $rep->label([$label]);
-
-When run without any arguments, returns the human friendly string representing
-the label of the repository. If a single argument is supplied, this is use to
-update the label.
-
-=cut
-
-sub label {
-    my $self = shift;
-    $self->{label} = shift if @_;
-    return $self->{label};
-}
-
-=item my $module = $rep->module($name[, $module]);
-
-When run with a single argument, returns the module object corresponding
-to the name specified as the first argument. If the second argument is
-supplied, then the module object is updated.
-
-=cut
-
-sub module {
-    my $self = shift;
-    my $name = shift;
-    $self->{modules}->{$name} = shift if @_;
-    return $self->{modules}->{$name};
-}
-
-=item my @modules = $rep->modules();
-
-Returns the list of modules in this repository
-
-=cut
-
-sub modules {
-    my $self = shift;
-    return keys %{$self->{modules}};
-}
 
 
-=item $rep->init();
 
-Performs any one time initialization required prior to
-exporting modules from the repoitory.
+=item my ($changed, $changes) = $rep->export($runtime, $src, $dst);
 
-=cut
-
-sub init {
-    my $self = shift;
-}
-
-=item my $changed = $rep->export($name, $module);
-
-Exports the module specified in the second argument to a directory
-specified by the first argument. Returns zero if there were no changes
-to export; non-zero if the module was new or changed. This is a virtual
-method which must be implemented by all subclasses.
+Exports the location C<$src> into the directory C<$dst>. Returns zero if 
+there were no changes to export; non-zero if the module was new or changed. 
+The second return parameter is a hash reference whose keys are change numbers, 
+and values are the corresponding L<Test::AutoBuild::Change> objects. This 
+second parameter is optional, since not all repositories maintain changelists.
+This is a virtual method which must be implemented by all subclasses.
 
 =cut
 
 sub export {
     my $self = shift;
-    my $module = shift;
-    confess "class " . ref($self) . " forgot to implement the export method";
+    my $runtime = shift;
+    my $src = shift;
+    my $dst = shift;
+    die "class " . ref($self) . " forgot to implement the export method";
 }
 
 =item my $output = $rep->_run($cmd);
@@ -248,7 +207,7 @@ sub _run {
 
 __END__
 
-=back 4
+=back 
 
 =head1 AUTHORS
 
@@ -260,6 +219,6 @@ Copyright (C) 2002 Daniel Berrange <dan@berrange.com>
 
 =head1 SEE ALSO
 
-L<perl(1)>
+C<perl(1)>, L<Test::AutoBuild>, L<Test::AutoBuild::Module>, L<Test::AutoBuild::Repository::CVS>, L<Test::AutoBuild::Repository::GNUArch>, L<Test::AutoBuild::Repository::Perforce>, L<Test::AutoBuild::Repository::Mercurial>, L<Test::AutoBuild::Repository::Subversion>, L<Test::AutoBuild::Repository::Disk>, L<Test::AutoBuild::Repository::SVK>
 
 =cut

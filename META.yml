@@ -1,0 +1,27 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         Test-AutoBuild
+version:      1.2.0
+version_from: lib/Test/AutoBuild.pm
+installdirs:  site
+requires:
+    BSD::Resource:                 1.10
+    Carp:                          0
+    Class::MethodMaker:            0
+    Config::Record:                1.1.0
+    Date::Manip:                   0
+    DBI:                           0
+    Digest::MD5:                   0
+    Fcntl:                         0
+    File::Copy:                    0
+    File::Find:                    0
+    File::Path:                    0
+    IO::Scalar:                    0
+    Log::Log4perl:                 0
+    Net::SMTP:                     2.15
+    POSIX:                         0
+    Sys::Hostname:                 0
+    Template:                      0
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.17

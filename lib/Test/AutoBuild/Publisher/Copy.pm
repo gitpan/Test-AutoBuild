@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Copy.pm,v 1.1.2.1 2004/08/16 09:10:55 danpb Exp $
+# $Id: Copy.pm,v 1.3 2006/02/02 10:30:48 danpb Exp $
 
 =pod
 
@@ -44,18 +44,12 @@ source to destination directory.
 
 package Test::AutoBuild::Publisher::Copy;
 
+use base qw(Test::AutoBuild::Publisher);
 use strict;
 use Carp qw(confess);
-use Test::AutoBuild::Publisher;
 use File::Path;
-use vars qw(@ISA);
 
-@ISA = qw(Test::AutoBuild::Publisher);
-
-
-=pod
-
-=item my $mod = Test::AutoBuild::Publisher::Copy->new(  );
+=item my $mod = Test::AutoBuild::Publisher::Copy->new();
 
 =cut
 
@@ -74,17 +68,16 @@ sub publish {
     my $self = shift;
     my $src = shift;
     my $dst = shift;
-    
+
     Test::AutoBuild::Lib::_copy($src, $dst);
 }
-
 
 
 1 # So that the require or use succeeds.
 
 __END__
 
-=back 4
+=back
 
 =head1 AUTHORS
 
@@ -96,6 +89,6 @@ Copyright (C) 2002-2004 Daniel Berrange <dan@berrange.com>
 
 =head1 SEE ALSO
 
-L<perl(1)>
+C<perl(1)>, L<Test::AutoBuild::Publisher>
 
 =cut

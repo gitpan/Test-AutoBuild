@@ -4,79 +4,173 @@
 %define perlvendorlib %(perl -e 'use Config; print $Config{installvendorlib}')
 %define perlvendorprefix %(perl -e 'use Config; print $Config{vendorprefix}')
 %define perlvendorman3 %{perlvendorprefix}/share/man/man3
+%define perlvendorman1 %{perlvendorprefix}/share/man/man1
+%define perlvendorman5 %{perlvendorprefix}/share/man/man5
 %define perlversion %(perl -e 'use Config; print $Config{version}')
 
 %define appname Test-AutoBuild
 
+%define _extra_release %{?extra_release:%{extra_release}}
+
 Summary: Framework for performing continuous, unattended, automated software builds
 Name: perl-%{appname}
-Version: 1.0.3
-Release: 1
-Copyright: GPL
-Group: Applications/Internet
+Version: 1.2.0
+Release: 1%{_extra_release}
+License: GPL
+Group: Development/Tools
 Source: %{appname}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{appname}-%{version}-root
 BuildArchitectures: noarch
 Requires: perl >= %{perlversion}
 Requires: perl-BSD-Resource >= 1.15
 Requires: perl-Config-Record >= 1.1.0
+Requires: perl-DBI
+Requires: perl-Log-Log4perl
 Requires: perl-Template-Toolkit
 Requires: perl-IO-stringy
+Requires: perl-DateManip
+Requires: perl-Class-MethodMaker
 #Requires: perl-Digest-MD5
+# For Test::AutoBuild::Stage::ISOBuilder
+Requires: mkisofs
+Requires: /usr/bin/mkisofs
+# For Test::AutoBuild::Stage::Yum
+Requires: /usr/bin/yum-arch
+# For Test::AutoBuild::Stage::CreateRepo
+Requires: /usr/bin/createrepo
+# For Test::AutoBuild::Stage::Apt
+Requires: /usr/bin/genbasedir
+Requires: apt
+# For Test::AutoBuild::Publisher::XSLTransform
+Requires: libxslt
+Requires: /usr/bin/xsltproc
+
+%package account
+Summary: User account and directory structure for running builder
+Group: Development/Tools
+Requires: perl-%{appname} = %{version}-%{release}
+
+%package cvs
+Summary: CVS source repository integration for autobuild engine
+Group: Development/Tools
+Requires: perl-%{appname} = %{version}-%{release}
+Requires: cvs >= 1.11
+
+%package mercurial
+Summary: Mercurial source repository integration for autobuild engine
+Group: Development/Tools
+Requires: perl-%{appname} = %{version}-%{release}
+Requires: mercurial >= 0.7
+
+%package subversion
+Summary: Subversion source repository integration for autobuild engine
+Group: Development/Tools
+Requires: perl-%{appname} = %{version}-%{release}
+Requires: subversion >= 1.0.0
+
+%package tla
+Summary: GNU Arch source repository integration for autobuild engine
+Group: Development/Tools
+Requires: perl-%{appname} = %{version}-%{release}
+Requires: tla >= 1.1.0
+
+%package svk
+Summary: SVK source repository integration for autobuild engine
+Group: Development/Tools
+Requires: perl-%{appname} = %{version}-%{release}
+Requires: svk >= 1.0
+
+%package perforce
+Summary: Perforce source repository integration for autobuild engine
+Group: Development/Tools
+Requires: perl-%{appname} = %{version}-%{release}
+#Requires: perforce
+
 
 %description
-Test-AutoBuild is a PERL framework for performing continuous, unattended, 
+Test-AutoBuild is a Perl framework for performing continuous, unattended,
 automated software builds
+
+%description account
+Test-AutoBuild is a Perl framework for performing continuous, unattended,
+automated software builds.
+
+This sub-package creates a 'builder' user account and the directory structure
+in /var/lib/builder neccessary for running a builder.
+
+%description cvs
+Test-AutoBuild is a Perl framework for performing continuous, unattended,
+automated software builds.
+
+This sub-package provides the module for integrating with the CVS version
+control system
+
+%description mercurial
+Test-AutoBuild is a Perl framework for performing continuous, unattended,
+automated software builds.
+
+This sub-package provides the module for integrating with the Mercurial version
+control system
+
+%description subversion
+Test-AutoBuild is a Perl framework for performing continuous, unattended,
+automated software builds.
+
+This sub-package provides the module for integrating with the Subversion version
+control system
+
+%description tla
+Test-AutoBuild is a Perl framework for performing continuous, unattended,
+automated software builds.
+
+This sub-package provides the module for integrating with the GNU Arch version
+control system
+
+%description perforce
+Test-AutoBuild is a Perl framework for performing continuous, unattended,
+automated software builds.
+
+This sub-package provides the module for integrating with the Perforce version
+control system
+
+%description svk
+Test-AutoBuild is a Perl framework for performing continuous, unattended,
+automated software builds.
+
+This sub-package provides the module for integrating with the SVK version
+control system
+
+
 
 %prep
 %setup -q -n %{appname}-%{version}
 
 %build
-perl Makefile.PL PREFIX=$RPM_BUILD_ROOT/usr INSTALLDIRS=vendor
-make
+%__perl Makefile.PL PREFIX=$RPM_BUILD_ROOT/usr INSTALLDIRS=vendor
+%__make
 
 %install
-rm -rf $RPM_BUILD_ROOT
+%__rm -rf $RPM_BUILD_ROOT
 
-make sysconfdir=$RPM_BUILD_ROOT/etc INSTALLVENDORMAN3DIR=$RPM_BUILD_ROOT%{perlvendorman3} install
+make sysconfdir=$RPM_BUILD_ROOT/etc INSTALLVENDORMAN3DIR=$RPM_BUILD_ROOT%{perlvendorman3} INSTALLVENDORMAN1DIR=$RPM_BUILD_ROOT%{perlvendorman1} install
 find $RPM_BUILD_ROOT -name perllocal.pod -exec rm -f {} \;
 find $RPM_BUILD_ROOT -name .packlist -exec rm -f {} \;
+cp $RPM_BUILD_ROOT/etc/auto-build.d/auto-build.conf $RPM_BUILD_ROOT/etc/auto-build.d/auto-build.conf-example
 
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/build-home
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/build-root
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/build-cache
+$RPM_BUILD_ROOT/usr/bin/auto-build-make-root $RPM_BUILD_ROOT/var/lib/builder
 
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/public_html
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/public_ftp
+echo "/1 :pserver:anonymous@cvs.gna.org:2401/cvs/testautobuild A" >> $RPM_BUILD_ROOT/var/lib/builder/.cvspass
+%__chmod 0600 $RPM_BUILD_ROOT/var/lib/builder/.cvspass
 
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/rpm
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/rpm/BUILD
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/rpm/RPMS
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/rpm/RPMS/noarch
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/rpm/RPMS/i386
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/rpm/RPMS/i486
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/rpm/RPMS/i586
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/rpm/RPMS/i686
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/rpm/RPMS/i786
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/rpm/RPMS/sparc
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/rpm/SPECS
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/rpm/SOURCES
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/rpm/SRPMS
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/zips
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/tars
-install -d -m 0755 $RPM_BUILD_ROOT/var/builder/packages/debian
-
-echo "/1 :pserver:anonymous@cvs.gna.org:2401/cvs/testautobuild A" >> $RPM_BUILD_ROOT/var/builder/.cvspass
-chmod 0600 $RPM_BUILD_ROOT/var/builder/.cvspass
-
-echo "%%_topdir /var/builder/packages/rpm" >> $RPM_BUILD_ROOT/var/builder/.rpmmacros
+echo "%%_topdir /var/lib/builder/package-root/rpm" >> $RPM_BUILD_ROOT/var/lib/builder/.rpmmacros
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+%__rm -rf $RPM_BUILD_ROOT
 
-%pre
-id builder > /dev/null 2>&1 || useradd -d /var/builder builder
+%pre account
+%__id builder > /dev/null 2>&1 || useradd -d /var/lib/builder builder
+# In case of upgrade from old version, relocate the home dir
+usermod -d /var/lib/builder builder
 
 %files
 %defattr(-,root,root)
@@ -84,21 +178,70 @@ id builder > /dev/null 2>&1 || useradd -d /var/builder builder
 %doc README
 %doc COPYING
 %doc CHANGES
+%doc UPGRADING
 
 # Man pages
+%{perlvendorman1}/*
 %{perlvendorman3}/*
+%{perlvendorman5}/*
 
 # Config
-%config(noreplace) /etc/auto-build.d/auto-build.conf
-%config /etc/auto-build.d/auto-build.cron
-%config(noreplace) /etc/auto-build.d/templates/*
+%config /etc/auto-build.d/auto-build.conf-example
+%config /etc/auto-build.d/engine/*.conf
+%config /etc/auto-build.d/cron/*.conf
+%config /etc/auto-build.d/httpd/*.conf
+%config /etc/auto-build.d/templates/*
 
 # Scripts & modules
-%{perlvendorprefix}/bin/auto-build.pl
+%{perlvendorprefix}/bin/auto-build
+%{perlvendorprefix}/bin/auto-build-make-root
 %{perlvendorlib}/Test/AutoBuild.pm
-%{perlvendorlib}/Test/AutoBuild/
-#%{perlvendorarch}/auto/Test-AutoBuild/
+%{perlvendorlib}/Test/AutoBuild/*.pm
+%{perlvendorlib}/Test/AutoBuild/Repository/Disk.pm
+%{perlvendorlib}/Test/AutoBuild/Stage/*.pm
+%{perlvendorlib}/Test/AutoBuild/Archive/*.pm
+%{perlvendorlib}/Test/AutoBuild/ArchiveManager/*.pm
+%{perlvendorlib}/Test/AutoBuild/Counter/*.pm
+%{perlvendorlib}/Test/AutoBuild/Monitor/*.pm
+%{perlvendorlib}/Test/AutoBuild/Publisher/*.pm
 
+%files cvs
+%defattr(-,root,root)
+%{perlvendorlib}/Test/AutoBuild/Repository/CVS.pm
+
+%files mercurial
+%defattr(-,root,root)
+%{perlvendorlib}/Test/AutoBuild/Repository/Mercurial.pm
+
+%files subversion
+%defattr(-,root,root)
+%{perlvendorlib}/Test/AutoBuild/Repository/Subversion.pm
+
+%files tla
+%defattr(-,root,root)
+%{perlvendorlib}/Test/AutoBuild/Repository/GNUArch.pm
+
+%files svk
+%defattr(-,root,root)
+%{perlvendorlib}/Test/AutoBuild/Repository/SVK.pm
+
+%files perforce
+%defattr(-,root,root)
+%{perlvendorlib}/Test/AutoBuild/Repository/Perforce.pm
+
+%files account
+%defattr(-,root,root)
 # Builder home
-%attr(-,builder,builder) /var/builder
+%config /etc/auto-build.d/auto-build.conf
+%dir %attr(-,builder,builder) /var/lib/builder
+%attr(-,builder,builder) /var/lib/builder/*
+%config %attr(-,builder,builder) /var/lib/builder/.rpmmacros
+%config %attr(-,builder,builder) /var/lib/builder/.cvspass
+
+%changelog
+* Thu Feb  2 2006 Daniel Berrange <dan@berrange.com> - 1.1.4-1
+- Relocate from /var/builder to /var/lib/builder for FHS compliance
+
+* Wed Dec 28 2005 Daniel Berrange <dan@berrange.com> - 1.1.3-1
+- Modular RPM packaging for source repository plugins
 

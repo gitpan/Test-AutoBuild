@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Package.pm,v 1.1.2.1 2004/06/13 13:24:21 danpb Exp $
+# $Id: Package.pm,v 1.4 2006/02/02 10:30:48 danpb Exp $
 
 =pod
 
@@ -49,8 +49,6 @@ use Carp qw(confess);
 use Digest::MD5;
 use File::stat;
 
-=pod
-
 =item my $package = Test::AutoBuild::Package->new(  );
 
 =cut
@@ -63,6 +61,7 @@ sub new {
 
     $self->{name} = exists $params{name} ? $params{name} : confess "name parameter is required";
     $self->{type} = exists $params{type} ? $params{type} : confess "type parameter is required";
+    $self->{platform} = exists $params{platform} ? $params{platform} : undef;
     $self->{size} = undef;
     $self->{last_modified} = undef;
     $self->{md5sum} = undef;
@@ -101,6 +100,11 @@ sub last_modified {
 }
 
 
+sub platform {
+    my $self = shift;
+    return $self->{platform};
+}
+
 sub md5sum {
     my $self = shift;
     $self->_md5sum() unless defined  $self->{md5sum};
@@ -111,8 +115,15 @@ sub md5sum {
 sub _stat {
     my $self = shift;
 
-    my $sb = stat $self->{name};
-
+    my $sb;
+    if (-l $self->{name}) {
+	$sb = lstat $self->{name};
+    } else {
+	$sb = stat $self->{name};
+    }
+    if (! defined $sb) {
+	die "could not stat $self->{name}";
+    }
     $self->{last_modified} = $sb->mtime;
     $self->{size} = $sb->size;
 }
@@ -146,7 +157,7 @@ sub _md5sum {
 
 __END__
 
-=back 4
+=back
 
 =head1 AUTHORS
 
@@ -155,8 +166,9 @@ Daniel Berrange <dan@berrange.com>
 =head1 COPYRIGHT
 
 Copyright (C) 2002 Daniel Berrange <dan@berrange.com>
+
 =head1 SEE ALSO
 
-L<perl(1)>
+C<perl(1)>
 
 =cut

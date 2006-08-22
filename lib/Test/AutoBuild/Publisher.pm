@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Publisher.pm,v 1.1.2.1 2004/08/16 09:10:55 danpb Exp $
+# $Id: Publisher.pm,v 1.3 2006/02/02 10:30:48 danpb Exp $
 
 =pod
 
@@ -30,7 +30,7 @@ Test::AutoBuild::Publisher - Simple publishering of modules
 
   use Test::AutoBuild::Publisher
 
-  my $publisher = Test::AutoBuild::Publisher->new(name => $name, 
+  my $publisher = Test::AutoBuild::Publisher->new(name => $name,
                                                   label => $label,
                                                   options => \%options);
 
@@ -59,9 +59,7 @@ package Test::AutoBuild::Publisher;
 use strict;
 use Carp qw(confess);
 
-=pod
-
-=item my $publisher = Test::AutoBuild::Publisher->new(name => $name, 
+=item my $publisher = Test::AutoBuild::Publisher->new(name => $name,
                                                       label => $label,
                                                       [options => \%options]);
 
@@ -89,8 +87,6 @@ sub new {
     return $self;
 }
 
-=pod
-
 =item my $name = $publisher->name([$newname]);
 
 Gets the name of the publisher. The name is a short alphanumeric
@@ -104,8 +100,6 @@ sub name {
     $self->{name} = shift if @_;
     return $self->{name};
 }
-
-=pod
 
 =item my $label = $publisher->label([$newlabel]);
 
@@ -121,13 +115,11 @@ sub label {
     return $self->{label};
 }
 
-=pod
-
 =item my $value = $publisher->option($name, [$newvalue]);
 
 Gets the value corresponding to the option C<name>. If the
 second C<newvalue> parameter is specified then the value
-for the option is updated. 
+for the option is updated.
 
 =cut
 
@@ -145,7 +137,7 @@ sub publish {
     my $self = shift;
     my $src = shift;
     my $dst = shift;
-    
+
     confess "module " . ref($self) . " forgot to implement the publish method";
 }
 
@@ -153,7 +145,7 @@ sub publish {
 
 __END__
 
-=back 4
+=back
 
 =head1 AUTHORS
 
@@ -165,6 +157,6 @@ Copyright (C) 2002-2004 Daniel Berrange <dan@berrange.com>
 
 =head1 SEE ALSO
 
-L<perl(1)>
+C<perl(1)>, L<Test::AutoBuild::Publisher::Copy>, L<Test::AutoBuild::Publisher::XSLTransform>
 
 =cut
