@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: GetSource.pm,v 1.15 2006/02/02 10:30:48 danpb Exp $
+# $Id: GetSource.pm,v 1.17 2007/12/08 20:10:26 danpb Exp $
 
 =pod
 
@@ -53,6 +53,26 @@ use File::Spec::Functions qw(catfile);
 use File::Path;
 use Log::Log4perl;
 
+sub prepare {
+    my $self = shift;
+    my $runtime = shift;
+    my $context = shift;
+
+    my $result = $self->SUPER::prepare($runtime, $context);
+
+    if (!defined $context) {
+	foreach my $name ($runtime->sorted_modules()) {
+	    my $module = $runtime->module($name);
+	    my $subres = Test::AutoBuild::Result->new(name => $name,
+						      label => $module->label);
+	    $result->add_result($subres);
+	    my $key = $self->name . "." . $name;
+	    $self->{results}->{$key} = $subres;
+	}
+    }
+    return $result;
+}
+
 
 sub process {
     my $self = shift;
@@ -68,76 +88,51 @@ sub process {
     # $source_root is where we check out the source to (at least for CVS).
     my $source_root = $runtime->source_root();
     unless (-e $source_root) {
-        eval {
-            mkpath($source_root);
-        };
-        if ($@) {
-            die "could not create directory '$source_root': $@";
-        }
+	eval {
+	    mkpath($source_root);
+	};
+	if ($@) {
+	    die "could not create directory '$source_root': $@";
+	}
     }
     chdir $source_root or die "chdir: " . $source_root . ": $!";
 
     my @repositories = $runtime->repositories();
-    
-    my @fail;
+
+    my $failed = 0;
     # Check out code
     MODULE: foreach my $name (@modules) {
-        $log->debug("Checking out $name");
-        foreach my $depend (@{$runtime->module($name)->depends}) {
-            if ($runtime->module($depend)->build_status() eq 'failed') {
-                $log->info("skipping $name");
-                next MODULE;
-            }
-        }
-        my $module = $runtime->module($name);
-        my %changes;
-	my @mod_fail;
-        foreach my $entry (@{$module->sources()}) {
-            my $repository = $runtime->repository($entry->{repository});
-            if (!defined $repository) {
-                $self->fail("cannot find repository definition '" . 
-			    $entry->{repository} ."' for module " . $module->label);
-		next;
-            }
-	    
-	    my $path = $entry->{path};
-	    my $src;
-	    my $dst;
-	    if ($path =~ /^\s*(\S+)\s*->\s*(\S+)\s*$/) {
-		$src = $1;
-		$dst = catfile($module->dir, $2);
-	    } else {
-		$src = $path;
-		$dst = $module->dir;
+	$log->debug("Checking out $name");
+	foreach my $depend (@{$runtime->module($name)->depends}) {
+	    if ($runtime->module($depend)->build_status() eq 'failed') {
+		$log->info("skipping $name");
+		next MODULE;
 	    }
-
-            my ($changed, $changes);
-            eval {
-                ($changed, $changes) = $repository->export($runtime, $src, $dst);
-            };
-            if ($@) {
-                push @mod_fail, "Failed to checkout $name from '" . $repository->name . "': $@";
-                $log->warn("Failed to checkout $name from '" . $repository->name . "': $@");
-		next;
-            }
-	    if ($changed) {
-		$module->changed(1);
-	    }
-	    if (defined $changes) {
-		foreach (keys %{$changes}) {
-		    $changes{$_} = $changes->{$_};
-		}
-	    }
-        }
-
-	if (@mod_fail) {
-	    push @fail, @mod_fail;
-	} else {
-	    $module->changes(\%changes);
-        }
+	}
+	my $module = $runtime->module($name);
+	$module->checkout($runtime);
+	if ($module->checkout_status() eq "failed") {
+	    $failed = 1;
+	}
     }
-    if (@fail) {
-	$self->fail(join("\n", @fail));
+    if ($failed) {
+        $self->fail("One or more modules failed during checkout");
+    }
+
+    # Set stage result status per module
+    if (!defined $module) {
+        foreach my $name ($runtime->sorted_modules()) {
+            my $module = $runtime->module($name);
+            my $key = $self->name . "." . $name;
+            my $subres = $self->{results}->{$key};
+
+            # XXX log summary
+            #$subres->log($module->build_output_log_summary);
+            $subres->log("");
+            $subres->status($module->checkout_status);
+            $subres->start_time($module->checkout_start_date);
+            $subres->end_time($module->checkout_end_date);
+        }
     }
 }
 
@@ -158,6 +153,6 @@ Copyright (C) 2004 Red Hat, Inc.
 
 =head1 SEE ALSO
 
-C<perl(1)>, L<Test::AutoBuild::Stage> 
+C<perl(1)>, L<Test::AutoBuild::Stage>
 
 =cut

@@ -25,9 +25,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-# $Id: auto-build,v 1.6 2006/08/09 04:18:25 danpb Exp $
+# $Id: auto-build,v 1.10 2007/12/08 21:03:02 danpb Exp $
 
 use strict;
+use warnings;
 
 use Carp qw(confess cluck);
 use Data::Dumper;
@@ -65,16 +66,26 @@ if ($timestamp !~ /^\d+$/) {
     $timestamp = UnixDate($date, "%s");
 }
 
-# Validate the config file actually exists!
+# Validate the config file actually exists, and can be read!
 if (!-f $config_file) {
     print STDERR "Configuration file '$config_file' does not exist\n";
+    &show_help(\*STDERR);
+    exit 4;
+} elsif (!-r _) {
+    print STDERR "Configuration file '$config_file' cannot be read\n";
     &show_help(\*STDERR);
     exit 4;
 }
 
 # Hook in some custom signal handlers for doing
 # random useful stuff
-$SIG{__DIE__} = sub { die Test::AutoBuild::ErrorReport->new(message => $_[0]) };
+$SIG{__DIE__} = sub { 
+    if (UNIVERSAL::isa($_[0], "Template::Exception")) {
+        die $_[0];
+    } else {
+        die Test::AutoBuild::ErrorReport->new(message => $_[0]);
+    }
+};
 
 if ($verbose) {
     $SIG{__WARN__} = sub { cluck $@ };
@@ -89,7 +100,13 @@ my $auto_build = Test::AutoBuild->new(config => $config_file,
 				      verbose => $verbose,
 				      debug => $debug);
 # Replace the original handler, so we can pull in $auto_build state
-$SIG{__DIE__} = sub { die Test::AutoBuild::ErrorReport->new(message => $_[0], engine => $auto_build) };
+$SIG{__DIE__} = sub {
+    if (UNIVERSAL::isa($_[0], "Template::Exception")) { 
+        die $_[0]; 
+    } else { 
+        die Test::AutoBuild::ErrorReport->new(message => $_[0], engine => $auto_build);
+    }
+};
 
 # Another handy signal handler
 $SIG{USR2} = sub {
@@ -564,7 +581,7 @@ contributions from Richard W.M. Jones.
 Report bugs to the bug tracker provided on the GNA! project
 site linked from L<http://www.autobuild.org>.
 
-=head1 COPYRIGHT / LICENSE
+=head1 LICENSE
 
 Copyright (C) 2002-2006 Daniel P. Berrange, Dennis Gregorovic,
 Red Hat. Refer to individual source files for further details of

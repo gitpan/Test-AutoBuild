@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Mercurial.pm,v 1.6 2006/04/09 02:36:25 danpb Exp $
+# $Id: Mercurial.pm,v 1.10 2007/12/08 20:10:26 danpb Exp $
 
 =pod
 
@@ -74,22 +74,23 @@ sub export {
     my $runtime = shift;
     my $src = shift;
     my $dst = shift;
+    my $logfile = shift;
     my $log = Log::Log4perl->get_logger();
-    
+
     # Don't support using multiple paths yet
     if (-d $dst) {
-	$self->_pull_repository($src, $dst);
+	$self->_pull_repository($src, $dst, $logfile);
     } else {
-	$self->_clone_repository($src, $dst);
+	$self->_clone_repository($src, $dst, $logfile);
     }
 
     my $changed = 0;
     my %changes;
 
-    my $current = $self->_get_changeset($dst);
+    my $current = $self->_get_changeset($dst, $logfile);
     $log->debug("Current changeset in $dst is $current");
 
-    my $all_changes = $self->_get_changes($dst);
+    my $all_changes = $self->_get_changes($dst, $logfile);
 
     my $sync_to;
     my $found = 0;
@@ -101,14 +102,14 @@ sub export {
 	$changes{$all_changes->{$_}->number} = $all_changes->{$_} if $found;
 	$found = 1 if $current eq $_;
     }
-	
+
     $log->debug("Sync to change $sync_to");
-	
+
     if ($current ne $sync_to) {
-	my $output = $self->_run("cd $dst && hg update -C $sync_to");
+	my ($output, $errors) = $self->_run(["hg", "update", "-C", $sync_to], $dst, $logfile);
 	$changed = 1;
     }
-    
+
     return ($changed, \%changes);
 }
 
@@ -116,6 +117,7 @@ sub _clone_repository {
     my $self = shift;
     my $path = shift;
     my $dest = shift;
+    my $logfile = shift;
     my $log = Log::Log4perl->get_logger();
 
     my $base_url = $self->option("base-url");
@@ -125,14 +127,14 @@ sub _clone_repository {
     my $url = "$base_url/$path";
 
     $log->info("Cloning repository at $url");
-    my $result = $self->_run("hg clone $url $dest");
-    $log->debug($result);
+    my ($result, $errors) = $self->_run(["hg", "clone", $url, $dest], undef, $logfile);
 }
 
 sub _pull_repository {
     my $self = shift;
     my $path = shift;
     my $dest = shift;
+    my $logfile = shift;
     my $log = Log::Log4perl->get_logger();
 
     my $base_url = $self->option("base-url");
@@ -142,17 +144,17 @@ sub _pull_repository {
     my $url = "$base_url/$path";
 
     $log->info("Pulling from repository at $url");
-    my $result = $self->_run("cd $dest && hg pull $url || :");
-    $log->debug($result);
+    my ($result, $errors) = $self->_run(["hg", "pull", "$url"], $dest, $logfile);
 }
 
 sub _get_changeset {
     my $self = shift;
     my $path = shift;
-    
+    my $logfile = shift;
+
     my $log = Log::Log4perl->get_logger();
-    my $output = $self->_run("cd $path && hg identify -v");
-    $log->debug("Output from identify is '$output'");
+    my ($output, $errors) = $self->_run(["hg", "identify", "-v"], $path, $logfile);
+
     my @lines = split /\n/, $output;
     foreach (@lines) {
 	if (/^([a-f0-9]+)(?:\s+(.*))?$/i) {
@@ -165,11 +167,11 @@ sub _get_changeset {
 sub _get_changes {
     my $self = shift;
     my $path = shift;
+    my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
 
-    my $data = $self->_run("cd $path && hg history -v 2>/dev/null");
-#    $log->debug($data);
+    my ($data, $errors) = $self->_run(["hg", "history", "-v"], $path, $logfile);
 
     my @lines = split /\n/, $data;
 
@@ -205,8 +207,8 @@ sub _get_changes {
 		    $logs{$hash}->{description} .= "\n" . $line;
 		}
 		#$log->debug("Append Desc " . $line);
-            } elsif ($line =~ m,^(tag|parent),) {
-                # nada
+	    } elsif ($line =~ m,^(tag|parent|branch),) {
+		# nada
 	    } else {
 		$log->warn("Got unexpected changelist tag " . $line);
 	    }
@@ -214,7 +216,7 @@ sub _get_changes {
 	    $log->warn("Got content outside changelist " . $line);
 	}
     }
-    
+
     my %changes;
     foreach (keys %logs) {
 	# XXX hate to hardcode date format. Probably break in non en_* locales
@@ -222,7 +224,7 @@ sub _get_changes {
 	    unless $logs{$_}->{date} =~ /(\w+)\s+(\w+)\s+(\d+)\s+(\d+):(\d+):(\d+)\s+(\d+)\s+(\S+)\s*$/;
 	my $mungedDate = "$1 $2 $3 $7 $4:$5:$6";
 	my $timezone = $8;
-	    
+
 	my $date = ParseDateString($mungedDate);
 	die "cannot parse date '" . $mungedDate . "'" unless $date;
 	#$log->debug("Initial parsing from '$mungedDate' gives $date");
@@ -232,7 +234,7 @@ sub _get_changes {
 	#$log->debug("Date was $date and time is $time");
 
 	my @files = $logs{$_}->{files} ? split / /, $logs{$_}->{files} : ();
-	
+
 	$changes{$_} = Test::AutoBuild::Change->new(number => $logs{$_}->{number},
 						    date => $time,
 						    user => $logs{$_}->{user},

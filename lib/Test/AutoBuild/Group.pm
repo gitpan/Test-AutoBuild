@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Group.pm,v 1.5 2006/02/02 10:30:48 danpb Exp $
+# $Id: Group.pm,v 1.7 2007/12/08 21:03:02 danpb Exp $
 
 =pod
 
@@ -30,10 +30,10 @@ Test::AutoBuild::Group - Simple grouping of modules
 
   use Test::AutoBuild::Group
 
-  my $group = Test::AutoBuild::Group->new(name => $name, 
-                                          label => $label,
-                                          modules => \@modules,
-                                          options => \%options);
+  my $group = Test::AutoBuild::Group->new(name => $name,
+					  label => $label,
+					  modules => \@modules,
+					  options => \%options);
 
   my $name = $group->name([$newname]);
   my $label = $group->label([$newlabel]);
@@ -43,7 +43,7 @@ Test::AutoBuild::Group - Simple grouping of modules
 
 =head1 DESCRIPTION
 
-The Test::AutoBuild::Group module provides for simple 
+The Test::AutoBuild::Group module provides for simple
 grouping of modules. Its primary purpose is to allow
 the list of modules in HTML status pages to be split
 up into groups for easy browsing.
@@ -61,16 +61,17 @@ The valid configuration options for the C<groups> block are
 package Test::AutoBuild::Group;
 
 use strict;
+use warnings;
 use Carp qw(confess);
 use Class::MethodMaker
     get_set => [qw( name label modules admin enabled )];
 use Digest::MD5;
 
-=item my $group = Test::AutoBuild::Group->new(name => $name, 
-                                              label => $label,
-                                              [modules => \@modules,]
-                                              [admin => $admin,]
-                                              [options => \%options]);
+=item my $group = Test::AutoBuild::Group->new(name => $name,
+					      label => $label,
+					      [modules => \@modules,]
+					      [admin => $admin,]
+					      [options => \%options]);
 
 Creates a new group object. C<modules> is an array ref of Test::AutoBUild::Module
 objects representing the members of the group. C<name> is a short
@@ -115,8 +116,8 @@ is updated.
 =item my $admin = $group->admin([$newadmin]);
 
 Gets the admin of the group. The admin property is free text
-representing the group admin name and contact details. If the 
-C<newadmin> parameter is supplied then the admin property is 
+representing the group admin name and contact details. If the
+C<newadmin> parameter is supplied then the admin property is
 updated.
 
 =item my \@modules = $group->modules([\@newmodules]);
@@ -131,7 +132,7 @@ are updated.
 
 Gets the value corresponding to the option C<name>. If the
 second C<newvalue> parameter is specified then the value
-for the option is updated. 
+for the option is updated.
 
 =cut
 

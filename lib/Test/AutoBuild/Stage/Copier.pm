@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Copier.pm,v 1.8 2006/02/02 10:30:48 danpb Exp $
+# $Id: Copier.pm,v 1.9 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -59,11 +59,11 @@ sub process {
 
     my $directories = $self->option("directories");
     if (!defined $directories) {
-        if (defined $self->option("directory")) {
-            $directories = [$self->option("directory")];
-        } else {
-            die "directories parameter is required" unless $directories;
-        }
+	if (defined $self->option("directory")) {
+	    $directories = [$self->option("directory")];
+	} else {
+	    die "directories parameter is required" unless $directories;
+	}
     }
 
     # By default, remove the old contents of the directory.  This
@@ -72,23 +72,23 @@ sub process {
     $clean = 1 unless ( defined ($clean) && $clean == 0 );
 
     for my $directory (@$directories) {
-        my $exp_directories = Test::AutoBuild::Lib::_expand_standard_macros([[ $directory, $directory, {} ]], $runtime);
-        if ($clean) {
-            for my $exp_directory (@$exp_directories) {
-                Test::AutoBuild::Lib::delete_files($exp_directory->[1]);
-            }
-        }
-        for my $exp_directory (@$exp_directories) {
-            my $directory_name = $exp_directory->[1];
-            my $directory_attrs = $exp_directory->[2];
-            $self->handle_directory($runtime, $directory_name, $directory_attrs);
-        }
+	my $exp_directories = Test::AutoBuild::Lib::_expand_standard_macros([[ $directory, $directory, {} ]], $runtime);
+	if ($clean) {
+	    for my $exp_directory (@$exp_directories) {
+		Test::AutoBuild::Lib::delete_files($exp_directory->[1]);
+	    }
+	}
+	for my $exp_directory (@$exp_directories) {
+	    my $directory_name = $exp_directory->[1];
+	    my $directory_attrs = $exp_directory->[2];
+	    $self->handle_directory($runtime, $directory_name, $directory_attrs);
+	}
     }
 }
 
 sub handle_directory {
     my $self = shift;
-    
+
     die "class " . ref($self) . " forgot to implement the handle_directory method";
 }
 

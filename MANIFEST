@@ -1,6 +1,7 @@
 AUTHORS
 autobuild.sh
 bin/auto-build
+bin/auto-build-clean-root
 bin/auto-build-make-root
 CHANGES
 conf/auto-build.conf
@@ -8,11 +9,16 @@ conf/auto-build.conf.pod
 conf/cron/continuous.conf
 conf/cron/daily.conf
 conf/cron/hourly.conf
+conf/engine/host-build-secure.conf
 conf/engine/host-build.conf
 conf/httpd/aliased.conf
 conf/httpd/user.conf
 conf/httpd/vhost.conf
-COPYING
+conf/selinux/.cvsignore
+conf/selinux/auto-build.fc
+conf/selinux/auto-build.if
+conf/selinux/auto-build.te
+conf/selinux/Makefile
 doc/autobuild-process-1.0.fig
 doc/autobuild-process-1.0.png
 doc/coding-standards.txt
@@ -20,6 +26,10 @@ doc/developer-guide
 doc/planning-v1.2/config.txt
 doc/planning-v1.2/workflow.txt
 doc/release-process.txt
+examples/autobuild-autoconf.sh
+examples/autobuild-perl-makemaker.sh
+examples/autobuild-python.sh
+examples/README
 INSTALL
 lib/Test/AutoBuild.pm
 lib/Test/AutoBuild/Archive.pm
@@ -29,6 +39,9 @@ lib/Test/AutoBuild/ArchiveManager.pm
 lib/Test/AutoBuild/ArchiveManager/File.pm
 lib/Test/AutoBuild/ArchiveManager/Memory.pm
 lib/Test/AutoBuild/Change.pm
+lib/Test/AutoBuild/Command.pm
+lib/Test/AutoBuild/Command/Local.pm
+lib/Test/AutoBuild/Command/SELocal.pm
 lib/Test/AutoBuild/Counter.pm
 lib/Test/AutoBuild/Counter/ChangeList.pm
 lib/Test/AutoBuild/Counter/Time.pm
@@ -80,12 +93,15 @@ lib/Test/AutoBuild/Stage/SetNice.pm
 lib/Test/AutoBuild/Stage/TemplateGenerator.pm
 lib/Test/AutoBuild/Stage/Test.pm
 lib/Test/AutoBuild/Stage/Yum.pm
+LICENSE
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
 META.yml
+META.yml.PL
 README
 t/005-pod.t
+t/008-meta.t
 t/010-pod-coverage.t
 t/030-Platform.t
 t/040-Monitor.t
@@ -166,7 +182,7 @@ templates/rss10.png
 templates/status-stage.tt
 templates/status.html
 templates/test-autobuild.css
+Test-AutoBuild.spec
 Test-AutoBuild.spec.PL
 TODO
 UPGRADING
-Test-AutoBuild.spec

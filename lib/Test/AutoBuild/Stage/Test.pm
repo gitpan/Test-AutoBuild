@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Test.pm,v 1.13 2006/02/02 10:30:48 danpb Exp $
+# $Id: Test.pm,v 1.14 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -57,9 +57,9 @@ sub prepare {
     my $self = shift;
     my $runtime = shift;
     my $context = shift;
-    
+
     my $result = $self->SUPER::prepare($runtime, $context);
-    
+
     if (!defined $context) {
 	foreach my $name ($runtime->sorted_modules()) {
 	    my $module = $runtime->module($name);
@@ -86,29 +86,29 @@ sub process {
 
     foreach my $name (@ordered_modules) {
 	my $module = $runtime->module($name);
-        my $controlfile = $module->option("test-" . $self->name . "-control-file");
+	my $controlfile = $module->option("test-" . $self->name . "-control-file");
 	$controlfile = $self->option("control-file") unless defined $controlfile;
 	$controlfile = "autotest.sh" unless defined $controlfile;
 
-        if ($module->build_status() ne 'success' &&
+	if ($module->build_status() ne 'success' &&
 	    $module->build_status() ne 'cache') {
 	    $log->info("skipping " . $module->name);
 	    next;
-        }
+	}
 
-        my ($fh, $filename) = tempfile( DIR => $dir );
-        $log->debug ("Testing with results in temp dir $dir and filename $filename");
-	
+	my ($fh, $filename) = tempfile( DIR => $dir );
+	$log->debug ("Testing with results in temp dir $dir and filename $filename");
+
 	$runtime->notify("beginTest", $self->name, $name, time);
-        my $test_data = $module->option("test_data");
-        if (! defined $test_data) {
-            $test_data = {};
-            $module->option("test_data", $test_data);
-        }
+	my $test_data = $module->option("test_data");
+	if (! defined $test_data) {
+	    $test_data = {};
+	    $module->option("test_data", $test_data);
+	}
 
-        $module->test($runtime, $self->name, $controlfile, $filename);
+	$module->test($runtime, $self->name, $controlfile, $filename);
 
-        $test_data->{$self->name}->{"output_xml"} = $filename;
+	$test_data->{$self->name}->{"output_xml"} = $filename;
 	$runtime->notify("endTest", $self->name, $name, time, $module->test_status($self->name));
     }
 
@@ -117,7 +117,7 @@ sub process {
 	    my $module = $runtime->module($name);
 	    my $key = $self->name . "." . $name;
 	    my $subres = $self->{results}->{$key};
-	    
+
 	    if (grep { $_ eq $self->name } $module->tests) {
 		# XXX build log summary
 		#$subres->log($module->test_output_log_summary($self->name));

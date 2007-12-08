@@ -6,15 +6,24 @@
 
   <table id="summary" class="properties">
     <tr class="odd">
+      <th>SCM checkout status:</th>
+      <td class="[%checkout_status%]">[%checkout_status%]</td>
+    </tr>
+    <tr class="even">
       <th>Build status:</th>
       <td class="[%build_status%]">[%build_status%]</td>
     </tr>
-    <tr class="even">
+    <tr class="odd">
       <th>Logs:</th>
       <td class="filename">
+         [% IF checkout_output_log_file %]<a href="logs/modules/[% checkout_output_log_file %]">SCM checkout</a> ([% checkout_output_log_size %])<br>[% END %]
          [% IF build_output_log_file %]<a href="logs/modules/[% build_output_log_file %]">Build output</a> ([% build_output_log_size %])<br>[% END %]
          [% IF build_result_log_file %]<a href="logs/modules/[% build_result_log_file %]">Test results</a> ([% build_result_log_size %])<br>[% END %]
       </td>
+    </tr>
+    <tr class="even">
+      <th>SCM checkout time:</th>
+      <td>[% checkout_duration %]</td>
     </tr>
     <tr class="odd">
       <th>Build time:</th>
@@ -24,7 +33,7 @@
       [% FOREACH links %]
       <tr class="[% IF loop.index() % 2 != 0 %]odd[%ELSE%]even[%END%]">
         <th>[%IF loop.index() == 0 %]Links:[%END%]</th>
-        <td><a href="[% href | uri %]">[% label | html %]</a></td>
+        <td><a href="[% href | html %]">[% label | html %]</a></td>
       </tr>
       [% END %]
     [% END %]
@@ -34,7 +43,7 @@
         [% FOREACH artifacts %]
         <tr class="[% IF (links.size + loop.index()) % 2 != 0 %]odd[%ELSE%]even[%END%]">
           <th>[%IF loop.index() == 0 %]Artifacts:[%END%]</th>
-          <td><a href="artifacts/[%name%]/[% path | uri%]">[% label | html%]</a></td>
+          <td><a href="artifacts/[%name%]/[% path | html %]">[% label | html %]</a></td>
         </tr>
         [% END %]
       [% END %]
@@ -86,7 +95,7 @@
           <tbody>
             [% FOREACH packages %]
               <tr class="[% IF loop.index() % 2 == 0 %]odd[%ELSE%]even[%END%]">
-                <td class="filename"><a href="dist/[%type%]/[% filename | uri | html%]">[% filename | html %]</a></td>
+                <td class="filename"><a href="dist/[%type%]/[% filename | html %]">[% filename | html %]</a></td>
                 <td class="size">[% prettysize %]</td>
                 <td class="md5sum">[% md5sum %]</td>
               </tr>
@@ -100,6 +109,8 @@
   [% ELSE %]
     [% IF build_status == 'failed' %]
       <p class="failed">Build failed on this module</p>
+    [% ELSIF checkout_status == 'failed' %]
+      <p class="skipped">Module skipped because SCM checkout failed</p>
     [% ELSIF build_status == 'skipped' %]
       <p class="skipped">Module skipped because dependency failed during build</p>
     [% ELSE %]
@@ -129,7 +140,7 @@
           [% IF description %]
           <tr class="[% IF loop.index() % 2 == 0 %]odd[%ELSE%]even[%END%]">
             <th>Description:</th>
-            <td colspan="3"><span class="description">[% description | html%]</td>
+            <td colspan="3"><span class="description">[% description | html %]</td>
           </tr>
           [% END %]
           [% IF files && files.size > 0 %]
@@ -137,7 +148,7 @@
             <th>Files:</th>
             <td colspan="3">
             [% FOREACH file = files %]
-              <span class="filename">[% file | html%]</span><br>
+              <span class="filename">[% file | html %]</span><br>
             [% END %]
             </td>
           </tr>

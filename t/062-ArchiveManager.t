@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use Log::Log4perl;
 
-BEGIN { 
+BEGIN {
   use_ok("Test::AutoBuild::ArchiveManager");
 }
 
@@ -18,10 +18,10 @@ SIMPLE: {
 					   foo => "bar"
 					   });
     isa_ok($result, "MyArchiveManager");
-    
+
     is($result->option("foo"), "bar", "option foo has value bar");
     is($result->option("eek"), undef, "option eek has not value");
-    
+
     $result->option("foo", "wizz");
     is($result->option("foo"), "wizz", "option foo now has value bar");
 }
@@ -33,7 +33,7 @@ LIST: {
     my $man = MyArchiveManager->new(archives => [MyArchive->new(key => 1, created => $more_than_one_week_ago),
 						 MyArchive->new(key => 2, created => $less_than_one_week_ago),
 						 MyArchive->new(key => 3, created => $now)]);
-    
+
     my @valid = $man->list_archives;
     is($#valid, 2, "two valid archives");
     is($valid[0]->key, 1, "valid archive has key 1");
@@ -56,7 +56,7 @@ use base qw(Test::AutoBuild::ArchiveManager);
 sub init {
     my $self = shift;
     my %params = @_;
-    
+
     $self->SUPER::init(@_);
 
     $self->{archives} = $params{archives};

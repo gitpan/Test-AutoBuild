@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: CVS.pm,v 1.15 2006/02/02 10:30:48 danpb Exp $
+# $Id: CVS.pm,v 1.18 2007/12/08 20:10:26 danpb Exp $
 
 =pod
 
@@ -52,10 +52,11 @@ use base qw(Test::AutoBuild::Repository);
 
 
 sub export {
-    my $self = shift; 
+    my $self = shift;
     my $runtime = shift;
     my $src = shift;
     my $dst = shift;
+    my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
 
@@ -72,30 +73,29 @@ sub export {
     }
 
     my $date = strftime("%d %b %Y %H:%M:%S +0000", gmtime $runtime->timestamp);
-    
-    my $output;
-    if (-e $dst) {
-	$output = $branch ? 
-	    $self->_run("cd $dst && cvs -q update -D '$date' -r $branch -APdC") :
-	    $self->_run("cd $dst && cvs -q update -D '$date' -APdC");
-    } else {
-	$output = $branch ? 
-	    $self->_run("cvs -q checkout -D '$date' -d $dst -r $branch -P $src") :
-	    $self->_run("cvs -q checkout -D '$date' -d $dst -P $src");
-    }
 
-    $log->debug($output);
+    my $cmd = -e $dst ?
+	($branch ?
+	 ['cvs', '-q', 'update', '-D', $date, '-r', $branch, '-APdC'] :
+	 ['cvs', '-q', 'update', '-D', $date, '-APdC']) :
+	 ($branch ?
+	  ['cvs', '-q', 'checkout', '-D', $date, '-d', $dst, '-r', $branch, '-P', $src] :
+	  ['cvs', '-q', 'checkout', '-D', $date, '-d', $dst, '-P', $src]);
+
+    $log->debug("About to run " . join(" ", @{$cmd}));
+    my ($output, $errors) = $self->_run($cmd, -e $dst ? $dst : undef, $logfile);
 
     # Crude change checking - any line which doesn't
     # look like a directrory traversal message treated
     # as indicating a change
     my $changed = 0;
-    foreach (split /\n/, $output) {
-	next if /^cvs server:/;
-	next if /^\s*\?/;
-	$changed = 1;
+    if ($output) {
+	foreach (split /\n/, $output) {
+	    next if /^cvs server:/;
+	    next if /^\s*\?/;
+	    $changed = 1;
+	}
     }
-
     return $changed;
 }
 

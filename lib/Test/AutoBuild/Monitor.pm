@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Monitor.pm,v 1.3 2006/02/02 10:30:48 danpb Exp $
+# $Id: Monitor.pm,v 1.4 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -31,11 +31,11 @@ Test::AutoBuild::Monitor - Builder progress monitor
   use Test::AutoBuild::Monitor
 
   my $rep = Test::AutoBuild::Monitor->new(
-               name => "foo",
-               label => "Some thing",
-               enabled => 1,
-               options => \%options,
-               env => \%env);
+	       name => "foo",
+	       label => "Some thing",
+	       enabled => 1,
+	       options => \%options,
+	       env => \%env);
 
   # Add a module to the repository
   $rep->module($module_name, $module);
@@ -70,20 +70,20 @@ package Test::AutoBuild::Monitor;
 
 use warnings;
 use strict;
-use Class::MethodMaker 
+use Class::MethodMaker
     new_with_init => 'new',
     get_set => [qw( name label is_enabled )];
 
 =item my $monitor = Test::AutoBuild::Monitor->new(name => $name,
-                                                  label => $label,
-                                                  [enabled => $enabled,]
-                                                  [options => \%options,]
-                                                  [env => \%env]);
+						  label => $label,
+						  [enabled => $enabled,]
+						  [options => \%options,]
+						  [env => \%env]);
 
 This method creates a new monitor. The C<name> parameter specifies a
 short alpha-numeric name for the monitor. The C<label> parameter specifies
-an arbitrary label for presenting to usres. The optional C<options> argument 
-is a hashref of implementation specific options. The optional C<env> 
+an arbitrary label for presenting to usres. The optional C<options> argument
+is a hashref of implementation specific options. The optional C<env>
 argument is a hashref of environment variables to set when handling
 notifications.
 
@@ -142,7 +142,7 @@ sub notify {
     my $self = shift;
     my $name = shift;
     my @args = @_;
-    
+
     if ($self->is_enabled()) {
 	local %ENV = %ENV;
 	foreach (keys %{$self->{env}}) {
@@ -154,8 +154,8 @@ sub notify {
 
 =item my $monitor->process($event_name, @args);
 
-This method must be implemented by sub-classes to provide the 
-notification processing they require. The default implementation 
+This method must be implemented by sub-classes to provide the
+notification processing they require. The default implementation
 will simply call die. The arguments are the same as those for
 the C<notify> method.
 
@@ -165,7 +165,7 @@ sub process {
     my $self = shift;
     my $name = shift;
     my @args = @_;
-    
+
     die "class " . ref($self) . " forgot to implement the notify method";
 }
 
@@ -173,7 +173,7 @@ sub process {
 
 When run with a single argument, retuns the option value corresponding to
 the name specified in the first argument. If a second argument is supplied,
-then the option value is updated. 
+then the option value is updated.
 
 =cut
 

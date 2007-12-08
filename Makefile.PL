@@ -1,31 +1,44 @@
-# $Id: Makefile.PL,v 1.26 2006/04/12 21:21:53 danpb Exp $
+# $Id: Makefile.PL,v 1.32 2007/12/08 22:41:15 danpb Exp $
 # -*- perl -*-
 
+use strict;
+use warnings;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
               NAME => "Test-AutoBuild",
               VERSION_FROM => 'lib/Test/AutoBuild.pm',
               AUTHOR => "Daniel Berrange (dan[at]berrange[dot]com)",
-              EXE_FILES => ['bin/auto-build', 'bin/auto-build-make-root'],
+              EXE_FILES => ['bin/auto-build', 'bin/auto-build-make-root', 'bin/auto-build-clean-root'],
+              NO_META => 1,
               PREREQ_PM => {
                   'BSD::Resource' => "1.10",
                   'Carp' => '0',
                   'Class::MethodMaker' => '0',
+		  'Config' => '0',
+		  'Cwd' => '0',
                   'Config::Record' => '1.1.0',
+		  'Data::Dumper' => '0',
                   'Date::Manip' => '0',
-                  'DBI' => '0',
                   'Digest::MD5' => '0',
                   'Fcntl' => '0',
                   'File::Copy' => '0',
                   'File::Find' => '0',
+		  'File::Glob' => '0',
                   'File::Path' => '0',
-                  'IO::Scalar' => "0",
+		  'File::Spec' => '0',
+		  'File::stat' => '0',
+		  'IO::File' => '0',
+                  'IO::Scalar' => '0',
+		  'List::Util' => '0',
                   'Log::Log4perl' => "0",
                   'Net::SMTP' => "2.15",
                   'POSIX' => '0',
+		  'Storable' => '0',
+		  'Symbol' => '0',
                   'Sys::Hostname' => '0',
                   'Template' => '0',
+		  'Test::More' => '0',
               },
               dist =>
               {
@@ -37,8 +50,8 @@ WriteMakefile(
               },
               depend => {
                   Makefile => '$(VERSION_FROM)',
-                  Test-AutoBuild.spec => '$(VERSION_FROM)',
-                  dist => 'Test-AutoBuild.spec',
+                  #'Test-AutoBuild.spec' => '$(VERSION_FROM)',
+                  dist => 'Test-AutoBuild.spec META.yml',
               },
               realclean => {
                   FILES => 'Test-AutoBuild-*.tar.gz Test-AutoBuild.spec',
@@ -55,49 +68,63 @@ sub libscan {
 
 sub postamble {
     '
+WITH_SELINUX    = 0
+
 sysconfdir      = $(PREFIX)/etc
+bindir          = $(PREFIX)/bin
 pkgsysconfdir   = $(sysconfdir)/auto-build.d
 pkgdatadir      = $(PREFIX)/share/$(DISTNAME)-$(VERSION)
+selinuxdir      = $(PREFIX)/share/selinux
+selinuxpkgdir   = $(selinuxdir)/packages
+
+# NB do not use prefix here
+selinuxdevdir   = /usr/share/selinux/devel
+
+pure_all ::
+	test -d $(selinuxdevdir) -a $(WITH_SELINUX) = 1 && make -C conf/selinux ||:
+
+clean ::
+	test -d $(selinuxdevdir) -a $(WITH_SELINUX) = 1 && make -C conf/selinux clean ||:
 
 install ::
 	install -d -m 0755 $(pkgsysconfdir)
 	for i in conf/*.conf ; do \
 		conf=`echo $$i | sed -e \'s/conf\///\'`; \
 		if [ -f $(pkgsysconfdir)/$$conf ]; then \
-			install -c -D -m 0644 $$i $(pkgsysconfdir)/$$conf-example; \
+			install -c -m 0644 $$i $(pkgsysconfdir)/$$conf-example; \
 			echo "Not overwriting existing config file $(pkgsysconfdir)/$$conf" ; \
 		else \
-			install -c -D -m 0644 $$i $(pkgsysconfdir)/$$conf; \
+			install -c -m 0644 $$i $(pkgsysconfdir)/$$conf; \
 		fi \
 	done
 	install -d -m 0755 $(pkgsysconfdir)/engine
 	for i in conf/engine/*.conf ; do \
 	        conf=`echo $$i | sed -e \'s/conf\///\'`; \
 	        if [ -f $(pkgsysconfdir)/$$conf ]; then \
-	                install -c -D -m 0644 $$i $(pkgsysconfdir)/$$conf-example; \
+	                install -c -m 0644 $$i $(pkgsysconfdir)/$$conf-example; \
 	                echo "Not overwriting existing config file $(pkgsysconfdir)/$$conf" ; \
 	        else \
-	                install -c -D -m 0644 $$i $(pkgsysconfdir)/$$conf; \
+	                install -c -m 0644 $$i $(pkgsysconfdir)/$$conf; \
 	        fi \
 	done
 	install -d -m 0755 $(pkgsysconfdir)/cron
 	for i in conf/cron/*.conf ; do \
 	        conf=`echo $$i | sed -e \'s/conf\///\'`; \
 	        if [ -f $(pkgsysconfdir)/$$conf ]; then \
-	                install -c -D -m 0644 $$i $(pkgsysconfdir)/$$conf-example; \
+	                install -c -m 0644 $$i $(pkgsysconfdir)/$$conf-example; \
 	                echo "Not overwriting existing config file $(pkgsysconfdir)/$$conf" ; \
 	        else \
-	                install -c -D -m 0644 $$i $(pkgsysconfdir)/$$conf; \
+	                install -c -m 0644 $$i $(pkgsysconfdir)/$$conf; \
 	        fi \
 	done
 	install -d -m 0755 $(pkgsysconfdir)/httpd
 	for i in conf/httpd/*.conf ; do \
 	        conf=`echo $$i | sed -e \'s/conf\///\'`; \
 	        if [ -f $(pkgsysconfdir)/$$conf ]; then \
-	                install -c -D -m 0644 $$i $(pkgsysconfdir)/$$conf-example; \
+	                install -c -m 0644 $$i $(pkgsysconfdir)/$$conf-example; \
 	                echo "Not overwriting existing config file $(pkgsysconfdir)/$$conf" ; \
 	        else \
-	                install -c -D -m 0644 $$i $(pkgsysconfdir)/$$conf; \
+	                install -c -m 0644 $$i $(pkgsysconfdir)/$$conf; \
 	        fi \
 	done
 	install -d -m 0755 $(pkgsysconfdir)/templates
@@ -107,6 +134,11 @@ install ::
 	install -c -m 0644 templates/*.css $(pkgsysconfdir)/templates/
 	install -c -m 0644 templates/*.rss $(pkgsysconfdir)/templates/
 	install -c -m 0644 templates/*.png $(pkgsysconfdir)/templates/
+	if [ -d $(selinuxdevdir) -a $(WITH_SELINUX) = 1 ]; then \
+		install -d -m 0755 $(selinuxpkgdir)/auto-build/ ;\
+		install -c -m 0644 conf/selinux/auto-build.pp $(selinuxpkgdir)/auto-build/auto-build.pp ;\
+		install -c -m 0755 blib/script/auto-build $(bindir)/auto-build-secure ;\
+	fi
 
 
 HTMLDIR = blib/html
@@ -163,21 +195,9 @@ $(HTMLDIR)/%.html: lib/%.pm
 sub test {
     my $self = shift;
     my $mm_test = $self->SUPER::test(@_);
-    
+
     return '
-TO_TEST_PM = $(TO_INST_PM:lib/%.pm=blib/test/%.pm.tstamp)
-
-test :: test-syntax
-
-test-syntax: pure_all $(TO_TEST_PM)
-
-blib/test/%.pm.tstamp: lib/%.pm
-	@echo -n "Checking $<: "
-	@perl -I blib/lib -c $<
-	@podchecker $<
-	@mkdir -p `dirname $@`
-	@touch $@
-
+test :: META.yml
 ' . $mm_test;
   }
 

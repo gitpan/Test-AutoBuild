@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Perforce.pm,v 1.11 2006/04/09 02:10:00 danpb Exp $
+# $Id: Perforce.pm,v 1.15 2007/12/08 21:03:02 danpb Exp $
 
 =pod
 
@@ -33,7 +33,7 @@ Test::AutoBuild::Repository::Perforce - A repository for Perforce
 
 =head1 DESCRIPTION
 
-This module provides access to source stored in a Perforce 
+This module provides access to source stored in a Perforce
 repository.
 
 =head1 METHODS
@@ -46,6 +46,7 @@ package Test::AutoBuild::Repository::Perforce;
 
 use base qw(Test::AutoBuild::Repository);
 use strict;
+use warnings;
 
 use File::Spec::Functions qw(catfile);
 use POSIX qw(strftime);
@@ -59,17 +60,17 @@ use Test::AutoBuild::Change;
 #
 # According to the perforce docs
 #
-#   "Date and time specifications are always interpreted 
-#    with respect to the local time zone of the Perforce 
-#    server. Note that because the server stores times 
-#    internally in terms of number of seconds since the 
-#    Epoch (00:00:00 GMT Jan. 1, 1970), if you move your 
-#    server across time zones, the times recorded on the 
-#    server will automatically be reported in the new 
+#   "Date and time specifications are always interpreted
+#    with respect to the local time zone of the Perforce
+#    server. Note that because the server stores times
+#    internally in terms of number of seconds since the
+#    Epoch (00:00:00 GMT Jan. 1, 1970), if you move your
+#    server across time zones, the times recorded on the
+#    server will automatically be reported in the new
 #    timezone."
 #
 # Sounds reasonable, right ?
-# 
+#
 # Yes, if that's what it actually did, life would be
 # golden.
 #
@@ -77,13 +78,13 @@ use Test::AutoBuild::Change;
 # that the server is currently using, however, it applies
 # a DST offset based on the DST value at the time the
 # changeset was committed! So, if you're server is say in
-# Boston, mid-April - thus EDT - and you're quering a change 
+# Boston, mid-April - thus EDT - and you're quering a change
 # that was made in Jan - when EST was in force, then rather
 # than reporting the time in EDT, it adjusts for DST and
-# reports it relative to EST. 
+# reports it relative to EST.
 #
 # Things get even more fun, if your client is in another
-# timezone, say you're in London. At the time London is on 
+# timezone, say you're in London. At the time London is on
 # BST, your server is EDT - so simply have a delta of 5
 # hours to worry about. Bzzzt. No, that change from mid
 # Dec is still being reported in EST, 4 hours difference.
@@ -105,11 +106,13 @@ use Test::AutoBuild::Change;
 sub sync_view {
     my $self = shift;
     my $runtime = shift;
+    my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
 
     # Get the existing client
-    my $orig_client = my $client = $self->_run("p4 client -o");
+    my ($client, $errors) = $self->_run(['p4', 'client', '-o'], undef, $logfile);
+    my $orig_client = $client;
 
     # Change the Root: section
     my $root = $runtime->source_root();
@@ -127,10 +130,10 @@ sub sync_view {
     my @views;
     # Compose the new View: section
     foreach my $name ($runtime->modules) {
-        my $module = $runtime->module($name);
+	my $module = $runtime->module($name);
 
-        my @paths = $module->paths($self);
-        foreach my $path (@paths) {
+	my @paths = $module->paths($self);
+	foreach my $path (@paths) {
 	    my $src;
 	    my $dst;
 	    $log->debug("Input path is '$path'");
@@ -140,36 +143,36 @@ sub sync_view {
 		($src, $dst) = $self->normalize_paths($path, $module->dir);
 	    }
 	    $log->debug("Normalized path is $src -> $dst");
-            if ( (exists $views{$src}) && ($views{$src} ne $dst) ) {
-                die "Trying to set path '($src,$dst)' but source is already set to '$dst'";
-            }
+	    if ( (exists $views{$src}) && ($views{$src} ne $dst) ) {
+		die "Trying to set path '($src,$dst)' but source is already set to '$dst'";
+	    }
 
-            $views{$src} = $dst;
-            push @views, $src;
-        }
+	    $views{$src} = $dst;
+	    push @views, $src;
+	}
     }
 
     foreach my $src (@views) {
-        $view .= "\n\t$src $views{$src}";
+	$view .= "\n\t$src $views{$src}";
     }
 
     $log->debug("New view is $view");
-    
+
     $client .= "\n\nView:$view\n\n";
 
     if ($client ne $orig_client) {
-        # The client has changes, so now update it
-        {
-            local %ENV = %ENV;
-            foreach (keys %{$self->{env}}) {
-                $ENV{$_} = $self->{env}->{$_};
-            }
+	# The client has changes, so now update it
+	{
+	    local %ENV = %ENV;
+	    foreach (keys %{$self->{env}}) {
+		$ENV{$_} = $self->{env}->{$_};
+	    }
 
-            my $cmd = "p4 client -i";
-            open P4CLIENT, "| $cmd 2>&1" or die "$cmd: $!";
-            print P4CLIENT $client;
-            close P4CLIENT;
-        }
+	    my $cmd = "p4 client -i";
+	    open P4CLIENT, "| $cmd 2>&1" or die "$cmd: $!";
+	    print P4CLIENT $client;
+	    close P4CLIENT;
+	}
     }
     $log->debug("Client view is $client");
 
@@ -183,7 +186,7 @@ sub normalize_paths {
 
     $src =~ s,^/*,,g;
     $dst =~ s,^/*,,g;
-    
+
     $src = "//" . $src;
     $dst = "//" . $self->client_name . "/" . $dst;
 
@@ -194,7 +197,7 @@ sub normalize_paths {
 	    $dst .= "/...";
 	}
     }
-    
+
     return ($src, $dst);
 }
 
@@ -203,10 +206,11 @@ sub export {
     my $runtime = shift;
     my $src = shift;
     my $dst = shift;
+    my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
-    
-    $self->sync_view($runtime) unless $self->initialized();
+
+    $self->sync_view($runtime, $logfile) unless $self->initialized();
 
     ($src, $dst) = $self->normalize_paths($src, $dst);
 
@@ -220,8 +224,8 @@ sub export {
     $src = "/$src" unless $src =~ m,^//,;
     $dst = "/$dst" unless $dst =~ m,^//,;
 
-    my %changes = $self->list_changes($dst);
-    
+    my %changes = $self->list_changes($dst, $logfile);
+
     unless ($rev) {
 	my $newest = 0;
 	foreach my $change (sort { $changes{$a} <=> $changes{$b} } keys %changes) {
@@ -235,20 +239,21 @@ sub export {
 	    unless $rev;
 	$log->info("Decided to sync to $rev");
     }
-    
+
     my $changes = {};
     my $changed = 0;
-    
-    my $output = $self->_run("p4 sync $dst\@$rev");
-    $log->debug("Results [$output]");
-    
-    die "cannot checkout $dst because files at $rev are not in client view" if $output =~ /file\(s\) not in client view/;
-    
-    if ($output !~ /file\(s\) up-to-date/) {
+
+    my ($output, $errors) = $self->_run(["p4", "sync", $dst . '@' . $rev], undef, $logfile);
+
+    die "cannot checkout $dst because files at $rev are not in client view" if $errors &&
+	$errors =~ /file\(s\) not in client view/;
+
+    if ($output && (!$errors ||
+		    $errors !~ /file\(s\) up-to-date/)) {
 	$changed = 1;
-        $changes = $self->get_changes($output, \%changes);
+	$changes = $self->get_changes($output, \%changes, $logfile);
     }
-    
+
     return ($changed, $changes);
 }
 
@@ -256,12 +261,13 @@ sub export {
 sub list_changes {
     my $self = shift;
     my $dst = shift;
+    my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
     $log->debug("Listing all changes at $dst");
-    
-    my $output = $self->_run("p4 -ztag changes $dst");
-    
+
+    my ($output, $errors) = $self->_run(["p4", "-ztag", "changes", $dst], undef, $logfile);
+
     # Example output:
     #... change 2
     #... time 1110722418
@@ -270,7 +276,7 @@ sub list_changes {
     #... status submitted
     #... desc        First change
     # 3 blank lines
-    
+
     my %changes;
     my $change;
     foreach my $line (split /\n/, $output) {
@@ -296,31 +302,32 @@ sub get_changes {
     my $self = shift;
     my $output = shift;
     my $changes = shift;
+    my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
 
     my %wanted;
     for my $line (split /\n/, $output) {
-        if ($line =~ m/^(.*?\#\d+) - (added|updating|deleted)/) {
-            my $depot_file = $1;
-            my $action = $2;
-            $log->debug("$depot_file, $action");
-            $depot_file =~ m/^(.*)\#(\d+)/;
-            my $file = $1;
-            my $revision = $2;
-            $revision++ if $action eq "deleted";
-	    
+	if ($line =~ m/^(.*?\#\d+) - (added|updating|deleted)/) {
+	    my $depot_file = $1;
+	    my $action = $2;
+	    $log->debug("$depot_file, $action");
+	    $depot_file =~ m/^(.*)\#(\d+)/;
+	    my $file = $1;
+	    my $revision = $2;
+	    $revision++ if $action eq "deleted";
+
 	    # XXX this only gets the most recent change to the file
 	    # what if there were many since the last checkout.
-            my $changelist = $self->get_changelist_from_filespec($file, $revision);
+	    my $changelist = $self->get_changelist_from_filespec($file, $revision, $logfile);
 	    $wanted{$changelist} = 1 if defined $changelist;
-        } else {
-            $log->warn("line did not match: $line");
-        }
+	} else {
+	    $log->warn("line did not match: $line");
+	}
     }
     my %changes;
     for my $changelist (keys %wanted) {
-        $changes{$changelist} = $self->get_changelist_info($changelist, $changes->{$changelist});
+	$changes{$changelist} = $self->get_changelist_info($changelist, $changes->{$changelist}, $logfile);
     }
     return \%changes;
 }
@@ -329,22 +336,23 @@ sub get_changelist_info {
     my $self = shift;
     my $changelist = shift;
     my $timestamp = shift;
+    my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
 
-    my $output = $self->_run("p4 describe $changelist");
+    my ($output, $errors) = $self->_run(["p4", "describe", $changelist], undef, $logfile);
 
     my %params = ( number => $changelist );
     if ($output =~ m/Change (\d+) by (.*?)\@(.*?) on (.*?)\n(.*?)^Affected files/sm) {
-        $params{user} = $2;
-        $params{description} = $5;
+	$params{user} = $2;
+	$params{description} = $5;
 	$params{date} = $timestamp;
-	
+
 	$params{description} =~ s/^\s*//g;
 	$params{description} =~ s/\s*$//g;
 	$params{description} =~ s/\s*\n\*/\n/g;
     } else {
-        die "could not parse $changelist: $output";
+	die "could not parse $changelist: $output";
     }
 
     $params{files} = [];
@@ -357,14 +365,14 @@ sub get_changelist_from_filespec {
     my $self = shift;
     my $file = shift;
     my $revision = shift;
+    my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
 
     my %changelists;
 
-    my $output = $self->_run("p4 fstat $file#$revision");
-    $log->debug("Got fstat output [$output]");
-    
+    my ($output, $errors) = $self->_run(["p4", "fstat", $file . '#' . $revision], undef, $logfile);
+
     if ($output =~ m/headChange (.*)/m) {
 	return $1;
     }

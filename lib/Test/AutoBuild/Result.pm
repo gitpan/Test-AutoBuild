@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Result.pm,v 1.2 2006/02/02 10:30:48 danpb Exp $
+# $Id: Result.pm,v 1.3 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -34,7 +34,7 @@ Test::AutoBuild::Result - represents results of an action
 
 This module provides a representation of the results from an 'interesting'
 action of the build process. The results current include a key identifying
-the action, status string identifying the outcome of the action, a log of 
+the action, status string identifying the outcome of the action, a log of
 command output, and start and end times.
 
 =head1 METHODS
@@ -62,9 +62,9 @@ Creates a new result object.
 sub init {
     my $self = shift;
     my %params = @_;
-    
+
     $self->name(exists $params{name} ? $params{name} : die "name parameter is required");
-    $self->label(exists $params{label} ? $params{label} : die "label parameter is required");    
+    $self->label(exists $params{label} ? $params{label} : die "label parameter is required");
     $self->log("");
     $self->status("pending");
     $self->{results} = [];
@@ -77,7 +77,7 @@ alpha numeric string.
 
 =item my $label = $result->label();
 
-Retrieves the label associated with the result, which can be free 
+Retrieves the label associated with the result, which can be free
 format text.
 
 =item my $log = $result->log();
@@ -136,7 +136,7 @@ sub has_results {
 
 sub duration {
     my $self = shift;
-    return defined $self->end_time ? 
+    return defined $self->end_time ?
 	$self->end_time - $self->start_time :
 	undef;
 }

@@ -1,6 +1,23 @@
 Change Log for Test::AutoBuild
 ==============================
 
+v1.2.1: (08-12-2007)
+--------------------
+
+ * Do not fail build engine if SCM checkout fails
+ * Fix fcntl() locking on BSD & Solaris (add missing format string
+   to pack when create struct data). (From Tobias Nijweide)
+ * Remove obsolete & non-portable -D arg to install since it is
+   redundant (From Tobias Nijweide)
+ * Introduce Command.pm module to allow build shell implementation
+   to be overridden
+ * Switch to use @ as revision number separator for SVN files
+ * Experimental SELinux confined build process (incomplete)
+ * Add META.yml and test for its correctness
+ * Fix list of module dependancies
+ * Use warnings in all modules
+ * Introduce auto-bin-clean-root for clearing out build root state
+
 v1.2.0: (21-08-2006)
 --------------------
 

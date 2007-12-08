@@ -28,6 +28,7 @@ rm -rf MANIFEST blib
 perl Makefile.PL PREFIX=$AUTOBUILD_INSTALL_ROOT
 make manifest
 echo $NAME.spec >> MANIFEST
+echo META.yml >> MANIFEST
 
 # Build the RPM.
 make
@@ -44,6 +45,7 @@ if [ -z "$SKIP_TESTS" -o "$SKIP_TESTS" = "0" ]; then
   if [ "$USE_COVER" = "1" ]; then
     cover -delete
     rm -rf coverage-report
+    set -o pipefail
     HARNESS_PERL_SWITCHES=-MDevel::Cover make test TEST_VERBOSE=1 | tee $TEST_RESULTS
     cover
     mkdir coverage-report
@@ -51,6 +53,7 @@ if [ -z "$SKIP_TESTS" -o "$SKIP_TESTS" = "0" ]; then
     mv coverage-report/coverage.html coverage-report/index.html
     rm -rf cover_db
   else
+    set -o pipefail
     make test TEST_VERBOSE=1 | tee $TEST_RESULTS
   fi
 fi
@@ -71,7 +74,7 @@ if [ -x /usr/bin/rpmbuild ]; then
   rpmbuild -ta --define "extra_release $EXTRA_RELEASE" --clean $NAME-*.tar.gz
 fi
 
-if [ -x /usr/bin/fakeroot ]; then
+if [ -x /usr/bin/fakeroot -a -f /etc/debian_version ]; then
   fakeroot debian/rules clean
   fakeroot debian/rules DEBDIR=$AUTOBUILD_PACKAGE_ROOT/debian binary
 fi

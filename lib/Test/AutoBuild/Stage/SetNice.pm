@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: SetNice.pm,v 1.7 2006/02/02 10:30:48 danpb Exp $
+# $Id: SetNice.pm,v 1.8 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -88,16 +88,16 @@ use Log::Log4perl;
 =item $stage->init(%params);
 
 Override super class to initialize the default nice level if non
-was specified. It is not neccesary to call this method since it 
+was specified. It is not neccesary to call this method since it
 is called automatically by the C<new> method.
 
 =cut
 
 sub init {
     my $self = shift;
- 
+
     $self->SUPER::init(@_);
-   
+
     $self->option("nice-level", 19) unless defined $self->option("nice-level");
 }
 
@@ -141,6 +141,6 @@ Copyright (C) 2004 Red Hat, Inc.
 
 =head1 SEE ALSO
 
-C<perl(1)>, L<Test::AutoBuild::Stage> 
+C<perl(1)>, L<Test::AutoBuild::Stage>
 
 =cut

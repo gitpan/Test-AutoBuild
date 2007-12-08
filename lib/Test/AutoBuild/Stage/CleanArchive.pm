@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: CleanArchive.pm,v 1.4 2006/02/02 10:30:48 danpb Exp $
+# $Id: CleanArchive.pm,v 1.5 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -63,7 +63,7 @@ sub process {
     return unless defined $arcman;
     my @archives = $runtime->archive_manager->list_invalid_archives();
     $log->debug("Got " . scalar(@archives) . " archive(s) to delete");
-    
+
     foreach my $archive (@archives) {
 	$log->debug("Deleting expired archive " . $archive->key);
 	$runtime->archive_manager->delete_archive($archive->key);
@@ -88,7 +88,7 @@ Copyright (C) 2004 Red Hat, Inc.
 =head1 SEE ALSO
 
 C<perl(1)>, L<Test::AutoBuild::Archive>, L<Test::AutoBuild::ArchiveManager>,
-L<Test::AutoBuild::Stage::CleanArchive>,  L<Test::AutoBuild::Stage>, 
+L<Test::AutoBuild::Stage::CleanArchive>,  L<Test::AutoBuild::Stage>,
 L<Test::AutoBuild::Runtime>
 
 =cut

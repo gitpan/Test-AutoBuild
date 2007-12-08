@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Repository.pm,v 1.9 2006/04/09 02:10:41 danpb Exp $
+# $Id: Repository.pm,v 1.13 2007/12/08 21:03:02 danpb Exp $
 
 =pod
 
@@ -31,10 +31,10 @@ Test::AutoBuild::Repository - Source control repository access
   use Test::AutoBuild::Repository
 
   my $rep = Test::AutoBuild::Repository->new(
-               name => $name,
-               options => \%options,
-               env => \%env,
-               label => $label);
+	       name => $name,
+	       options => \%options,
+	       env => \%env,
+	       label => $label);
 
   # Checkout / update the location '$src_path'
   # into local directory '$dst_path'
@@ -70,16 +70,18 @@ The valid configuration options for the C<repositories> block are
 package Test::AutoBuild::Repository;
 
 use strict;
+use warnings;
 use Test::AutoBuild::Lib;
+use Log::Log4perl;
 
 use Class::MethodMaker
-    new_with_init => "new",
-    get_set => [qw(name label)];
+    [ new => [qw/ -init new /],
+      scalar => [qw/ name label /]];
 
 =item my $rep = Test::AutoBuild::Repository->new(name => $name,
-           label => $label,
-           options => \%options,
-           env => \%env);
+	   label => $label,
+	   options => \%options,
+	   env => \%env);
 
 This method creates a new repository. The C<name> argument is an
 alphanumeric token representing the name of the repository. The
@@ -116,7 +118,7 @@ default implementation will throw an error.
 sub changelist {
     my $self = shift;
     my $runtime = shift;
-    
+
     die "module " . ref($self) . " does not support changelists";
 }
 
@@ -170,10 +172,10 @@ sub env {
 
 =item my ($changed, $changes) = $rep->export($runtime, $src, $dst);
 
-Exports the location C<$src> into the directory C<$dst>. Returns zero if 
-there were no changes to export; non-zero if the module was new or changed. 
-The second return parameter is a hash reference whose keys are change numbers, 
-and values are the corresponding L<Test::AutoBuild::Change> objects. This 
+Exports the location C<$src> into the directory C<$dst>. Returns zero if
+there were no changes to export; non-zero if the module was new or changed.
+The second return parameter is a hash reference whose keys are change numbers,
+and values are the corresponding L<Test::AutoBuild::Change> objects. This
 second parameter is optional, since not all repositories maintain changelists.
 This is a virtual method which must be implemented by all subclasses.
 
@@ -187,7 +189,7 @@ sub export {
     die "class " . ref($self) . " forgot to implement the export method";
 }
 
-=item my $output = $rep->_run($cmd);
+=item my ($output, $errors) = $rep->_run($cmd);
 
 Runs the command specified in the first argument, having first
 setup the environment variables specified when the repository
@@ -199,15 +201,54 @@ command
 sub _run {
     my $self = shift;
     my $cmd = shift;
+    my $dir = shift;
+    my $logfile = shift;
 
-    return Test::AutoBuild::Lib::run($cmd, $self->{env});
+    my $cmdopt = $self->option("command") || {};
+    my $mod = $cmdopt->{module} || "Test::AutoBuild::Command::Local";
+    my $opts = $cmdopt->{options} || {};
+    eval "use $mod;";
+    die "cannot load $mod: $!" if $@;
+
+    my $c = $mod->new(cmd => $cmd,
+		      dir => $dir,
+		      env => $self->{env},
+		      options => $opts);
+
+    my ($output, $errors);
+    my $status = $c->run(\$output, \$errors);
+
+    $output = "" unless defined $output;
+    $errors = "" unless defined $errors;
+
+    die "command '" . join("' '", @{$cmd}) . "' exited with status $status\n$errors" if $status;
+
+    if ($logfile) {
+	$self->_append_log($logfile, join(" ", @{$cmd}) . "\n");
+	$self->_append_log($logfile, $output) if $output ne "";
+	$self->_append_log($logfile, $errors) if $errors ne "";
+    }
+
+    return ($output, $errors);
+}
+
+sub _append_log {
+    my $self = shift;
+    my $logfile = shift;
+    my $data = shift;
+
+    open LOG, ">>$logfile"
+	or die "cannot append $logfile: $!";
+    print LOG $data;
+    close LOG
+	or die "cannot save $logfile: $!";
 }
 
 1 # So that the require or use succeeds.
 
 __END__
 
-=back 
+=back
 
 =head1 AUTHORS
 

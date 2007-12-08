@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: CreateArchive.pm,v 1.2 2006/02/02 10:30:48 danpb Exp $
+# $Id: CreateArchive.pm,v 1.3 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -60,8 +60,8 @@ sub process {
     my $log = Log::Log4perl->get_logger();
     my $arcman = $runtime->archive_manager;
     return unless defined $arcman;
-   
-    $log->debug("Creating archive with timestamp " . $runtime->timestamp); 
+
+    $log->debug("Creating archive with timestamp " . $runtime->timestamp);
     $arcman->create_archive($runtime->timestamp);
 }
 
@@ -82,7 +82,7 @@ Copyright (C) 2005 Daniel P. Berrange
 =head1 SEE ALSO
 
 C<perl(1)>, L<Test::AutoBuild::Archive>, L<Test::AutoBuild::ArchiveManager>,
-L<Test::AutoBuild::Stage::CleanArchive>,  L<Test::AutoBuild::Stage>, 
+L<Test::AutoBuild::Stage::CleanArchive>,  L<Test::AutoBuild::Stage>,
 L<Test::AutoBuild::Runtime>
 
 =cut

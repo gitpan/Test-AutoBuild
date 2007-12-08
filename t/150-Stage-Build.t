@@ -1,4 +1,4 @@
-# -*- cperl -*-
+# -*- perl -*-
 
 use Test::More tests => 4;
 use warnings;
@@ -7,7 +7,7 @@ use Log::Log4perl;
 
 Log::Log4perl::init("t/log4perl.conf");
 
-BEGIN { 
+BEGIN {
   use_ok("Test::AutoBuild::Stage::Build") or die;
   use_ok("Test::AutoBuild::Runtime") or die;
   use_ok("Test::AutoBuild::Counter::Time") or die;
@@ -21,9 +21,8 @@ TEST_ONE: {
 						 options => {
 							    });
   isa_ok($stage, "Test::AutoBuild::Stage::Build");
-  
+
   # Implement me!
   #$stage->run($runtime);
   #ok($stage->succeeded(), "stage succeeeded");
 }
-

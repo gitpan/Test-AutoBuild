@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Package.pm,v 1.4 2006/02/02 10:30:48 danpb Exp $
+# $Id: Package.pm,v 1.6 2007/12/08 21:03:02 danpb Exp $
 
 =pod
 
@@ -45,6 +45,7 @@ its build.
 package Test::AutoBuild::Package;
 
 use strict;
+use warnings;
 use Carp qw(confess);
 use Digest::MD5;
 use File::stat;
@@ -135,17 +136,17 @@ sub _md5sum {
     my $md5 = Digest::MD5->new();
 
     if ($self->{type}->filetype() eq "directory") {
-        my $listing = "";
+	my $listing = "";
 	    opendir(DIR, $self->{name}) or die("can't opendir $self->{name}: $!");
 	    foreach my $file_or_dir (grep { !m/^\.$/ && !m/^\.\.$/ } readdir(DIR)) {
-            my $sb = stat(File::Spec->catfile($self->{name}, $file_or_dir));
-            $listing .= join ":", $sb->mode, $sb->uid, $sb->gid, $sb->size, $sb->mtime;
+	    my $sb = stat(File::Spec->catfile($self->{name}, $file_or_dir));
+	    $listing .= join ":", $sb->mode, $sb->uid, $sb->gid, $sb->size, $sb->mtime;
 	    }
 	    closedir DIR;
-        $md5->add($listing);
+	$md5->add($listing);
     } else {
-        open FILE, $self->{name} or die "cannot open $self->{name}: $!";
-        $md5->addfile(\*FILE);
+	open FILE, $self->{name} or die "cannot open $self->{name}: $!";
+	$md5->addfile(\*FILE);
     }
 
     $self->{md5sum} = $md5->hexdigest();

@@ -1,4 +1,4 @@
-# -*- cperl -*-
+# -*- perl -*-
 
 use Test::More tests => 28;
 use warnings;
@@ -7,8 +7,8 @@ use Log::Log4perl;
 
 Log::Log4perl::init("t/log4perl.conf");
 
-BEGIN { 
-  use_ok("Test::AutoBuild::Stage::Apt") or die;
+BEGIN {
+  use_ok("Test::AutoBuild::Stage") or die;
   use_ok("Test::AutoBuild::Runtime") or die;
   use_ok("Test::AutoBuild::Counter::Time") or die;
 }
@@ -21,7 +21,7 @@ TEST_BASE: {
 					  label => "Base stage",
 					  options => {});
   isa_ok($stage, "Test::AutoBuild::Stage");
-  
+
   ok(!defined $stage->start_time(), "start time undefined");
   ok(!defined $stage->end_time(), "end time undefined");
 
@@ -39,7 +39,7 @@ TEST_BASE: {
   # We should abort because we forgot the 'process' method
   ok($stage->aborted(), "stage aborted");
   is($stage->status(), "aborted", "stage status is aborted");
-  
+
   $stage->is_enabled(0);
   $stage->run($runtime);
   # We should be skipped
@@ -64,7 +64,7 @@ TEST_DEFAULTS: {
 					  label => "label",
 					  critical => 0,
 					  enabled => 0);
-  
+
   is($stage->is_enabled(), 0, "stage disabled");
   is($stage->is_critical(), 0, "stage critical");
 }
@@ -76,11 +76,11 @@ TEST_OPTIONS: {
 					   data => "Some message",
 					  });
   isa_ok($stage, "StageOption");
-  
+
   $stage->run($runtime);
   ok($stage->succeeded(), "stage succeeeded");
   is($stage->status(), "success", "stage status is success");
-  
+
   is($stage->data(), "Some message", "Got option");
 }
 
@@ -89,7 +89,7 @@ TEST_FAILURE: {
 				label => "Options",
 				options => {});
   isa_ok($stage, "StageFailure");
-  
+
   $stage->run($runtime);
   ok($stage->failed(), "stage succeeeded");
 
@@ -107,7 +107,7 @@ use base qw(Test::AutoBuild::Stage);
 sub process {
   my $self = shift;
   my $runtime = shift;
-  
+
   $self->{data} = $self->option("data");
 }
 
@@ -123,6 +123,6 @@ use base qw(Test::AutoBuild::Stage);
 sub process {
   my $self = shift;
   my $runtime = shift;
-  
+
   $self->fail("Failed stage");
 }

@@ -1,4 +1,4 @@
-# -*- cperl -*-
+# -*- perl -*-
 
 use Test::More tests => 8;
 use warnings;
@@ -8,7 +8,7 @@ use POSIX qw(:errno_h);
 
 Log::Log4perl::init("t/log4perl.conf");
 
-BEGIN { 
+BEGIN {
   use_ok("Test::AutoBuild::Lock") or die;
 }
 
@@ -26,7 +26,7 @@ TEST_FILE: {
   ok($lock->lock(), "obtain file lock");
 
   $lock->unlock();
-  
+
   ok(!-f $lockfile, "released file lock");
 }
 
@@ -34,9 +34,9 @@ TEST_FCNTL: {
   my $lock = Test::AutoBuild::Lock->new(file => $lockfile,
 					method => "fcntl");
   isa_ok($lock, "Test::AutoBuild::Lock");
-  
+
   ok($lock->lock(), "obtain fcntl lock");
-  
+
   $lock->unlock();
 }
 
@@ -45,7 +45,7 @@ TEST_FLOCK: {
   my $lock = Test::AutoBuild::Lock->new(file => $lockfile,
 					method => "flock");
   isa_ok($lock, "Test::AutoBuild::Lock");
-  
+
   my $locked = $lock->lock();
   SKIP: {
     if (!$locked && $! == ENOLCK) {

@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: CommandLine.pm,v 1.4 2006/02/02 10:30:48 danpb Exp $
+# $Id: CommandLine.pm,v 1.5 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -39,7 +39,7 @@ Test::AutoBuild::Monitor::CommandLine - Monitor progress from 'ps'
 =head1 DESCRIPTION
 
 This module changes the process command line to reflect the current
-status. Thus the status can be viewed simply by running the 'ps' 
+status. Thus the status can be viewed simply by running the 'ps'
 command. For example, after a single beginStage event for stage
 name 'build' it will show
 
@@ -61,7 +61,7 @@ etc, etc.
 
 =head1 CONFIGURATION
 
-This module merely uses the standard configuration parameters for 
+This module merely uses the standard configuration parameters for
 C<Test::AutoBuild::Monitor>, no options are neccessary
 
 =head2 EXAMPLE
@@ -89,14 +89,14 @@ use POSIX qw(mkfifo);
 =item $monitor->init(%params);
 
 This method initializes a new monitor & is called automatically
-by the C<new> method. The C<%params> parameters are passed through 
-from the C<new> method. 
+by the C<new> method. The C<%params> parameters are passed through
+from the C<new> method.
 
 =cut
 
 sub init {
     my $self = shift;
-    
+
     $self->SUPER::init(@_);
 
     $self->{command} = $0;
@@ -121,7 +121,7 @@ sub process {
 
     if ($name eq "beginStage") {
 	push @{$self->{stages}}, $args[0];
-	
+
 	$self->{build} = undef;
     } elsif ($name eq "completeStage" ||
 	     $name eq "failStage" ||
@@ -134,8 +134,8 @@ sub process {
 	$self->{build} = undef;
     }
 
-    $0 = $self->{command} . 
-	" [running " . join("->", @{$self->{stages}}) . 
+    $0 = $self->{command} .
+	" [running " . join("->", @{$self->{stages}}) .
 	($self->{build} ? " (" . $self->{build} . ")]" : "]");
 }
 

@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use Log::Log4perl;
 
-BEGIN { 
+BEGIN {
   use_ok("Test::AutoBuild::Result");
 }
 
@@ -16,7 +16,7 @@ SIMPLE: {
     my $result = Test::AutoBuild::Result->new(name => "test",
 					      label => "Test");
     isa_ok($result, "Test::AutoBuild::Result");
-   
+
     is($result->name, "test", "name is test");
     is($result->label, "Test", "label is Test");
     ok(!defined $result->start_time, "start time is undefined");
@@ -26,7 +26,7 @@ SIMPLE: {
 
     $result->start_time(123);
     ok(!defined $result->duration, "duration is undefined");
-    
+
     $result->end_time(456);
     is($result->duration, 333, "duration is undefined");
 }
@@ -38,11 +38,11 @@ NESTED: {
     isa_ok($result, "Test::AutoBuild::Result");
 
     ok(!$result->has_results, "no nested results");
-    
+
     my $subresult = Test::AutoBuild::Result->new(name => "subtest",
 						 label => "Sub-test");
     isa_ok($subresult, "Test::AutoBuild::Result");
-    
+
     $result->add_result($subresult);
     ok($result->has_results, "nested results");
 

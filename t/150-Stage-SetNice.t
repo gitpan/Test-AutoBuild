@@ -1,4 +1,4 @@
-# -*- cperl -*-
+# -*- perl -*-
 
 use Test::More tests => 9;
 use warnings;
@@ -8,7 +8,7 @@ use BSD::Resource;
 
 Log::Log4perl::init("t/log4perl.conf");
 
-BEGIN { 
+BEGIN {
   use_ok("Test::AutoBuild::Stage::SetNice") or die;
   use_ok("Test::AutoBuild::Runtime") or die;
   use_ok("Test::AutoBuild::Counter::Time") or die;
@@ -29,10 +29,10 @@ TEST_LOW: {
 							       'nice-level' => 19
 							      });
   isa_ok($stage, "Test::AutoBuild::Stage::SetNice");
-  
+
   $stage->run($runtime);
   ok($stage->succeeded(), "stage succeeeded");
-  
+
   my $prio = getpriority PRIO_PROCESS, $$;
   ok(defined $prio && $prio == 19, "priority is 19");
 }
@@ -44,9 +44,9 @@ TEST_HIGH: {
 							       'nice-level' => -15
 							      });
   isa_ok($stage, "Test::AutoBuild::Stage::SetNice");
-  
+
   $stage->run($runtime);
-  # If someone happens to be running this test as root 
+  # If someone happens to be running this test as root
   # then it'll actually succeeed - but not if under
   # debian's fakeroot in which case it'll still fail
   if ($< == 0 && ! exists $ENV{FAKED_MODE}) {
@@ -55,4 +55,3 @@ TEST_HIGH: {
     ok($stage->failed(), "stage failed");
   }
 }
-

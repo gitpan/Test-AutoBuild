@@ -32,6 +32,7 @@ TEST_GLOBAL_ONE: {
   # 1 module, global, single admin, always
 
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "One", sources => {});
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();
@@ -65,9 +66,11 @@ TEST_GLOBAL_TWO: {
   # 2 module, global, single admin, always
 
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "One", sources => {});
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
 
   my $mod2 = Test::AutoBuild::Module->new(name => "two", label => "Two", sources => {});
+  $mod2->_add_result("checkout", "success");
   $mod2->_add_result("build", "success");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();
@@ -101,9 +104,11 @@ TEST_GLOBAL_THREE: {
   # 2 module, global, single admin, fail
 
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "One", sources => {});
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
 
   my $mod2 = Test::AutoBuild::Module->new(name => "two", label => "Two", sources => {});
+  $mod2->_add_result("checkout", "success");
   $mod2->_add_result("build", "failed");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();
@@ -138,9 +143,11 @@ TEST_GLOBAL_FOUR: {
   # 2 module, global, single admin, first-fail, no-cache
 
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "One", sources => {});
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
 
   my $mod2 = Test::AutoBuild::Module->new(name => "two", label => "Two", sources => {});
+  $mod2->_add_result("checkout", "success");
   $mod2->_add_result("build", "failed");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();
@@ -174,9 +181,11 @@ TEST_GLOBAL_FIVE: {
   # 2 module, global, single admin, first-fail, same status
 
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "One", sources => {});
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
 
   my $mod2 = Test::AutoBuild::Module->new(name => "two", label => "Two", sources => {});
+  $mod2->_add_result("checkout", "success");
   $mod2->_add_result("build", "failed");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();
@@ -214,9 +223,11 @@ TEST_GLOBAL_SIX: {
   # 2 module, global, single admin, fist-fail, different status
 
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "One", sources => {});
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
 
   my $mod2 = Test::AutoBuild::Module->new(name => "two", label => "Two", sources => {});
+  $mod2->_add_result("checkout", "success");
   $mod2->_add_result("build", "failed");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();
@@ -255,6 +266,7 @@ TEST_GLOBAL_SEVEN: {
   # 1 module, global, single admin, always many recipients
 
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "One", sources => {});
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();
@@ -294,6 +306,7 @@ TEST_MODULE_ONE: {
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "One", sources => {},
 					  "admin_email" => "joe\@example.com",
 					  "admin_name" => "Joe Bloggs");
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();
@@ -329,10 +342,12 @@ TEST_MODULE_TWO: {
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "Fred", sources => {},
 					  "admin_email" => "joe\@example.com",
 					  "admin_name" => "Joe Bloggs");
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
   my $mod2 = Test::AutoBuild::Module->new(name => "two", label => "Fred", sources => {},
 					  "admin_email" => "fred\@example.com",
 					  "admin_name" => "Fred Jones");
+  $mod2->_add_result("checkout", "success");
   $mod2->_add_result("build", "success");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();
@@ -369,10 +384,12 @@ TEST_MODULE_THREE: {
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "Fred", sources => {},
 					  "admin_email" => "joe\@example.com",
 					  "admin_name" => "Joe Bloggs");
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
   my $mod2 = Test::AutoBuild::Module->new(name => "two", label => "Fred", sources => {},
 					  "admin_email" => "fred\@example.com",
 					  "admin_name" => "Fred Jones");
+  $mod2->_add_result("checkout", "success");
   $mod2->_add_result("build", "failed");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();
@@ -408,10 +425,12 @@ TEST_MODULE_FOUR: {
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "Fred", sources => {},
 					  "admin_email" => "joe\@example.com",
 					  "admin_name" => "Joe Bloggs");
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
   my $mod2 = Test::AutoBuild::Module->new(name => "two", label => "Fred", sources => {},
 					  "admin_email" => "fred\@example.com",
 					  "admin_name" => "Fred Jones");
+  $mod2->_add_result("checkout", "success");
   $mod2->_add_result("build", "failed");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();
@@ -447,10 +466,12 @@ TEST_MODULE_FIVE: {
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "Fred", sources => {},
 					  "admin_email" => "joe\@example.com",
 					  "admin_name" => "Joe Bloggs");
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
   my $mod2 = Test::AutoBuild::Module->new(name => "two", label => "Fred", sources => {},
 					  "admin_email" => "fred\@example.com",
 					  "admin_name" => "Fred Jones");
+  $mod2->_add_result("checkout", "success");
   $mod2->_add_result("build", "failed");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();
@@ -489,10 +510,12 @@ TEST_MODULE_SIX: {
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "Fred", sources => {},
 					  "admin_email" => "joe\@example.com",
 					  "admin_name" => "Joe Bloggs");
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
   my $mod2 = Test::AutoBuild::Module->new(name => "two", label => "Fred", sources => {},
 					  "admin_email" => "fred\@example.com",
 					  "admin_name" => "Fred Jones");
+  $mod2->_add_result("checkout", "success");
   $mod2->_add_result("build", "failed");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();
@@ -532,6 +555,7 @@ TEST_MODULE_SEVEN: {
   my $mod1 = Test::AutoBuild::Module->new(name => "one", label => "One", sources => {},
 					  "admin_email" => "joe\@example.com",
 					  "admin_name" => "Joe Bloggs");
+  $mod1->_add_result("checkout", "success");
   $mod1->_add_result("build", "success");
 
   my $arcman = Test::AutoBuild::ArchiveManager::Memory->new();

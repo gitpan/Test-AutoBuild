@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Runtime.pm,v 1.18 2006/04/18 03:06:44 danpb Exp $
+# $Id: Runtime.pm,v 1.19 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -31,18 +31,18 @@ Test::AutoBuild::Runtime - Builder runtime state
   use Test::AutoBuild::Runtime;
 
   my $runtime = new Test::AutoBuild::Runtime (archive_manager => $archive_manager,
-                                              monitors => \%monitors,
-                                              repositories => \%repositories,
-                                              modules => \%modules,
-                                              package_types => \%package_types,
-                                              publishers => \%publishers,
-                                              groups => \%groups,
-                                              platforms => \%platforms,
-                                              source_root => $dir,
-                                              install_root => $dir,
-                                              package_root => $dir,
-                                              log_root => $dir,
-                                              counter => $counter);
+					      monitors => \%monitors,
+					      repositories => \%repositories,
+					      modules => \%modules,
+					      package_types => \%package_types,
+					      publishers => \%publishers,
+					      groups => \%groups,
+					      platforms => \%platforms,
+					      source_root => $dir,
+					      install_root => $dir,
+					      package_root => $dir,
+					      log_root => $dir,
+					      counter => $counter);
 
   my $archive = $runtime->archive;
 
@@ -74,9 +74,9 @@ Test::AutoBuild::Runtime - Builder runtime state
 
 =head1 DESCRIPTION
 
-This module provides access to the core objects comprising the 
-build engine, including monitors, repositories, modules, package 
-types, publishers and groups. The runtime state object is made 
+This module provides access to the core objects comprising the
+build engine, including monitors, repositories, modules, package
+types, publishers and groups. The runtime state object is made
 available to the C<run> method of stages in the build engine.
 
 =head1 METHODS
@@ -94,34 +94,34 @@ use Log::Log4perl;
 use Sys::Hostname;
 use File::Spec::Functions;
 use List::Util qw(shuffle);
-use Class::MethodMaker 
+use Class::MethodMaker
     new_with_init => qw(new),
     get_set => [qw(
-		   counter 
-		   timestamp 
-		   source_root 
-		   install_root 
+		   counter
+		   timestamp
+		   source_root
+		   install_root
 		   package_root
 		   log_root
-                   admin_email
-                   admin_name
+		   admin_email
+		   admin_name
 		   archive_manager
-                   group_email
-                   group_name
+		   group_email
+		   group_name
 		   )];
 
 our $VERSION = "1.1.0";
 
 =item  my $runtime = Test::AutoBuild::Runtime->new(archive => $archive,
-                                                   monitors => \%monitors,
-                                                   repositories => \%repositories,
-                                                   modules => \%modules,
-                                                   package_types => \%package_types,
-                                                   publishers => \%publishers,
-                                                   groups => \%groups,
-                                                   platforms => \%platforms,
-                                                   source_root => $dir,
-                                                   counter => $counter);
+						   monitors => \%monitors,
+						   repositories => \%repositories,
+						   modules => \%modules,
+						   package_types => \%package_types,
+						   publishers => \%publishers,
+						   groups => \%groups,
+						   platforms => \%platforms,
+						   source_root => $dir,
+						   counter => $counter);
 
 Creates a new runtime state object. The C<archive> parameter requires an instance
 of the L<Test::AutoBuild::Archive> module. The C<monitors> parameter requires an
@@ -138,7 +138,7 @@ hash reference of L<Test::AutoBuild::Platform> objects.
 sub init {
     my $self = shift;
     my %params = @_;
-    
+
     $self->{monitors} = exists $params{monitors} ? $params{monitors} : {};
     $self->{repositories} = exists $params{repositories} ? $params{repositories} : {};
     $self->{modules} = exists $params{modules} ? $params{modules} : {};
@@ -190,34 +190,34 @@ sub _sort_modules {
     # Section 2.2.3)
 
     foreach my $name ($self->modules) {
-        my $depends = $self->module($name)->depends();
-        if ($#{$depends} > -1) {
-            foreach my $depmod (@{$depends}) {
-                die "module $name depends on non-existent module $depmod"
-                    unless defined $self->modules($depmod);
-                next if defined $pairs{$depmod}{$name};
-                $pairs{$depmod}{$name}++;
-                $npred{$depmod} += 0;
-                $npred{$name}++;
-                push @{$succ{$depmod}}, $name;
-            }
-        } else {
-            $pairs{$name}{$name}++;
-            $npred{$name} += 0;
-            push @{$succ{$name}}, $name;
-        }
+	my $depends = $self->module($name)->depends();
+	if ($#{$depends} > -1) {
+	    foreach my $depmod (@{$depends}) {
+		die "module $name depends on non-existent module $depmod"
+		    unless defined $self->modules($depmod);
+		next if defined $pairs{$depmod}{$name};
+		$pairs{$depmod}{$name}++;
+		$npred{$depmod} += 0;
+		$npred{$name}++;
+		push @{$succ{$depmod}}, $name;
+	    }
+	} else {
+	    $pairs{$name}{$name}++;
+	    $npred{$name} += 0;
+	    push @{$succ{$name}}, $name;
+	}
     }
     # create a list of nodes without predecessors
     my @list = shuffle(grep {!$npred{$_}} keys %npred);
     while (@list) {
-        $_ = pop @list;
-        push @{$order}, $_;
-        foreach my $child (@{$succ{$_}}) {
-            # depth-first (default)
-            push @list, $child unless --$npred{$child};
-        }
+	$_ = pop @list;
+	push @{$order}, $_;
+	foreach my $child (@{$succ{$_}}) {
+	    # depth-first (default)
+	    push @list, $child unless --$npred{$child};
+	}
     }
-    
+
     $self->{sorted_modules} = $order;
 }
 
@@ -236,7 +236,7 @@ Returns the active archive object
 
 sub archive {
     my $self = shift;
-    return $self->archive_manager ? 
+    return $self->archive_manager ?
 	$self->archive_manager->get_current_archive($self) :
 	undef;
 }
@@ -566,7 +566,7 @@ sub notify {
     my $self = shift;
     my $event_name = shift;
     my @args = @_;
-    
+
     foreach my $name ($self->monitors) {
 	$self->monitor($name)->notify($event_name, @args);
     }
@@ -581,7 +581,7 @@ checked out from the repositories
 =item my $dir = $runtime->install_root();
 
 Retrieve the directory into which modules install built
-files. 
+files.
 
 =item my $dir = $runtime->package_root();
 
@@ -606,16 +606,16 @@ sub package_snapshot {
 
     my $packages = {};
     foreach my $name ($self->package_types) {
-        my $packs = $self->package_type($name)->snapshot();
+	my $packs = $self->package_type($name)->snapshot();
 
-        map { $packages->{$_} = $packs->{$_} } keys %{$packs};
+	map { $packages->{$_} = $packs->{$_} } keys %{$packs};
     }
     return $packages;
 }
 
 sub installed_snapshot {
     my $self = shift;
-    
+
     my $install_package_type =
 	Test::AutoBuild::PackageType->new(name => "install",
 					  label => "Install root",
@@ -632,7 +632,7 @@ the C<$value> argument. A macro can expand to multiple values,
 so the single input, can turn into multiple outputs, hence the
 return from this method is an array of strings. A macro which
 usually expands to multiple values can be restricted to a single
-value by specifying the value in the optional C<%restrictions> 
+value by specifying the value in the optional C<%restrictions>
 parameter.
 
 The macros which will be expanded are:
@@ -670,16 +670,16 @@ Build cycle counter
 sub expand_macros {
     my $self = shift;
     my $value = shift;
-    
+
     my %macros = (
-        'm' => sub { $self->modules },
-        'p' => sub { $self->package_types },
-        'g' => sub { $self->groups },
-        'r' => sub { $self->repositories },
-        'h' => sub { hostname },
-        'c' => sub { $self->counter },
+	'm' => sub { $self->modules },
+	'p' => sub { $self->package_types },
+	'g' => sub { $self->groups },
+	'r' => sub { $self->repositories },
+	'h' => sub { hostname },
+	'c' => sub { $self->counter },
     );
-    
+
     if (@_) {
 	my $restrictions = shift;
 	$macros{m} = sub { $restrictions->{module}} if exists $restrictions->{module};
@@ -691,21 +691,21 @@ sub expand_macros {
     my @input = ($value);
     my @output;
     while (my $output = shift @input) {
-        if ($output =~ /%(\w+)/) {
-            my $key = $1;
-            if (!exists $macros{$key}) {
-                die "unknown macro %$key in $value";
-            }
-            my $code = $macros{$key};
-            my @macros = &$code;
-            foreach my $macro (@macros) {
-                my $newoutput = $output;
-                $newoutput =~ s/%$key/$macro/ex;
-                push @input, $newoutput;
-            }
-        } else {
-            push @output, $output;
-        }
+	if ($output =~ /%(\w+)/) {
+	    my $key = $1;
+	    if (!exists $macros{$key}) {
+		die "unknown macro %$key in $value";
+	    }
+	    my $code = $macros{$key};
+	    my @macros = &$code;
+	    foreach my $macro (@macros) {
+		my $newoutput = $output;
+		$newoutput =~ s/%$key/$macro/ex;
+		push @input, $newoutput;
+	    }
+	} else {
+	    push @output, $output;
+	}
     }
     return @output;
 }
@@ -714,8 +714,8 @@ sub expand_macros {
 =item my %env = $module->get_shell_environment($module);
 
 Returns a hash containing the set of shell environment
-variables to set when running the commands for the 
-module C<$module>. The following environment variables 
+variables to set when running the commands for the
+module C<$module>. The following environment variables
 are set
 
 =over 4
@@ -740,7 +740,7 @@ is based on the value return by the C<install_root> method.
 
 The location into which a module will create binary packages. For
 example, $AUTOBUILD_PACKAGE_ROOT/rpm would be used to set %_topdir
-when building RPMs. This is based on the value return by the 
+when building RPMs. This is based on the value return by the
 C<package_root> method.
 
 =item $AUTOBUILD_SOURCE_ROOT
@@ -756,13 +756,13 @@ of the module's source.
 
 =item $AUTOBUILD_COUNTER
 
-The build counter value, based on the value return by the C<build_counter> 
+The build counter value, based on the value return by the C<build_counter>
 method. This counter is not guarenteed to be different on each build
 cycle
 
 =item $AUTOBUILD_TIMESTAMP
 
-The build counter value, based on the value return by the C<build_counter> 
+The build counter value, based on the value return by the C<build_counter>
 method. This counter will uniquely refer to a particular checkout of the
 source code.
 
@@ -777,7 +777,7 @@ entries from the C<env> method.
 sub get_shell_environment {
     my $self = shift;
     my $module = shift;
-	
+
     my %env;
 
     $env{AUTO_BUILD_ROOT} = $self->install_root;
@@ -790,7 +790,7 @@ sub get_shell_environment {
     $env{AUTOBUILD_PACKAGE_ROOT} = $self->package_root;
     $env{AUTOBUILD_SOURCE_ROOT} = $self->source_root;
     $env{AUTOBUILD_MODULE} = $module->name;
-    
+
     return %env;
 }
 

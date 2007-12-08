@@ -6,7 +6,7 @@
       <tbody>
       [% FOREACH modules %]
         <tr class="[% IF loop.index() % 2 == 0 %]odd[%ELSE%]even[%END%]">
-          <td><a href="module-[% name %].html">[% label %]</a></td>
+          <td><a href="module-[% name | html %].html">[% label | html %]</a></td>
           <td class="[% status %]">[% status %]</td>
         </tr>
       [% END %]

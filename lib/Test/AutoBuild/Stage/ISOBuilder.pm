@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: ISOBuilder.pm,v 1.11 2006/04/12 01:40:35 danpb Exp $
+# $Id: ISOBuilder.pm,v 1.12 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -168,7 +168,7 @@ sub process {
 	}
 	foreach my $type (@cd_package_types) {
 	    my $dir = catdir($vroot,$type);
-	    rmdir $dir 
+	    rmdir $dir
 		or die "cannot delete dir $dir: $!";
 	}
 	rmdir $vroot
@@ -242,6 +242,6 @@ Copyright (C) 2004 Daniel Berrange <dan@berrange.com>
 
 =head1 SEE ALSO
 
-C<perl(1)>, L<Test::AutoBuild::Stage> 
+C<perl(1)>, L<Test::AutoBuild::Stage>
 
 =cut

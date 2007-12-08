@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Lib.pm,v 1.29 2006/04/18 13:15:05 danpb Exp $
+# $Id: Lib.pm,v 1.31 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -67,7 +67,7 @@ use Sys::Hostname;
 use Template;
 use IO::Scalar;
 use Config::Record;
-
+use Test::AutoBuild::Command::Local;
 
 =item my %packages = Test::AutoBuild::Lib::new_packages(\%before, \%after);
 
@@ -84,10 +84,10 @@ sub new_packages {
 
     my $packages = {};
     foreach my $file (keys %{$after}) {
-        if (!exists $before->{$file} ||
-            $before->{$file}->last_modified() != $after->{$file}->last_modified()) {
-            $packages->{$file} = $after->{$file};
-        }
+	if (!exists $before->{$file} ||
+	    $before->{$file}->last_modified() != $after->{$file}->last_modified()) {
+	    $packages->{$file} = $after->{$file};
+	}
     }
 
     return $packages;
@@ -104,9 +104,9 @@ sub pretty_date {
     my $time = shift;
 
     if (defined $time) {
-        return strftime "%a %b %e %Y %H:%M:%S UTC", gmtime($time);
+	return strftime "%a %b %e %Y %H:%M:%S UTC", gmtime($time);
     } else {
-        return "";
+	return "";
     }
 }
 
@@ -122,22 +122,22 @@ sub pretty_time {
     my $time = shift;
 
     if (defined $time) {
-        my $time_hours;
-        my $time_minutes;
-        my $time_seconds;
-        {
-            use integer;
-            $time_hours = $time / 3600;
-            $time_minutes = ($time - ($time_hours * 3600)) / 60;
-            $time_seconds = $time - ($time_hours * 3600) - ($time_minutes * 60);
-        };
+	my $time_hours;
+	my $time_minutes;
+	my $time_seconds;
+	{
+	    use integer;
+	    $time_hours = $time / 3600;
+	    $time_minutes = ($time - ($time_hours * 3600)) / 60;
+	    $time_seconds = $time - ($time_hours * 3600) - ($time_minutes * 60);
+	};
 
-        return sprintf ("%02dh %02dm %02ds",
-                        $time_hours,
-                        $time_minutes,
-                        $time_seconds);
+	return sprintf ("%02dh %02dm %02ds",
+			$time_hours,
+			$time_minutes,
+			$time_seconds);
     } else {
-        return "";
+	return "";
     }
 }
 
@@ -155,15 +155,15 @@ sub pretty_size {
     my $size = shift;
 
     if ($size > (1024 * 1024)) {
-        return sprintf("%.2f MB", ($size / (1024 * 1024)));
+	return sprintf("%.2f MB", ($size / (1024 * 1024)));
     } elsif ($size > 1024) {
-        return sprintf("%.2f KB", ($size / 1024));
+	return sprintf("%.2f KB", ($size / 1024));
     } else {
-        return $size . " b";
+	return $size . " b";
     }
 }
 
-=item my $output = Test::AutoBuild::Lib::run($command, \%env);
+=item my $status = Test::AutoBuild::Lib::run($comnand, \%env);
 
 Executes the program specified in the C<command> argument.
 The returned value is the output of the commands standard
@@ -179,28 +179,19 @@ sub run {
     my $env = shift;
 
     my $log = Log::Log4perl->get_logger();
-    my $output = "";
-
-    $log->debug("running: $command");
 
     local %ENV = %ENV;
     foreach (keys %{$env}) {
 	$log->debug("Set env $_ $env->{$_}");
-        $ENV{$_} = $env->{$_};
-    }
-    
-    $command = "$command 2>&1" unless $command =~ /2>/;
-    $output = `$command`;
-
-    if (! defined ($output) || $?) {
-	my $error = "Failed to run '$command': $! ($?)";
-	if ($output) {
-	    $error .= " - " . $output;
-	}
-	$log->error($error);
-        die $error . "\n";
+	$ENV{$_} = $env->{$_};
     }
 
+    my $c = Test::AutoBuild::Command::Local->new(cmd => ["/bin/sh", "-c", $command],
+						 env => $env);
+
+    my $output = '';
+    my $status = $c->run(\$output, \$output);
+    die "cannot run /bin/sh -c $command: $status" if $status;
     return $output;
 }
 
@@ -210,10 +201,10 @@ sub _copy {
 	unshift @_, $options;
 	$options = undef;
     }
-    
+
     my $target = pop;
     my @source = @_;
-    
+
     &copy_files(\@source, $target, $options);
 }
 
@@ -223,47 +214,47 @@ sub copy_files {
     my $options = shift;
 
     my $log = Log::Log4perl->get_logger();
-    
+
     my $attrs = ['mode','ownership','timestamps','links'];
     $options = {
-        "link" => 0,
-        "preserve" => {
-            'mode' => 0,
-            'ownership' => 0,
-            'links' => 1
-            },
-        "symbolic-link" => 0,
+	"link" => 0,
+	"preserve" => {
+	    'mode' => 0,
+	    'ownership' => 0,
+	    'links' => 1
+	    },
+	"symbolic-link" => 0,
     } unless defined $options;
 
     $options->{preserve} = {"all"=>1} unless exists $options->{preserve};
 
     if ($options->{preserve}->{all}) {
-        for (@$attrs) {
-            $options->{preserve}->{$_} = 1;
-        }
+	for (@$attrs) {
+	    $options->{preserve}->{$_} = 1;
+	}
     }
 
     my @expanded_sources;
     my @source = ref($source) ? @{$source} : ($source);
     for (@source) {
-        push @expanded_sources, bsd_glob($_);
+	push @expanded_sources, bsd_glob($_);
     }
 
     if (@expanded_sources > 1 && ! -d $target) {
-        if (-e $target) {
-            die "multiple sources specified but '$target' is not a directory";
+	if (-e $target) {
+	    die "multiple sources specified but '$target' is not a directory";
 	}
-        eval {
-            mkpath($target);
-        };
-        if ($@) {
-            die "could not create directory '$target': $@";
-        }
+	eval {
+	    mkpath($target);
+	};
+	if ($@) {
+	    die "could not create directory '$target': $@";
+	}
     }
     foreach (@expanded_sources) {
-        $_ = File::Spec->canonpath($_);
-        my $newfile = -d $target ? File::Spec->catfile($target,(File::Spec->splitpath($_))[-1]) : $target;
-        if (-l $_ && $options->{preserve}->{links}) {
+	$_ = File::Spec->canonpath($_);
+	my $newfile = -d $target ? File::Spec->catfile($target,(File::Spec->splitpath($_))[-1]) : $target;
+	if (-l $_ && $options->{preserve}->{links}) {
 	    my $oldfile = readlink;
 	    my @dir = File::Spec->splitdir($newfile);
 	    pop @dir;
@@ -277,29 +268,29 @@ sub copy_files {
 		    die "could not create directory '$basedir': $@";
 		}
 	    }
-            symlink ($oldfile, $newfile) or die "cannot create symlink $newfile";
-            &setStats($newfile, lstat($_));
-        } else {
-            if (!-e) {
-                confess "cannot stat '$_': No such file or directory";
-            } elsif (-d) {
-                $log->debug("copying directory $_");
-                my $dir = $_;
-                my @dirs = File::Spec->splitdir($dir);
-                my $new_target = File::Spec->catdir($target, $dirs[$#dirs]);
-                my @files;
-                opendir(DIR, $dir) or die("can't opendir $dir: $!");
-                push @files, grep { !m/^\.$/ && !m/^\.\.$/ } readdir(DIR);
-                closedir DIR;
-                foreach (@files) { $_ = File::Spec->catfile($dir, $_) };
-                eval {
-                    mkpath($new_target);
-                };
-                if ($@) {
-                    die "could not create directory '$new_target': $@";
-                }
-                @files > 0 && _copy (@files, $new_target);
-            } else {
+	    symlink ($oldfile, $newfile) or die "cannot create symlink $newfile";
+	    &setStats($newfile, lstat($_));
+	} else {
+	    if (!-e) {
+		confess "cannot stat '$_': No such file or directory";
+	    } elsif (-d) {
+		$log->debug("copying directory $_");
+		my $dir = $_;
+		my @dirs = File::Spec->splitdir($dir);
+		my $new_target = File::Spec->catdir($target, $dirs[$#dirs]);
+		my @files;
+		opendir(DIR, $dir) or die("can't opendir $dir: $!");
+		push @files, grep { !m/^\.$/ && !m/^\.\.$/ } readdir(DIR);
+		closedir DIR;
+		foreach (@files) { $_ = File::Spec->catfile($dir, $_) };
+		eval {
+		    mkpath($new_target);
+		};
+		if ($@) {
+		    die "could not create directory '$new_target': $@";
+		}
+		@files > 0 && _copy (@files, $new_target);
+	    } else {
 		my @dir = File::Spec->splitdir($newfile);
 		pop @dir;
 		my $basedir = File::Spec->catdir(@dir);
@@ -313,33 +304,33 @@ sub copy_files {
 		    }
 		}
 
-                if (-e $newfile) {
-                    $log->debug("unlinking target $newfile which already exists");
-                    if ((unlink $newfile) != 1) {
-                        die "could not unlink target $newfile: $!";
-                    }
-                }
+		if (-e $newfile) {
+		    $log->debug("unlinking target $newfile which already exists");
+		    if ((unlink $newfile) != 1) {
+			die "could not unlink target $newfile: $!";
+		    }
+		}
 
 		if (-f && $options->{'symbolic-link'}){
 		    $log->debug("symbolic linking file $_ to $newfile");
 		    if (!symlink ($_, $newfile)) {
-                        die "could not symbolic link to target $newfile: $!";
-                    }
+			die "could not symbolic link to target $newfile: $!";
+		    }
 		} elsif (-f && $options->{link}){
 		    $log->debug("linking file $_ to $newfile");
 		    if (!link ($_, $newfile)) {
-                        # XXX fallback to copy ?
-                        die "could not hardlink to target $newfile: $!";
-                    }
+			# XXX fallback to copy ?
+			die "could not hardlink to target $newfile: $!";
+		    }
 		} else {
 		    $log->debug("copying file $_ to $newfile");
 		    if (!copy($_, $newfile)) {
-                       die "could not copy to target $newfile: $!";
-                    }
+		       die "could not copy to target $newfile: $!";
+		    }
 		    &setStats($newfile, stat($_));
 		}
-            }
-        }
+	    }
+	}
     }
 }
 
@@ -356,17 +347,17 @@ sub delete_files {
     my $dir = shift;
 
     my $log = Log::Log4perl->get_logger();
-    
+
     my $glob = catfile($dir, "*");
     $log->info("Removing all files matching '$glob'");
-    
+
     my @todelete = bsd_glob($glob);
     foreach (@todelete) {
 	$log->info("File to remove is '$_'");
     }
-   
-    if (@todelete) { 
-        rmtree(\@todelete, 0, 0);
+
+    if (@todelete) {
+	rmtree(\@todelete, 0, 0);
     }
 }
 
@@ -377,19 +368,19 @@ sub _expand_macro {
     my @values = @_;
     my @out;
     foreach my $entry (@{$in}) {
-        my $src = $entry->[0];
-        my $dst = $entry->[1];
-        if ($dst =~ /$macro/) {
-            foreach my $value (@values) {
-                (my $file = $dst) =~ s/$macro/$value/;
-                my $vars = {};
-                map { $vars->{$_} = $entry->[2]->{$_} } keys %{$entry->[2]};
-                $vars->{$name} = $value;
-                push @out, [$src, $file, $vars];
-            }
-        } else {
-            push @out, $entry;
-        }
+	my $src = $entry->[0];
+	my $dst = $entry->[1];
+	if ($dst =~ /$macro/) {
+	    foreach my $value (@values) {
+		(my $file = $dst) =~ s/$macro/$value/;
+		my $vars = {};
+		map { $vars->{$_} = $entry->[2]->{$_} } keys %{$entry->[2]};
+		$vars->{$name} = $value;
+		push @out, [$src, $file, $vars];
+	    }
+	} else {
+	    push @out, $entry;
+	}
     }
     return \@out;
 }
@@ -408,11 +399,11 @@ sub _expand_standard_macros {
 
 =item ($config, $fh, $error) = Test::AutoBuild::Lib::load_template_config($file, [\%vars])
 
-This method loads the content of the configuration file C<$file>, 
+This method loads the content of the configuration file C<$file>,
 passes it through the L<Template> module, and then creates an
 instance of the L<Config::Record> module. The second optiona C<%vars>
 parameter is a hash reference containing a set of variables which
-will be passed through to the templating engine. A 3 element list is 
+will be passed through to the templating engine. A 3 element list is
 returned, the first element containing the L<Config::Record>
 object, the second a scalar containing the post-processed configuration
 file, the last containing any error message generated.
@@ -425,19 +416,19 @@ sub load_templated_config {
 
     return (undef, undef, "file $file does not exist")
 	unless -f $file;
-    
+
     my %template_config = (
 			   ABSOLUTE => 1,
 			   RELATIVE => 1,
 			   );
-    
+
     my $template = Template->new(\%template_config);
     my $data;
     my $fh = IO::Scalar->new(\$data);
-    
-    $template->process($file, $vars, $fh) 
+
+    $template->process($file, $vars, $fh)
 	or return (undef, undef, $template->error());
-    
+
     $fh->setpos(0);
     my $config;
     eval {

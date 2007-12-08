@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Apt.pm,v 1.7 2006/02/02 10:30:48 danpb Exp $
+# $Id: Apt.pm,v 1.9 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -33,34 +33,34 @@ Test::AutoBuild::Stage::Apt - Create index for APT package management tool
   # Create an index of RPMs, structured by module, restricted
   # to only include the module 'autobuild-dev'
   my $stage = Test::AutoBuild::Stage::Apt->new(name => "apt",
-                                               label => "Create apt index",
-                                               options => {
-                                                 directory => "/var/lib/builder/public_html/dist",
-                                                 format => "rpm",
-                                                 type => "modules",
-                                                 components => ["autobuild-dev"],
-                                               });
+					       label => "Create apt index",
+					       options => {
+						 directory => "/var/lib/builder/public_html/dist",
+						 format => "rpm",
+						 type => "modules",
+						 components => ["autobuild-dev"],
+					       });
 
 
-  # Create an index of RPMs, structured by module, for all 
+  # Create an index of RPMs, structured by module, for all
   # configured modules
   my $stage = Test::AutoBuild::Stage::Apt->new(name => "apt",
-                                               label => "Create apt index",
-                                               options => {
-                                                 directory => "/var/lib/builder/public_html/dist",
-                                                 format => "rpm",
-                                                 type => "modules",
-                                               });
+					       label => "Create apt index",
+					       options => {
+						 directory => "/var/lib/builder/public_html/dist",
+						 format => "rpm",
+						 type => "modules",
+					       });
 
-  # Create an index of RPMs, structured by group, for all 
+  # Create an index of RPMs, structured by group, for all
   # configured groups
   my $stage = Test::AutoBuild::Stage::Apt->new(name => "apt",
-                                               label => "Create apt index",
-                                               options => {
-                                                 directory => "/var/lib/builder/public_html/dist",
-                                                 format => "rpm",
-                                                 type => "groups",
-                                               });
+					       label => "Create apt index",
+					       options => {
+						 directory => "/var/lib/builder/public_html/dist",
+						 format => "rpm",
+						 type => "groups",
+					       });
 
 
   $stage->run($runtime);
@@ -139,21 +139,21 @@ sub process {
     my $format = $self->option("format") || "rpm";
     my $type = $self->option("type") || "module";
     my $components = $self->option("components");
-    
+
     mkpath($directory);
-    
+
     if ($type eq "module") {
 	my @modules = $components ? @{$components} : $runtime->modules;
 	foreach my $name (@modules) {
 	    my $module = $runtime->module($name);
-	    
+
 	    if ($format eq "rpm") {
 		my $rpmdir = catfile($directory, "RPMS.$name");
 		my $srpmdir = catfile($directory, "SRPMS.$name");
-		
+
 		mkpath($rpmdir);
 		mkpath($srpmdir);
-		
+
 		foreach my $filename (keys %{$module->packages}) {
 		    if ($filename =~ /\.src\.rpm$/) {
 			$log->info("Copy $filename $srpmdir");
@@ -179,14 +179,14 @@ sub process {
 	my @groups = $components ? @{$components} : $runtime->groups;
 	foreach my $name (@groups) {
 	    my $group = $runtime->group($name);
-	    
+
 	    if ($format eq "rpm") {
 		my $rpmdir = catfile($directory, "RPMS.$name");
 		my $srpmdir = catfile($directory, "SRPMS.$name");
-		
+
 		mkpath($rpmdir);
 		mkpath($srpmdir);
-		
+
 		foreach my $modname (@{$group->modules}) {
 		    my $module = $runtime->module($modname);
 		    print "Got $modname $module\n";
@@ -216,7 +216,30 @@ sub process {
 	}
 
     }
-    Test::AutoBuild::Lib::run("genbasedir --flat $directory");
+
+    my $cmdopt = $self->option("command") || {};
+    my $mod = $cmdopt->{module} || "Test::AutoBuild::Command::Local";
+    my $opts = $cmdopt->{options} || {};
+    eval "use $mod;";
+    die "cannot load $mod: $!" if $@;
+
+    my @cmd = ("genbasedir",
+	       "--flat",
+	       $directory);
+    my $c = $mod->new(cmd => \@cmd,
+		      dir => $directory,
+		      options => $opts);
+
+    my ($output, $errors);
+    my $status = $c->run(\$output, \$errors);
+
+    $output = "" unless defined $output;
+    $errors = "" unless defined $errors;
+
+    $log->debug("Output: [$output]") if $output;
+    $log->debug("Errors: [$errors]") if $errors;
+
+    die "command '" . join("' '", @cmd) . "' exited with status $status\n$errors" if $status;
 }
 
 1 # So that the require or use succeeds.

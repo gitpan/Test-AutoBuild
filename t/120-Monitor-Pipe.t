@@ -1,4 +1,4 @@
-# -*- cperl -*-
+# -*- perl -*-
 
 use Test::More tests => 7;
 use warnings;
@@ -8,7 +8,7 @@ use POSIX qw(mkfifo);
 
 Log::Log4perl::init("t/log4perl.conf");
 
-BEGIN { 
+BEGIN {
   unlink "t/fifo-monitor";
   use_ok("Test::AutoBuild::Monitor::Pipe") or die;
 }
@@ -34,12 +34,12 @@ TEST_ERRORS: {
   open FIFO, ">t/fifo-monitor" or die "cannot create t/fifo-monitor file: $!";
   print FIFO "Dummy\n";
   close FIFO;
-  
+
   eval {
     $monitor->_open_pipe();
   };
   ok(defined $@, "die when file exists and isn't a fifo");
-  
+
   unlink "t/fifo-monitor";
 }
 
@@ -54,7 +54,7 @@ SKIP: {
 								mask => 0755,
 							       });
   isa_ok($monitor, "Test::AutoBuild::Monitor::Pipe");
-  
+
   my $pid = fork();
   die "could not fork a listener" unless defined $pid;
   if ($pid == 0) {
@@ -62,7 +62,7 @@ SKIP: {
     sleep 1;
     open FIFO, "<t/fifo-monitor"
       or die "cannot read fifo: $!";
-    
+
     my $line1 = <FIFO>;
     my $line2 = <FIFO>;
     chomp $line1;
@@ -70,7 +70,7 @@ SKIP: {
     my $status = 0;
     if ($line1 ne "beginStage('foo', 'Foo \\'eek\\' wizz\\\\n')") {
       $status |= (1 << 0);
-    } 
+    }
     if ($line2 ne "endStage('foo')") {
       $status |= (1 << 1);
     }
@@ -86,4 +86,3 @@ SKIP: {
   }
 }
 }
-

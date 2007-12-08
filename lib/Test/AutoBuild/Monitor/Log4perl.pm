@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Log4perl.pm,v 1.3 2006/02/02 10:30:48 danpb Exp $
+# $Id: Log4perl.pm,v 1.4 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -44,7 +44,7 @@ with a priority of INFO.
 
 =head1 CONFIGURATION
 
-This module merely takes the standard configuration parameters for 
+This module merely takes the standard configuration parameters for
 C<Test::AutoBuild::Monitor>
 
 =head2 EXAMPLE
@@ -81,9 +81,9 @@ sub process {
     my $self = shift;
     my $name = shift;
     my @args = @_;
-    
+
     my $log = Log::Log4perl->get_logger();
-    
+
     $log->info($name . ": " . join(", ", @args));
 }
 

@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: CleanPackages.pm,v 1.6 2006/02/02 10:30:48 danpb Exp $
+# $Id: CleanPackages.pm,v 1.7 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -57,7 +57,7 @@ sub process {
     my @package_types = $runtime->package_types;
 
     foreach my $name (@package_types) {
-        $runtime->package_type($name)->do_clean;
+	$runtime->package_type($name)->do_clean;
     }
 }
 
@@ -78,6 +78,6 @@ Copyright (C) 2004 Red Hat, Inc.
 
 =head1 SEE ALSO
 
-C<perl(1)>, L<Test::AutoBuild::Stage> 
+C<perl(1)>, L<Test::AutoBuild::Stage>
 
 =cut

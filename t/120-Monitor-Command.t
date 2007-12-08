@@ -1,4 +1,4 @@
-# -*- cperl -*-
+# -*- perl -*-
 
 use Test::More tests => 13;
 use warnings;
@@ -7,7 +7,7 @@ use Log::Log4perl;
 
 Log::Log4perl::init("t/log4perl.conf");
 
-BEGIN { 
+BEGIN {
   use_ok("Test::AutoBuild::Monitor::CommandLine") or die;
 }
 
@@ -16,7 +16,7 @@ TEST_ONE: {
   my $monitor = Test::AutoBuild::Monitor::CommandLine->new(name => "command",
 							   label => "Change process command line");
   isa_ok($monitor, "Test::AutoBuild::Monitor::CommandLine");
-  
+
   my $cmd = $0;
   $monitor->notify("beginStage", "foo");
   is($0, "$cmd [running foo]", "command line is foo");
@@ -51,4 +51,3 @@ TEST_ONE: {
   $monitor->notify("completeStage", "bar");
   is($0, "$cmd [running ]", "command line is empty");
 }
-

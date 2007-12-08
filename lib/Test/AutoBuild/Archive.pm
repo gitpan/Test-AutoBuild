@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Archive.pm,v 1.10 2006/02/02 10:30:48 danpb Exp $
+# $Id: Archive.pm,v 1.11 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -36,32 +36,32 @@ Test::AutoBuild::Archive - archival of files and metadata
   );
 
   # Save status of the 'build' action for module 'autobuild-dev'
-  $archive->save_data("autobuild-dev", 
-                      "build", 
-                      "success");
+  $archive->save_data("autobuild-dev",
+		      "build",
+		      "success");
 
   # Save list of packages associated with module 'autobuild-dev'
-  $archive->save_files("autobuild-dev", 
-                       "packages", 
-                       \%orig_files,
-                       { link => 1,
-                         move => 1,
-                         base => "/usr/src/redhat"});
+  $archive->save_files("autobuild-dev",
+		       "packages",
+		       \%orig_files,
+		       { link => 1,
+			 move => 1,
+			 base => "/usr/src/redhat"});
 
 
   # Retrieve status of the 'build' action for module 'autobuild-dev'
   my $status = $archive->get_data("autobuild-dev",
-                                  "build");
+				  "build");
 
   # Retrieve metadata associated with saved files
   my $metadat = $archive->get_files("autobuild-dev",
-                                    "packages");
+				    "packages");
 
   # Save RPMSs to an HTTP site
   $archive->extract_files("autobuild-dev",
-                          "packages",
-                          "/var/www/html/packages/autobuild-dev",
-                          { link => 1 });
+			  "packages",
+			  "/var/www/html/packages/autobuild-dev",
+			  { link => 1 });
 
 
 =head1 DESCRIPTION
@@ -143,14 +143,14 @@ sub init {
 
 =item $archive->save_data($object, $bucket, $data);
 
-Save a chunk of data C<$data> associated with object C<$object> 
-into the storage bucket named C<$bucket>. Both the C<$object> 
+Save a chunk of data C<$data> associated with object C<$object>
+into the storage bucket named C<$bucket>. Both the C<$object>
 and C<$bucket> parameters must be plain strings comprising
 characters from the set 'a'..'z','A'..'Z','0'-'9','-','_'
-and '.'. The C<$data> can be comprised scalars, array references 
-and hash references. Code references and file handles are forbidden. 
-If there is already data present in the bucket C<$bucket> associated 
-with the object C<$object> then an error will be thrown. The data 
+and '.'. The C<$data> can be comprised scalars, array references
+and hash references. Code references and file handles are forbidden.
+If there is already data present in the bucket C<$bucket> associated
+with the object C<$object> then an error will be thrown. The data
 can later be retrieved from the archive by calling the C<get_data>
 method with matching arguments for object and bucket.
 
@@ -161,22 +161,22 @@ sub save_data {
     my $object = shift;
     my $bucket = shift;
     my $data = shift;
-    
+
     $self->_save_metadata($object, $bucket, "DATA", $data);
 }
 
 =item $archive->save_files($object, $bucket, $files, $options)
 
 Saves a set of files C<$files> associated with object C<$object>
-into the storage bucket named C<$bucket>. Both the C<$object> 
+into the storage bucket named C<$bucket>. Both the C<$object>
 and C<$bucket> parameters must be plain strings comprising
 characters from the set 'a'..'z','A'..'Z','0'-'9','-','_'
 and '.'. The C<$files> parameter should be a hash reference where
 the keys are fully qualified file names, and the values are arbitrary
 chunks of data, comprised of scalars, array references and hash
 references. Code references and file handles are forbidden. If
-there are already files present in the bucket C<$bucket> associated 
-with the object C<$object> then an error will be thrown. The data 
+there are already files present in the bucket C<$bucket> associated
+with the object C<$object> then an error will be thrown. The data
 can later be retrieved from the archive by calling the C<extract_files>
 method with matching arguments for object and bucket. A listing of
 files stored in the archive can be retrieved by calling the method
@@ -186,9 +186,9 @@ are stored. It can contain the following keys
 
 =over 4
 
-=item link 
+=item link
 
-Attempt to hardlink the files into the archive, rather than 
+Attempt to hardlink the files into the archive, rather than
 doing a regular copy. In combination with same option on the
 C<extra_files> and C<attach_files> methods, this allows for
 considerable conversation of disk space, by only ever having
@@ -232,9 +232,9 @@ sub save_files {
     my $bucket = shift;
     my $files = shift;
     my $options = shift;
-   
+
     $options = {} unless defined $options;
-    
+
     my $newoptions = {
 	link => ($options->{link} ? 1 : 0),
 	move => ($options->{move} ? 1 : 0),
@@ -252,7 +252,7 @@ sub save_files {
 
     $self->_persist_files($object, $bucket, $copied, $newoptions);
     $self->_save_metadata($object, $bucket, "FILES", $copied);
-    
+
     return $copied;
 }
 
@@ -278,7 +278,7 @@ sub _save_metadata {
     my $bucket = shift;
     my $type = shift;
     my $data = shift;
-        
+
     die "module " . ref($self) . " forgot to implement the save_metadata method";
 }
 
@@ -302,19 +302,19 @@ sub clone_files {
     my $bucket = shift;
     my $archive = shift;
     my $options = shift;
-    
+
     my $newoptions = {
 	link => ($options->{link} ? 1 : 0),
 	move => ($options->{move} ? 1 : 0),
     };
 
     return {} unless $archive->has_files($object, $bucket);
-    
+
     my $copied = $archive->get_files($object, $bucket);
 
     $self->_link_files($object, $bucket, $archive, $newoptions);
     $self->_save_metadata($object, $bucket, "FILES", $copied);
-    
+
     return $copied;
 }
 
@@ -327,7 +327,7 @@ provide the actual storage for metadata. The C<$object> and
 C<$bucket> parameters are as per the C<save_data> or C<save_files>
 methods. The C<$files> parameter is a hash reference detailing the
 files to be persisted. The keys of the hash reference are filenames
-relative to the directory specified by the C<base> key in the 
+relative to the directory specified by the C<base> key in the
 C<$options> parameter. The C<$options> parameter can also contain
 the keys C<link> to indicate zero-copy persistence of files, and
 C<move> to indicate the original file should be deleted.
@@ -338,7 +338,7 @@ sub _persist_files {
     my $self = shift;
     my $object = shift;
     my $bucket = shift;
-    
+
     die "module " . ref($self) . " forgot to implement the persist_files method";
 }
 
@@ -346,7 +346,7 @@ sub _link_files {
     my $self = shift;
     my $object = shift;
     my $bucket = shift;
-    
+
     die "module " . ref($self) . " forgot to implement the link_files method";
 }
 
@@ -354,14 +354,14 @@ sub _link_files {
 =item my @objects = $archive->list_objects
 
 Retrieves a list of all objects which have either files or
-metadata stored in this archive. The returned list of objects 
+metadata stored in this archive. The returned list of objects
 is sorted alphabetically.
 
 =cut
 
 sub list_objects {
     my $self = shift;
-    
+
     return sort { $a cmp $b } $self->_get_objects();
 }
 
@@ -382,11 +382,11 @@ sub _get_objects {
 
 =item my @buckets = $archive->list_buckets($object)
 
-Retrieves a list of all storage buckets associated 
+Retrieves a list of all storage buckets associated
 with the object C<$object>. The returned list of buckets
 is not sorted in any particular order. If the object
 C<$object> is not stored in this archive, then the empty
-list is to be returned. This method must be implemented 
+list is to be returned. This method must be implemented
 by subclasses.
 
 =cut
@@ -394,7 +394,7 @@ by subclasses.
 sub list_buckets {
     my $self = shift;
     my $object = shift;
-    
+
     return $self->_get_buckets($object);
 }
 
@@ -429,7 +429,7 @@ sub get_files {
     my $self = shift;
     my $module = shift;
     my $bucket = shift;
-    
+
     return {} unless $self->has_files($module, $bucket);
 
     return $self->_get_metadata($module, $bucket, "FILES");
@@ -439,7 +439,7 @@ sub _get_metadata {
     my $self = shift;
     my $module = shift;
     my $bucket = shift;
-    
+
     die "module " . ref($self) . " forgot to implement the _get_metadata method";
 }
 
@@ -448,15 +448,15 @@ sub _has_metadata {
     my $module = shift;
     my $bucket = shift;
     my $type = shift;
-    
+
     die "module " . ref($self) . " forgot to implement the _has_metadata method";
 }
- 
+
 sub has_files {
     my $self = shift;
     my $module = shift;
     my $bucket = shift;
-    
+
     return $self->_has_metadata($module, $bucket, "FILES");
 }
 
@@ -464,7 +464,7 @@ sub has_data {
     my $self = shift;
     my $module = shift;
     my $bucket = shift;
-    
+
     return $self->_has_metadata($module, $bucket, "DATA");
 }
 
@@ -474,7 +474,7 @@ sub extract_files {
     my $bucket = shift;
     my $target = shift;
     my $options = shift;
-    
+
     $options = {} unless defined $options;
 
     return {} unless $self->has_files($object, $bucket);
@@ -483,7 +483,7 @@ sub extract_files {
 	link => ($options->{link} ? 1 : 0),
 	move => ($options->{move} ? 1 : 0),
     };
-        
+
     my $copied = $self->get_files($object, $bucket);
     my $restored = {};
     my $empty = 1;
@@ -505,14 +505,14 @@ sub _restore_files {
     my $bucket = shift;
     my $target = shift;
     my $options = shift;
-    
+
     die "module " . ref($self) . " forgot to implement the _restore_files method";
 }
 
 
 sub size {
     my $self = shift;
-    my $seen = shift;    
+    my $seen = shift;
 
     die "module " . ref($self) . " forgot to implement the size method";
 }

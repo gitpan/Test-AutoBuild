@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Subversion.pm,v 1.17 2006/04/09 02:47:44 danpb Exp $
+# $Id: Subversion.pm,v 1.21 2007/12/08 21:01:19 danpb Exp $
 
 =pod
 
@@ -45,6 +45,7 @@ package Test::AutoBuild::Repository::Subversion;
 
 use base qw(Test::AutoBuild::Repository);
 use strict;
+use warnings;
 use POSIX qw(strftime);
 use Log::Log4perl;
 use Test::AutoBuild::Change;
@@ -71,13 +72,14 @@ sub changelist {
     my $self = shift;
     my $runtime = shift;
     my $path = shift || "/";
+    my $logfile = shift;
 
     my $timestamp = $runtime->timestamp;
-    
+
     $self->{changelists}->{$timestamp} = {} unless defined $self->{changelists}->{$timestamp};
 
     if (!exists $self->{changelists}->{$timestamp}->{$path}) {
-	$self->{changelists}->{$timestamp}->{$path} = $self->get_changelist($runtime, $path);
+	$self->{changelists}->{$timestamp}->{$path} = $self->get_changelist($runtime, $path, $logfile);
     }
     return $self->{changelists}->{$timestamp}->{$path};
 }
@@ -87,6 +89,7 @@ sub export {
     my $runtime = shift;
     my $src = shift;
     my $dst = shift;
+    my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
 
@@ -98,22 +101,21 @@ sub export {
     my %changes;
     my $changed = 0;
     my $rev;
-    if ($src =~ /^(.*?)(?::(\d+))?\s*$/) {
+    if ($src =~ /^(.*?)(?:@(\d+))?\s*$/) {
 	$src = $1;
 	$rev = $2;
     }
-    
+
     my $path = $url . "/" . $src;
-    my $preRevision = -d $dst ? $self->current_revision($dst) : undef;
-    my $output = $rev ?
-	$self->_run("svn checkout -r $rev $path $dst") :
-	$self->_run("svn checkout -r '$date' $path $dst");
-    my $postRevision = $self->current_revision($dst);
-    
+    my $preRevision = -d $dst ? $self->current_revision($dst, $logfile) : undef;
+    my ($output, $errors) =
+	$self->_run(["svn", "checkout", "-r", $rev ? $rev : $date, $path, $dst], undef, $logfile);
+    my $postRevision = $self->current_revision($dst, $logfile);
+
     if (defined $preRevision) {
 	if ($preRevision  < $postRevision) {
 	    $log->debug("Files updated, getting changes");
-	    $self->get_changes($dst, \%changes, $preRevision+1, $postRevision);
+	    $self->get_changes($dst, \%changes, $preRevision+1, $postRevision, $logfile);
 	    $changed = 1;
 	} elsif ($preRevision != $postRevision) {
 	    $log->debug("Files downgraded, skipping changes");
@@ -132,12 +134,12 @@ sub export {
 sub current_revision {
     my $self = shift;
     my $path = shift;
-    
+    my $logfile = shift;
+
     my $log = Log::Log4perl->get_logger();
-    
+
     $log->debug("Getting revision for path $path");
-    my $out = $self->_run("svn log -r COMMITTED -q $path");
-    $log->debug($out);
+    my ($out, $errors) = $self->_run(["svn", "log", "-r", "COMMITTED", "-q", $path], undef, $logfile);
     my @lines = split /\n/, $out;
     if ($#lines != 2) {
 	$log->error(@lines);
@@ -154,16 +156,16 @@ sub get_changelist {
     my $self = shift;
     my $runtime = shift;
     my $path = shift;
-    
+    my $logfile = shift;
+
     my $url = $self->option("url") or die "url option is required";
     $url .= $path;
     my $log = Log::Log4perl->get_logger();
 
     my $date = strftime("{%Y-%m-%d %H:%M:%S +0000}", gmtime $runtime->timestamp);
-    
+
     $log->debug("Getting revision for path $path");
-    my $out = $self->_run("svn log -r '$date' -q $url");
-    $log->debug($out);
+    my ($out, $errors) = $self->_run(["svn", "log", "-r", $date, "-q", $url], undef, $logfile);
     my @lines = split /\n/, $out;
     if ($#lines != 2) {
 	$log->error(@lines);
@@ -181,12 +183,13 @@ sub get_changes {
     my $changes = shift;
     my $from = shift;
     my $to = shift;
-    
+    my $logfile = shift;
+
     my $log = Log::Log4perl->get_logger();
 
     $log->debug("Getting logs between $from and $to for $path");
 
-    my $out = $self->_run("svn log -v -r $from:$to $path");
+    my ($out, $errors) = $self->_run(["svn", "log", "-v", "-r", "$from:$to", $path], undef, $logfile);
     my @entries = split /\n/, $out;
     shift @entries;
     while ($#entries != -1) {
@@ -203,7 +206,7 @@ sub get_changes {
 sub get_change {
     my $self = shift;
     my @lines = @_;
-	
+
     my $meta = shift @lines;
     my $revision;
     my $author;
@@ -217,22 +220,22 @@ sub get_change {
     } else {
 	die "cannot extract revision metadata from log output '$meta'";
     }
-    
+
     shift @lines; # 'Changed paths:'
-    
+
     my @files;
     while (defined (my $entry = shift @lines)) {
 	last if $entry =~ /^\s*$/;
-	
+
 	$entry =~ /^\s*(.*?)\s*$/;
 	push @files, $1;
     }
-    
+
     my $message = join ("\n", @lines);
     my $date = ParseDate($datestr);
     die "cannot parse date '$datestr'" unless defined $date;
     $date = Date_ConvTZ($date, $tz, "GMT");
-    
+
     return Test::AutoBuild::Change->new(number => $revision,
 					user => $author,
 					date => UnixDate($date, "%o"),

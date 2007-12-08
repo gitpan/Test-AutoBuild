@@ -11,7 +11,7 @@ use POSIX qw(uname);
 
 Log::Log4perl::init("t/log4perl.conf");
 
-BEGIN { 
+BEGIN {
   use_ok("Test::AutoBuild::Platform") or die;
 }
 
@@ -19,7 +19,7 @@ TEST_HOST: {
     my $host = Test::AutoBuild::Platform->new(name => "host");
     isa_ok($host, "Test::AutoBuild::Platform");
     is($host->name, "host", "name is 'host'");
-    
+
     SKIP: {
 	my $issue = catfile(rootdir, "etc", "issue");
 	skip 1, "no $issue file to verify" unless -f $issue;
@@ -28,10 +28,10 @@ TEST_HOST: {
 	my $label = <ISSUE>;
 	close ISSUE;
 	chomp $label;
-	
+
 	is($host->label, $label, "label matches $issue");
     }
-    
+
     is($host->operating_system, (uname())[0], "os matches uname sysname field");
     is($host->architecture, (uname())[4], "os matches uname machine field");
 }
@@ -42,7 +42,7 @@ TEST_EXPLICIT: {
 					      label => "Debian Hurd on IA-64",
 					      operating_system => "GNU/Hurd",
 					      architecture => "ia64");
-    
+
     is($host->name, "chroot-debian", "name is 'chroot-debian'");
     is($host->label, "Debian Hurd on IA-64", "label is 'Debian Hurd on IA-64'");
     is($host->operating_system, "GNU/Hurd", "operating_system is GNU/Hurd");

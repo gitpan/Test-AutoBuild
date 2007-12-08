@@ -1,4 +1,4 @@
-# $Id: 200-AutoBuild.t,v 1.3 2005/12/30 15:05:04 danpb Exp $
+# -*- perl -*-
 
 use Test::More tests => 2;
 use warnings;
@@ -16,7 +16,3 @@ my $ab = Test::AutoBuild->new(config => "t/auto-build.conf");
 
 isa_ok($ab, "Test::AutoBuild");
 
-
-# Local Variables:
-# mode: cperl
-# End:

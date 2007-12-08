@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: File.pm,v 1.4 2006/02/02 10:30:48 danpb Exp $
+# $Id: File.pm,v 1.5 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -55,7 +55,7 @@ use Class::MethodMaker
 sub init {
     my $self = shift;
     my %params = @_;
- 
+
     $self->SUPER::init(@_);
 
     $self->archive_dir(defined $self->option("archive-dir") ? $self->option("archive-dir") : die "archive-dir option is required");
@@ -65,29 +65,29 @@ sub init {
 sub create_archive {
     my $self = shift;
     my $key = shift;
-    
+
     my $dir = catdir($self->archive_dir, $key);
     die "archive with key $key already exists"
 	if -d $dir;
-    
+
     eval {
 	mkpath($dir);
     };
     if ($@) {
 	die "could not create directory '$dir': $@";
     }
-} 
+}
 
 sub _get_directory {
     my $self = shift;
-    
+
     return $self->option("archive-dir");
-}    
+}
 
 sub delete_archive {
     my $self = shift;
     my $key = shift;
-    
+
     my $dir = catdir($self->archive_dir, $key);
 
     die "archive with key $key does not exist"
@@ -98,12 +98,12 @@ sub delete_archive {
 
 sub list_archives {
     my $self = shift;
-    
+
     my $dir = $self->_get_directory;
     opendir(DIR, $dir) or return;
     my @archives = sort { $a <=> $b } grep { !m/^\.$/ && !m/^\.\.$/ } readdir(DIR);
-    closedir DIR;    
-    
+    closedir DIR;
+
     return map {
 	Test::AutoBuild::Archive::File->new(key => $_,
 					    archive_dir => $self->archive_dir);
@@ -119,7 +119,7 @@ __END__
 
 =head1 AUTHORS
 
-Daniel Berrange <dan@berrange.com>, 
+Daniel Berrange <dan@berrange.com>,
 Dennis Gregorovic <dgregorovic@alum.mit.edu>
 
 =head1 COPYRIGHT

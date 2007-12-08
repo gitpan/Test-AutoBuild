@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Iterator.pm,v 1.11 2006/04/18 13:16:20 danpb Exp $
+# $Id: Iterator.pm,v 1.12 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -40,7 +40,7 @@ This stage iterates over the (ordered) list of modules, running a
 set of sub-stages against each one. The current module being passed
 into the C<run> method of each stage. If the sub-stages are iterator-aware
 this enables a configuration to be setup to generate incremental HTML
-status pages during the course of the build cycle. 
+status pages during the course of the build cycle.
 
 =head1 CONFIGURATION
 
@@ -60,21 +60,21 @@ stages, ie an array of hashes.
     stages = (
       # Basic build
       {
-        name = build
-        label = Build
-        module = Test::AutoBuild::Stage::Build
-        options = {
-          ...snip build options...
-        }
+	name = build
+	label = Build
+	module = Test::AutoBuild::Stage::Build
+	options = {
+	  ...snip build options...
+	}
       }
       # Status pages
       {
-        name = html
-        label = HTML status pages
-        module = Test::AutoBuild::Stage::HTMLStatus
-        options = {
-          ...snip status options...
-        }
+	name = html
+	label = HTML status pages
+	module = Test::AutoBuild::Stage::HTMLStatus
+	options = {
+	  ...snip status options...
+	}
       }
     )
   }
@@ -138,9 +138,9 @@ sub prepare {
 
     die "cannot nest iterators" if defined $context;
 
-    
+
     my $result = $self->SUPER::prepare($runtime, $context);
-    
+
     my @ordered_modules = $runtime->sorted_modules();
     foreach my $name (@ordered_modules) {
 	my $modres = Test::AutoBuild::Result->new(name => $self->name . " [$name]",
@@ -162,7 +162,7 @@ sub prepare {
 Iterates over all modules (in depenedancy sorted order), for each module,
 running the set of configured sub-stages. The sub-stages will have the
 name of the current module passed in as the second parameter to the
-C<run> method. If any sub-stages fails & that stage is marked as critical, 
+C<run> method. If any sub-stages fails & that stage is marked as critical,
 this stage will be marked as failing and return control immediately. If
 the sub-stage is non-critical, then the iterator will continue processing.
 
@@ -176,7 +176,7 @@ sub process {
     my @ordered_modules = $runtime->sorted_modules();
 
     if ($log->is_debug()) {
-        $log->debug("Iterator module order: " . join("\n  ", @ordered_modules) . "\nEnd");
+	$log->debug("Iterator module order: " . join("\n  ", @ordered_modules) . "\nEnd");
     }
 
     foreach my $name (@ordered_modules) {
@@ -194,7 +194,7 @@ sub process {
 		    $failed = 1;
 		}
 	    }
-        }
+	}
 	my $modres = $self->{module_results}->{$name};
 	$modres->status($failed ? "failed" : "success");
 	$modres->log($failed ? "one or more stages failed" : "");
@@ -220,6 +220,6 @@ Copyright (C) 2004 Red Hat, Inc.
 
 =head1 SEE ALSO
 
-C<perl(1)>, L<Test::AutoBuild::Stage> 
+C<perl(1)>, L<Test::AutoBuild::Stage>
 
 =cut

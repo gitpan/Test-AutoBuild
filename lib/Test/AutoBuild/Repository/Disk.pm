@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Disk.pm,v 1.8 2006/02/02 10:30:48 danpb Exp $
+# $Id: Disk.pm,v 1.11 2007/12/08 21:03:02 danpb Exp $
 
 =pod
 
@@ -45,6 +45,7 @@ directory tree on local disk.
 package Test::AutoBuild::Repository::Disk;
 
 use strict;
+use warnings;
 use Carp qw(confess);
 use File::Path;
 use File::Spec::Functions;
@@ -73,15 +74,16 @@ sub export {
     my $runtime = shift;
     my $src = shift;
     my $dst = shift;
+    my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
 
     #rmtree($dst);
     eval {
-        mkpath($dst);
+	mkpath($dst);
     };
     if ($@) {
-        die "could not create directory '$dst': $@";
+	die "could not create directory '$dst': $@";
     }
 
     my $basedir = $self->option("directory");
@@ -89,7 +91,7 @@ sub export {
     if ($basedir) {
 	$src = catfile($basedir, $src);
     }
-    
+
     $log->debug("copying $src to $dst");
     Test::AutoBuild::Lib::_copy($src, $dst);
 

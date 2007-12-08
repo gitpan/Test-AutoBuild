@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: LogCopier.pm,v 1.12 2006/02/02 10:30:48 danpb Exp $
+# $Id: LogCopier.pm,v 1.14 2007/12/08 20:10:26 danpb Exp $
 
 =pod
 
@@ -61,14 +61,19 @@ sub handle_directory {
 
     mkpath([catdir($directory_name, "modules"),
 	    catdir($directory_name, "stages")]);
-    
+
 
     foreach my $name ($runtime->modules()) {
 	if (!exists $directory_attrs->{'module'} || $directory_attrs->{'module'} eq $name) {
-	    
+
 	    my $module = $runtime->module($name);
 	    my @logs;
-	    
+
+	    $self->copy_log($runtime,
+			    $directory_name,
+			    "modules",
+			    $module->checkout_output_log_file);
+
 	    $self->copy_log($runtime,
 			    $directory_name,
 			    "modules",
@@ -77,7 +82,7 @@ sub handle_directory {
 			    $directory_name,
 			    "modules",
 			    $module->build_result_log_file);
-	    
+
 	    foreach my $test ($runtime->module($name)->tests) {
 		$self->copy_log($runtime,
 				$directory_name,
@@ -90,7 +95,7 @@ sub handle_directory {
 	    }
 	}
     }
-    
+
     my $result = $runtime->attribute("results");
     $self->save_result($directory_name, $result, "");
 }
@@ -102,13 +107,13 @@ sub save_result {
     my $context = shift;
 
     my $log = Log::Log4perl->get_logger();
-    
+
     my $file = ($context ? $context . "-" . $result->name : $result->name);
     my $logfile = File::Spec->catfile($directory_name, "stages", $file . ".log");
     $log->info("writing result log file '$logfile' for stage context $file");
     $self->save_log($logfile,
 		    $result->log);
-    
+
     foreach my $subres ($result->results) {
 	$self->save_result($directory_name, $subres, $file);
     }
@@ -123,8 +128,8 @@ sub copy_log {
 
     my $dst = catfile($dir, $type, $log);
     my $src = catfile($runtime->log_root, $log);
-    
-    if (-f $src) {    
+
+    if (-f $src) {
 	Test::AutoBuild::Lib::copy_files($src, $dst, { link => 1 });
     } else {
 	$self->save_log($dst, "no logs available");

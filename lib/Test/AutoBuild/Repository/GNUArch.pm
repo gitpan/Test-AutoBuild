@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: GNUArch.pm,v 1.14 2006/02/02 10:30:48 danpb Exp $
+# $Id: GNUArch.pm,v 1.18 2007/12/08 21:03:02 danpb Exp $
 
 =pod
 
@@ -48,7 +48,7 @@ package Test::AutoBuild::Repository::GNUArch;
 
 use base qw(Test::AutoBuild::Repository);
 use strict;
-use Carp qw(confess);
+use warnings;
 use Log::Log4perl;
 
 use Test::AutoBuild::Change;
@@ -74,24 +74,25 @@ sub export {
     my $runtime = shift;
     my $src = shift;
     my $dst = shift;
+    my $logfile = shift;
+
     my $log = Log::Log4perl->get_logger();
 
     # Make sure all archives are up2date
-    $self->_register_archives;
+    $self->_register_archives($logfile);
 
     my $arch_name = $self->option("archive-name");
 
     my $changed = 0;
     my %changes;
     if (!-d $dst) {
-	my $output = $self->_run("tla get --archive $arch_name $src $dst");
+	my ($output, $errors) = $self->_run(["tla","get", "--archive", $arch_name, $src, $dst], undef, $logfile);
 	$changed = 1;
-	$log->debug($output);
     }
-	
-    my $current = $self->_get_revision($dst);
+
+    my $current = $self->_get_revision($dst, $logfile);
     $log->debug("Current change for $src is $current");
-    my $all_changes = $self->_get_changes($arch_name, $src);
+    my $all_changes = $self->_get_changes($arch_name, $src, $logfile);
     my $sync_to;
     my $found = 0;
     foreach (sort { $all_changes->{$a}->{date} <=> $all_changes->{$b}->{date}} keys %{$all_changes}) {
@@ -99,36 +100,40 @@ sub export {
 	$log->debug("Compare " . $all_changes->{$_}->date . " to " . $runtime->timestamp);
 	last if $all_changes->{$_}->date > $runtime->timestamp;
 	$sync_to = $_;
-	$changes{$_} = $all_changes->{$_} if $found;	    
+	$changes{$_} = $all_changes->{$_} if $found;
 	$found = 1 if $current eq $_;
     }
-	
+
     $log->debug("Sync to change $sync_to");
-    
-    
+
+
     if ($current ne $sync_to) {
-	my $output = $self->_run("cd $dst && tla apply-delta --archive $arch_name $current $sync_to");
+
+	my ($output, $errors) = $self->_run(["tla", "apply-delta", "--archive", $arch_name, $current, $sync_to], $dst, $logfile);
 	$changed = 1;
     }
-    
+
     return ($changed, \%changes);
 }
 
 sub _register_archives {
     my $self = shift;
+    my $logfile = shift;
+
     my $log = Log::Log4perl->get_logger();
 
     my $arch_name = $self->option("archive-name");
     my $arch_uri = $self->option("archive-uri");
 
-    my $existing = $self->_run("tla archives -n -R");
-    $log->debug($existing);
+    my ($existing, $errors) = $self->_run(["tla", "archives","-n", "-R"], undef, $logfile);
+
     my %existing;
-    map { $existing{$_} = 1 } split /\n/, $existing;
+    if ($existing) {
+	map { $existing{$_} = 1 } split /\n/, $existing;
+    }
 
     if (! exists $existing{$arch_name}) {
-        my $output = $self->_run("tla register-archive $arch_name $arch_uri");
-        $log->debug($output);
+	my ($output, $errors2) = $self->_run(["tla", "register-archive", $arch_name, $arch_uri], undef, $logfile);
     }
 }
 
@@ -136,8 +141,9 @@ sub _register_archives {
 sub _get_revision {
     my $self = shift;
     my $path = shift;
-    
-    my $output = $self->_run("tla logs -d $path -r");
+    my $logfile = shift;
+
+    my ($output, $errors) = $self->_run(["tla", "logs", "-d", $path, "-r"], undef, $logfile);
     my @lines = split /\n/, $output;
     return $lines[0];
 }
@@ -146,11 +152,11 @@ sub _get_changes {
     my $self = shift;
     my $arch_name = shift;
     my $path = shift;
+    my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
 
-    my $data = $self->_run("tla abrowse -A $arch_name -f -s -D -c $path");
-    $log->debug($data);
+    my ($data, $errors) = $self->_run(["tla","abrowse", "-A", $arch_name, "-f", "-s", "-D", "-c", $path], undef, $logfile);
 
     my @lines = split /\n/, $data;
 
@@ -161,7 +167,7 @@ sub _get_changes {
 	shift @lines;
     }
 
-    die "archive name $lines[0] did not match $arch_name" 
+    die "archive name $lines[0] did not match $arch_name"
 	unless $lines[0] eq $arch_name;
     $lines[1] =~ s/^\s*//g;
     die "module name $lines[1] did not match $path"
@@ -173,7 +179,7 @@ sub _get_changes {
     die "module version $lines[3] did not match $path"
 	unless (index $path, $lines[3]) == 0;
     splice @lines, 0, 4;
-	
+
     my %logs;
     my $number;
     foreach my $line (@lines) {
@@ -198,7 +204,7 @@ sub _get_changes {
 	    $log->debug("Append Desc " . $logs{$number}->{description});
 	}
     }
-    
+
     my %changes;
     foreach (keys %logs) {
 	my $date = ParseDate($logs{$_}->{date});

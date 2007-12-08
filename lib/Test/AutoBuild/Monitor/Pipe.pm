@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Pipe.pm,v 1.4 2006/02/02 10:30:48 danpb Exp $
+# $Id: Pipe.pm,v 1.5 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -31,11 +31,11 @@ Test::AutoBuild::Monitor::Pipe - Monitor progress through a pipe
   use Test::AutoBuild::Monitor::Pipe
 
   my $monitor = Test::AutoBuild::Pipe->new(
-                      options => {
-                        path => "/var/lib/builder/monitor",
-                        mode = 0644
-                      },
-                      env => \%env);
+		      options => {
+			path => "/var/lib/builder/monitor",
+			mode = 0644
+		      },
+		      env => \%env);
 
   # Emit some events
   $monitor->notify("begin-stage", "build", time);
@@ -51,7 +51,7 @@ data is formatted in the scheme:
 
 =head1 CONFIGURATION
 
-Along with the standard configuration parameters for 
+Along with the standard configuration parameters for
 C<Test::AutoBuild::Monitor>, this module expects two
 options to be set:
 
@@ -101,16 +101,16 @@ use POSIX qw(mkfifo);
 =item $monitor->init(%params);
 
 This method initializes a new monitor & is called automatically
-by the C<new> method. The C<%params> parameters are passed through 
-from the C<new> method. 
+by the C<new> method. The C<%params> parameters are passed through
+from the C<new> method.
 
 =cut
 
 sub init {
     my $self = shift;
-    
+
     $self->SUPER::init(@_);
-    
+
     die "path option is required" unless defined $self->option("path");
     $self->option("mask", 493) unless defined $self->option("mask");
 }
@@ -118,7 +118,7 @@ sub init {
 
 sub DESTROY {
     my $self = shift;
-    
+
     if ($self->{pipe}) {
 	$self->{pipe}->close();
     }
@@ -129,15 +129,15 @@ sub _open_pipe {
 
     my $path = $self->option("path");
     my $mask = $self->option("mask");
-    
+
     if (-e $path && !-p $path) {
 	confess "path $path already exists and is not a pipe";
     }
-    
+
     if (!-e $path && !(mkfifo $path, $mask)) {
 	confess "cannot create fifo pipe: $!";
     }
-    
+
     $self->{pipe} = IO::File->new(">$path")
 	or confess "cannot open fifo pipe: $!";
 }
@@ -153,7 +153,7 @@ sub process {
     my $self = shift;
     my $name = shift;
     my @args = @_;
-    
+
     $self->_open_pipe() unless defined $self->{pipe};
 
     my $args = join (", ", map { "'" . $_ . "'" } map { $_ =~ s/'/\\'/g; $_ } map { $_ =~ s/\\/\\\\/g; $_ } @args);

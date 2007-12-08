@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: AutoBuild.pm,v 1.46 2006/08/21 03:57:07 danpb Exp $
+# $Id: AutoBuild.pm,v 1.48 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -44,10 +44,10 @@ Test::AutoBuild - Automated build engine controller
 
 =head1 DESCRIPTION
 
-This module provides the build controller, tieing together various 
-subsystems to form an integrated engine. It is wholely reponsible 
-for loading the various runtime objects (stages, modules, repositories, 
-package types, monitors, publishers) based on their definitions in the 
+This module provides the build controller, tieing together various
+subsystems to form an integrated engine. It is wholely reponsible
+for loading the various runtime objects (stages, modules, repositories,
+package types, monitors, publishers) based on their definitions in the
 configuration file and then invoking the build. This object does not,
 however, contain any logic pertaining to how the build is run, since
 this is all delegated to the stages defined in the configuration file.
@@ -55,15 +55,15 @@ this is all delegated to the stages defined in the configuration file.
 =head1 SETUP
 
 After installing the modules, the first setup step is to create
-an unprivileged user to run the build as. By convention the 
-user is called 'builder', in a similarly named group and a home 
-directory of /var/lib/builder. So as root, execute the following 
+an unprivileged user to run the build as. By convention the
+user is called 'builder', in a similarly named group and a home
+directory of /var/lib/builder. So as root, execute the following
 commands:
 
  $ groupadd builder
  $ useradd -g builder -m -d /var/lib/builder builder
 
-NB, with the combined contents of the source checkout, the cache 
+NB, with the combined contents of the source checkout, the cache
 and the virtual installed root, and HTTP site, the disk space
 requirements can be pretty large for any non-trivial software.
 Based on the applications being built, anywhere between 100MB
@@ -78,7 +78,7 @@ are directories required for storing the source code, a virtual
 root directory for installing files, a build archive, package
 spool directories, and publishing directories for HTTP and FTP
 servers. To facilitate quick setup, a script is provided to
-create all the required directories. Run this script as the 
+create all the required directories. Run this script as the
 unprivileged user
 
   $ su - builder
@@ -121,10 +121,10 @@ package types detected, archival method, to build workflow
 stages, and much more. The example build configuration file
 installed by default should provide a fully functional build
 instance running under /var/lib/builder, which is capable of
-building Test-AutoBuild, versions 1.0.x and 1.1.x, along 
+building Test-AutoBuild, versions 1.0.x and 1.1.x, along
 with the AutoBuild-Applet. A good sanity check for correct
 installation, is to ensure that the example build configuration
-succeeds when run. 
+succeeds when run.
 
 The configuration file is split into a number of logical
 groups, which will be considered in turn below. The minimal
@@ -154,7 +154,7 @@ The following nested options are permitted with the C<root> option
 =item source
 
 The location into which modules' source code will be checked
-out from version control. If not specified this option defaults 
+out from version control. If not specified this option defaults
 to the location $HOME/source-root
 
   root = {
@@ -182,8 +182,8 @@ not specified this option defaults to the location $HOME/install-root
     ...
   }
 
-Consider, for example, a module 'mozilla' which depends on a 
-library 'openssl'. The 'openssl' module would be listed as a 
+Consider, for example, a module 'mozilla' which depends on a
+library 'openssl'. The 'openssl' module would be listed as a
 dependant module so that it is built first. The build of 'openssl'
 would install itself into the install root, perhaps by passing
 the 'prefix' argument to a configure script:
@@ -211,7 +211,7 @@ If not specified, this option defaults to the location $HOME/package-root
   }
 
 Consider, for example, a module which generates an RPM, of itself.
-The $AUTOBUILD_PACKAGE_ROOT directory would be used to set the 
+The $AUTOBUILD_PACKAGE_ROOT directory would be used to set the
 '_topdir' macro for the RPM build process
 
   rpmbuild --define '_topdir $AUTOBUILD_PACKAGE_ROOT/rpm' -ta foo.tar.gz
@@ -271,7 +271,7 @@ C<log4perl.rootLogger> option to 'DEBUG' instead of 'WARN'.
 =item counter
 
 This configuration block determines the module used to generate the unique
-build cycle counter. 
+build cycle counter.
 
   counter = {
     ..nested options..
@@ -284,10 +284,10 @@ The nested options allowed within this block are
 =item module
 
 The full package name of the subclass of L<Test::AutoBuild::Counter>
-used to generate the build cycle counter. Consult that module for a 
-list of known implementations. The exmaple configuration sets the 
-build counter to match the timestamp taken at the start of the build 
-cycle. 
+used to generate the build cycle counter. Consult that module for a
+list of known implementations. The exmaple configuration sets the
+build counter to match the timestamp taken at the start of the build
+cycle.
 
   module = Test::AutoBuild::Counter::Timestamp
 
@@ -310,7 +310,7 @@ source repository named, C<mysvn>, one would set an option such as
 
 =head2 Source repositories
 
-The C<repositories> configuration block, defines the source 
+The C<repositories> configuration block, defines the source
 repositories from which modules are checked out. The keys
 in the block form the short name of the repository, and is
 referenced later when defining the paths for modules' source
@@ -339,7 +339,7 @@ in the HTML status pages.
 
 The full package name of a subclass of C<Test::AutoBuild::Repository>
 which implements the checkout procedure for the repository type. There
-are repository types for common version control systems such as Subversion, 
+are repository types for common version control systems such as Subversion,
 CVS, Perforce and GNUArch, as well as a simple non-versioned repository.
 Refer to the L<Test::AutoBuild::Repository> module for a list of known
 repository types and their corresponding package names.
@@ -352,7 +352,7 @@ Lists a set of environment variables which will be set whenever running
 any repository commands. The possible environment variable names vary
 according to the type of repository, so refer to the manual page for the
 repository module defined in the C<module> option. For example, the CVS
-repository type uses the CVSROOT environment variable to specify the 
+repository type uses the CVSROOT environment variable to specify the
 repository location.
 
   env = {
@@ -376,7 +376,7 @@ type supports the 'archive-name' option
 
 The C<modules> configuration block defines the list of modules to be
 checked out of source control and built. The keys in the block form
-the short names for the modules, used, for example, in creating filenames 
+the short names for the modules, used, for example, in creating filenames
 for assets relating to the module, and the name of the checkout directory
 under the source root. If building multiple branches of a module, it is
 common to post-fix the module name with a version / branch name.
@@ -406,7 +406,7 @@ pages, and email alerts.
 
 This block defines the repository containing the source to be checked
 out for the module. There are two keys in the block, the value associated
-with the key C<repository>, is the name of a repository previously defined 
+with the key C<repository>, is the name of a repository previously defined
 in the config file. The value associated with the key C<path> is the path
 to checkout within the repository. The syntax for path values is dependant
 on the type of repository being accessed. For details refer to the manual
@@ -448,7 +448,7 @@ An example config entry for a module checked out of CVS is
 
     source = {
 	repository = gna-cvs
-        path = /testautobuild
+	path = /testautobuild
     }
 
 
@@ -456,7 +456,7 @@ An example config entry for a module checked out of CVS is
 
 If a module's source is split amongst several locations, this block
 is used instead of the C<source> block. It allows defintion of a list
-of source paths to checkout. It is a list, where each entry matches 
+of source paths to checkout. It is a list, where each entry matches
 the format of the C<source> parameter. For example
 
   sources = (
@@ -490,7 +490,7 @@ configuration block.
 Defines a set of environment variables which will be set whenever
 running the build/test control files for the module. The only
 restriction on variables set here, are that none should be named
-with the prefix AUTOBUILD_, otherwise they are liable to be 
+with the prefix AUTOBUILD_, otherwise they are liable to be
 overridden by variables set by the build engine.
 
   env = (
@@ -503,7 +503,7 @@ The options parameter is used to specify module specific data
 which will be used by stages in the workflow engine. Consult the
 manual pages for individual stages in use, for further details
 on which options are possible. The most common option is
-C<control-file> which can be used to override the default name 
+C<control-file> which can be used to override the default name
 of the command to invoke to run the build. For compatability
 with version 1.0.x of autobuild, this should be set to 'rollingbuild.sh'
 
@@ -542,7 +542,7 @@ file (or directory if the source glob matches multiple files), and
 will also form the URL string; the C<label> key gives a label for
 hyperlinks to the artifact, and finally the C<publisher> is the name
 of a file publisher, as defined in the top level C<publishers> config
-block. 
+block.
 
   artifacts = (
     {
@@ -641,7 +641,7 @@ use File::Spec::Functions;
 use UNIVERSAL;
 
 use vars qw($VERSION);
-$VERSION = '1.2.0';
+$VERSION = '1.2.1';
 
 =item $builder = Test::AutoBuild->new(config => $config);
 
@@ -659,7 +659,7 @@ sub init {
     $self->{debug} = exists $params{debug} ? $params{debug} : 0;
 
     my $config_file = exists $params{config} ? $params{config} : die "config parameter is required";
-    my ($config, $config_data, $config_error) 
+    my ($config, $config_data, $config_error)
 	= Test::AutoBuild::Lib::load_templated_config($config_file);
 
     if ($config_error) {
@@ -668,9 +668,9 @@ sub init {
 	}
 	die $config_error;
     }
-    
+
     my $engine_file = $config->get("engine");
-    my ($engine, $engine_data, $engine_error) 
+    my ($engine, $engine_data, $engine_error)
 	= Test::AutoBuild::Lib::load_templated_config($engine_file,
 						      { config => $config->record } );
 
@@ -684,7 +684,7 @@ sub init {
     $self->{config} = $engine;
 
     $self->setup_log4perl;
-    
+
     $self->{lock} = $self->load_lock();
     $self->{repositories} = $self->load_repositories();
     $self->{groups} = $self->load_groups();
@@ -692,11 +692,11 @@ sub init {
     $self->{modules} = $self->load_modules($self->{groups});
     $self->{publishers} = $self->load_publishers();
     $self->{monitors} = $self->load_monitors();
-    $self->{platforms} = $self->load_platforms();    
-    $self->{counter} = $self->load_counter();    
+    $self->{platforms} = $self->load_platforms();
+    $self->{counter} = $self->load_counter();
     $self->{archive_manager} = $self->load_archive_manager();
     my $stage = Test::AutoBuild::Stage::Group->new(name => "root",
-                                                 label => "Root stage");
+						 label => "Root stage");
     $self->load_stages($stage, $self->{config});
     $self->root_stage($stage);
 }
@@ -704,7 +704,7 @@ sub init {
 
 sub setup_log4perl {
     my $self = shift;
-    
+
     my $opt = $self->config->get("log4perl");
     my $conf = join "\n", map { $_ . " = " . $opt->{$_} } keys %{$opt};
     unless ($conf) {
@@ -743,8 +743,8 @@ sub config {
     my $self = shift;
 
     if (@_) {
-        my $name = shift;
-        return $self->{config}->get($name, @_);
+	my $name = shift;
+	return $self->{config}->get($name, @_);
     }
     return $self->{config};
 }
@@ -758,15 +758,15 @@ engine. It performs the following actions:
    package types and output modules from the configuration
    file
  * Initializes the build cache
- * Takes out an exclusive file lock to prevent > 1 builder 
+ * Takes out an exclusive file lock to prevent > 1 builder
    running at the same time.
  * Changes the (nice) priority of the AutoBuild process
- * Checks the code for each module out of its respective 
+ * Checks the code for each module out of its respective
    source control repository.
  * Does a topological sort to determine the build order
    for all modules
  * For each module to be built:
-    - Take a snapshot of the package & virtual root install 
+    - Take a snapshot of the package & virtual root install
       directories
     - Change to the top level source directory of the module
     - Run the rollingbuild.sh script
@@ -826,13 +826,13 @@ sub do_run {
     unless (chdir $runtime->source_root) {
 	die "cannot change into source root " . $runtime->source_root;
     }
-       
+
     # Global environment overrides
     my $env = $self->config("env", {});
     local %ENV = %ENV;
     foreach (keys %{$env}) {
-        $log->debug("Setting global environment '$_' to '" . $env->{$_} . "'"); 
-        $ENV{$_} = $env->{$_};
+	$log->debug("Setting global environment '$_' to '" . $env->{$_} . "'");
+	$ENV{$_} = $env->{$_};
     }
 
     $runtime->notify("beginCycle", time);
@@ -898,13 +898,13 @@ sub load_groups {
     my $groups = {};
 
     foreach my $name (keys %{$data}) {
-        my $params = $data->{$name};
-        my $group = Test::AutoBuild::Group->new(name => $name, %{$params});
-        $groups->{$name} = $group;
+	my $params = $data->{$name};
+	my $group = Test::AutoBuild::Group->new(name => $name, %{$params});
+	$groups->{$name} = $group;
     }
 
     $groups->{global} = Test::AutoBuild::Group->new(name => "global", label => "Global")
-        unless exists $groups->{global};
+	unless exists $groups->{global};
 
     return $groups;
 }
@@ -921,23 +921,23 @@ sub load_publishers {
 
     my $data = $self->config->get("publishers", {
       copy => {
-        label => "File Copier",
-        module => "Test::AutoBuild::Publisher::Copy"
+	label => "File Copier",
+	module => "Test::AutoBuild::Publisher::Copy"
       }
     });
     my $publishers = {};
 
     foreach my $name (keys %{$data}) {
-        my $params = $data->{$name};
-        die "no label for $name group" unless exists $params->{label};
+	my $params = $data->{$name};
+	die "no label for $name group" unless exists $params->{label};
 
-        my $module = $data->{$name}->{module};
-        die "no module for $name publisher" unless defined $module;
+	my $module = $data->{$name}->{module};
+	die "no module for $name publisher" unless defined $module;
 
-        eval "use $module;";
-        die "could not load module '$module' for publisher '$name': $@" if $@;
-        my $publisher = $module->new(name => $name, %{$params});
-        $publishers->{$name} = $publisher;
+	eval "use $module;";
+	die "could not load module '$module' for publisher '$name': $@" if $@;
+	my $publisher = $module->new(name => $name, %{$params});
+	$publishers->{$name} = $publisher;
     }
 
     return $publishers;
@@ -955,23 +955,23 @@ sub load_monitors {
 
     my $data = $self->config->get("monitors", {
       log4perl => {
-        label => "Log4perl Monitor",
-        module => "Test::AutoBuild::Monitor::Log4perl"
+	label => "Log4perl Monitor",
+	module => "Test::AutoBuild::Monitor::Log4perl"
       }
     });
     my $monitors = {};
 
     foreach my $name (keys %{$data}) {
-        my $params = $data->{$name};
-        die "no label for $name group" unless exists $params->{label};
+	my $params = $data->{$name};
+	die "no label for $name group" unless exists $params->{label};
 
-        my $module = $data->{$name}->{module};
-        die "no module for $name monitor" unless defined $module;
+	my $module = $data->{$name}->{module};
+	die "no module for $name monitor" unless defined $module;
 
-        eval "use $module;";
-        die "could not load module '$module' for monitor '$name': $@" if $@;
-        my $monitor = $module->new(name => $name, %{$params});
-        $monitors->{$name} = $monitor;
+	eval "use $module;";
+	die "could not load module '$module' for monitor '$name': $@" if $@;
+	my $monitor = $module->new(name => $name, %{$params});
+	$monitors->{$name} = $monitor;
     }
 
     return $monitors;
@@ -992,10 +992,10 @@ sub load_platforms {
     my $platforms = {};
 
     foreach my $name (keys %{$data}) {
-        my $params = $data->{$name};
+	my $params = $data->{$name};
 
-        my $platform = Test::AutoBuild::Platform->new(name => $name, %{$params});
-        $platforms->{$name} = $platform;
+	my $platform = Test::AutoBuild::Platform->new(name => $name, %{$params});
+	$platforms->{$name} = $platform;
     }
 
     return $platforms;
@@ -1015,13 +1015,13 @@ sub load_repositories {
     my $reps = {};
 
     foreach my $name (keys %{$data}) {
-        my $module = $data->{$name}->{module};
-        die "no module for $name repository" unless defined $module;
-        eval "use $module;";
-        die "could not load module '$module' for repository '$name': $@" if $@;
+	my $module = $data->{$name}->{module};
+	die "no module for $name repository" unless defined $module;
+	eval "use $module;";
+	die "could not load module '$module' for repository '$name': $@" if $@;
 
-        my $rep = $module->new(name => $name, %{$data->{$name}});
-        $reps->{$name} = $rep;
+	my $rep = $module->new(name => $name, %{$data->{$name}});
+	$reps->{$name} = $rep;
     }
 
     return $reps;
@@ -1043,7 +1043,7 @@ sub load_package_types {
     my $package_types = {};
 
     foreach my $name (keys %{$data}) {
-        $package_types->{$name} = Test::AutoBuild::PackageType->new(name => $name, %{$data->{$name}});
+	$package_types->{$name} = Test::AutoBuild::PackageType->new(name => $name, %{$data->{$name}});
     }
 
     return $package_types;
@@ -1067,28 +1067,28 @@ sub load_modules {
     my $modules = {};
 
     MODULE: foreach my $name (keys %{$data}) {
-        my $params = $data->{$name};
-        next unless (! exists $params->{enabled} || $params->{enabled});
-        my $module_package = $params->{module} || "Test::AutoBuild::Module";
-        eval "use $module_package;";
-        die "could not load module '$module_package' for module '$name': $@" if $@;
+	my $params = $data->{$name};
+	next unless (! exists $params->{enabled} || $params->{enabled});
+	my $module_package = $params->{module} || "Test::AutoBuild::Module";
+	eval "use $module_package;";
+	die "could not load module '$module_package' for module '$name': $@" if $@;
 
 	if (exists $params->{source}) {
 	    $params->{sources} = [ $params->{source} ];
 	    delete $params->{source};
 	}
 
-        my $module = $module_package->new(name => $name,
-                                          runtime => $self,
-                                          %{$params});
-        for my $group (@{$module->groups}) {
+	my $module = $module_package->new(name => $name,
+					  runtime => $self,
+					  %{$params});
+	for my $group (@{$module->groups}) {
 	    if (!exists $groups->{$group}) {
 		$log->error("Name '$name' refers to a group '$group' which is not defined");
 		next;
 	    }
-            next MODULE unless $groups->{$group}->enabled();
-        }
-        $modules->{$name} = $module;
+	    next MODULE unless $groups->{$group}->enabled();
+	}
+	$modules->{$name} = $module;
     }
 
     return $modules;
@@ -1099,17 +1099,17 @@ sub load_archive_manager {
     my $self = shift;
 
     if ($self->config("archive/enabled", "0")) {
-        my $archive_module = $self->config("archive/module");
-        eval "use $archive_module;";
-        die "could not load module '$archive_module' for archive manager: $@" if $@;
-        return $archive_module->new(options => $self->config("archive/options", {}),
+	my $archive_module = $self->config("archive/module");
+	eval "use $archive_module;";
+	die "could not load module '$archive_module' for archive manager: $@" if $@;
+	return $archive_module->new(options => $self->config("archive/options", {}),
 				    'max-age' => $self->config("archive/max-age", "7d"),
 				    'max-instance' => $self->config("archive/max-instance", 20),
 				    'max-size' => $self->config("archive/max-size", "500m"));
     }
     return undef;
 }
- 
+
 sub load_counter {
     my $self = shift;
 
@@ -1124,7 +1124,7 @@ sub load_stages {
     my $self = shift;
     my $stage = shift;
     my $config = shift;
-    
+
     my $substages = $config->get("stages", []);
     for (my $i = 0 ; $i <= $#{$substages} ; $i++) {
 	my $module = $config->get("stages/[$i]/module");
@@ -1133,7 +1133,7 @@ sub load_stages {
 	my $critical = $config->get("stages/[$i]/critical", 1);
 	my $enabled = $config->get("stages/[$i]/enabled", 1);
 	my $options = $config->get("stages/[$i]/options", {});
-	
+
 	eval "use $module;";
 	die "cannot load module '$module' for stage '$name': $@" if $@;
 
@@ -1142,22 +1142,22 @@ sub load_stages {
 				    critical => $critical,
 				    enabled => $enabled,
 				    options => $options);
-	
+
 	$stage->add_stage($substage);
 	if ($substage->can("add_stage")) {
 	    $self->load_stages($substage, $config->view("stages/[$i]"));
 	}
     }
-} 
+}
 
 
 sub load_lock {
     my $self = shift;
-    
+
     my $module = $self->config->get("lock/module", "Test::AutoBuild::Lock");
     eval "use $module;";
     die "cannot load module '$module' for lock: $@" if $@;
-    
+
     return $module->new($self->config->get("lock/file", catfile($ENV{HOME}, ".build.mutex")),
 			$self->config->get("lock/method", "file"));
 }

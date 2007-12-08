@@ -8,7 +8,7 @@ use Cwd;
 use File::Spec::Functions;
 use File::Path;
 
-BEGIN { 
+BEGIN {
   use_ok("Test::AutoBuild::Module");
   use_ok("Test::AutoBuild::PackageType");
   use_ok("Test::AutoBuild::Lib");
@@ -53,14 +53,14 @@ ARCHIVING: {
 							   },
 							   ],
 					       );
-    
+
     my $arcman = Test::AutoBuild::ArchiveManager::File->new(options => {
 	"archive-dir" => $archive
 	});
     $arcman->create_archive("1");
 
     my $counter = MyCounter->new();
-    
+
     my $runtime = Test::AutoBuild::Runtime->new("install_root" => $install_root,
 						"package_root" => $package_root,
 						package_types => {
@@ -74,7 +74,7 @@ ARCHIVING: {
 
     my $before_install = $runtime->installed_snapshot();
     my $before_package = $runtime->package_snapshot();
-    
+
     mkpath([catdir($install_root, "foo"),
 	    catdir($package_root, "rpm")]);
 
@@ -94,7 +94,7 @@ ARCHIVING: {
 
     my $after_install = $runtime->installed_snapshot();
     my $after_package = $runtime->package_snapshot();
-    
+
     $module1->installed(Test::AutoBuild::Lib::new_packages($before_install,
 							  $after_install));
     $module1->packages(Test::AutoBuild::Lib::new_packages($before_package,
@@ -146,20 +146,20 @@ sub save_file {
     my $dir = shift;
     my $file = shift;
     my $data = shift;
-    
+
     my $dst = catfile($dir, $file);
     open DST, ">$dst"
 	or die "cannot create $dst: $!";
     print DST $data;
     close DST;
-    
+
     return $dst;
 }
 
 sub save_link {
     my $dst = shift;
     my $src = shift;
-    
+
     symlink $src, $dst or die "cannot link $src to $dst: $!";
 }
 

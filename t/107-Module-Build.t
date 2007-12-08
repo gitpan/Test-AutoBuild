@@ -8,7 +8,7 @@ use Cwd;
 use File::Spec::Functions;
 use File::Path;
 
-BEGIN { 
+BEGIN {
   use_ok("Test::AutoBuild::Module");
   use_ok("Test::AutoBuild::PackageType");
   use_ok("Test::AutoBuild::Lib");
@@ -94,20 +94,21 @@ EOF
 							   },
 							   ],
 					      );
+    $module->_add_result("checkout", "success");
 
-    my $res = $module->invoke_shell($runtime, 
-				    "autobuild.sh", 
+    my $res = $module->invoke_shell($runtime,
+				    "autobuild.sh",
 				    catfile($log_root, "mymod-output.log"),
 				    [catfile($log_root, "mymod-result.log")]);
     is($res, 0, "result is 0");
-    
+
     ok(-f catfile($log_root, "mymod-output.log"), "output log exists");
-    
+
     open LOG, catfile($log_root, "mymod-output.log")
 	or die "cannot read output log: $!";
     my @lines = map { chomp $_ ; $_ } <LOG>;
     close LOG;
-    
+
     is(int(@lines),  10, "10 lines of output");
     is($lines[0], catdir($source_root, "mymod"), "source root matches");
     is($lines[1], catdir($log_root, "mymod-result.log"), "results log file matches");
@@ -121,7 +122,7 @@ EOF
     is($lines[9], 1, "legacy counter is set");
 
     link catfile($source_root, "mymod", "autobuild.sh"),
-         catfile($source_root, "mymod", "rollingbuild.sh");
+	 catfile($source_root, "mymod", "rollingbuild.sh");
 
     unlink catfile($log_root, "mymod-output.log");
     unlink catfile($log_root, "mymod-result.log");
@@ -137,6 +138,7 @@ BUILD_PASS: {
 							   },
 							   ],
 					      );
+    $module->_add_result("checkout", "success");
 
     mkpath([catdir($source_root, "othermod")]);
 
@@ -158,15 +160,15 @@ EOF
 
     close CTL;
     chmod 0755, catfile($source_root, "othermod", "autobuild.sh");
-    
+
     $module->build($runtime, "autobuild.sh");
-    
+
     is($module->status, "success", "status is success");
     my $installed = $module->installed();
     ok(exists $installed->{catfile($install_root, "foo", "bar.txt")}, "foo/bar.txt exists");
     ok(exists $installed->{catfile($install_root, "foo", "wizz.txt")}, "foo/bar.txt exists");
     ok(exists $installed->{catfile($install_root, "foo", "eek.txt")}, "foo/bar.txt exists");
-    
+
     my $packages = $module->packages();
     ok(exists $packages->{catfile($package_root, "rpm", "foo.rpm")}, "rpm/foo.rpm exists");
     ok(!exists $packages->{catfile($package_root, "rpm", "bar.txt")}, "rpm/bar.txt does not exist");
@@ -175,7 +177,8 @@ EOF
     $module->installed({});
     $module->status("pending");
     $module->{results} = {};
-    
+    $module->_add_result("checkout", "success");
+
     $arcman->create_archive("2");
     $module->build($runtime, "autobuild.sh");
 
@@ -184,11 +187,11 @@ EOF
     ok(exists $installed->{catfile($install_root, "foo", "bar.txt")}, "foo/bar.txt exists");
     ok(exists $installed->{catfile($install_root, "foo", "wizz.txt")}, "foo/bar.txt exists");
     ok(exists $installed->{catfile($install_root, "foo", "eek.txt")}, "foo/bar.txt exists");
-    
+
     $packages = $module->packages();
     ok(exists $packages->{catfile($package_root, "rpm", "foo.rpm")}, "rpm/foo.rpm exists");
     ok(!exists $packages->{catfile($package_root, "rpm", "bar.txt")}, "rpm/bar.txt does not exist");
-    
+
 #    $module->test($runtime, "wizz", "autotest-wizz.sh");
 }
 
@@ -202,6 +205,7 @@ BUILD_FAIL: {
 							  },
 							  ],
 					      );
+    $module->_add_result("checkout", "success");
 
     mkpath([catdir($source_root, "failmod")]);
 
@@ -222,26 +226,27 @@ EOF
     chmod 0755, catfile($source_root, "failmod", "autobuild.sh");
 
     $arcman->create_archive("3");
-    
+
     $module->build($runtime, "autobuild.sh");
-    
+
     is($module->status, "failed", "status is failed");
     my $installed = $module->installed();
     ok(!exists $installed->{catfile($install_root, "bar", "bar.txt")}, "foo/bar.txt does not exist");
-    
+
     my $packages = $module->packages();
     ok(!exists $packages->{catfile($package_root, "rpm", "bar.rpm")}, "rpm/bar.txt does not exist");
 
     $module->status("pending");
     $module->{results} = {};
-    
+    $module->_add_result("checkout", "success");
+
     $arcman->create_archive("4");
     $module->build($runtime, "autobuild.sh");
 
     is($module->status, "failed", "status is failed");
     $installed = $module->installed();
     ok(!exists $installed->{catfile($install_root, "bar", "bar.txt")}, "foo/bar.txt does not exist");
-    
+
     $packages = $module->packages();
     ok(!exists $packages->{catfile($package_root, "rpm", "bar.rpm")}, "rpm/bar.txt does not exist");
 }
@@ -256,6 +261,7 @@ TESTS: {
 							  },
 							  ],
 					      );
+    $module->_add_result("checkout", "success");
 
     mkpath([catdir($source_root, "testmod")]);
 
@@ -285,7 +291,7 @@ EOF
     $module->test($runtime, "a", "autotest-a.sh");
     is($module->test_status("a"), "success", "test status is success");
     is($module->status, "success", "status is success");
-    
+
 
     $module->test($runtime, "b", "autotest-b.sh");
     is($module->test_status("b"), "failed", "test status is failed");
@@ -302,9 +308,11 @@ BOGUS_CONTROLFILE: {
 							  },
 							  ],
 					      );
+    $module->_add_result("checkout", "success");
+
     mkpath([catdir($source_root, "testmodfail")]);
     my $cf = catfile($source_root, "testmodfail", "this-must-not-exist.sh");
-    
+
     $module->build($runtime, $cf);
     is($module->status, "failed", "status is failed");
     my $log = catfile($log_root, $module->build_output_log_file);
@@ -312,7 +320,8 @@ BOGUS_CONTROLFILE: {
     my $logdata = <LOG>;
     close LOG;
     my $there = catdir($source_root, "testmodfail");
-    ok($logdata =~ /^cannot find control file '$cf' from working directory '$there'/, 
+
+    ok($logdata =~ /^cannot find control file '$cf'/,
        "got control file failure");
 }
 
@@ -320,13 +329,13 @@ sub save_file {
     my $dir = shift;
     my $file = shift;
     my $data = shift;
-    
+
     my $dst = catfile($dir, $file);
     open DST, ">$dst"
 	or die "cannot create $dst: $!";
     print DST $data;
     close DST;
-    
+
     return $dst;
 }
 

@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Lock.pm,v 1.4 2006/04/09 23:31:13 danpb Exp $
+# $Id: Lock.pm,v 1.6 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -39,11 +39,11 @@ Test::AutoBuild::Lock - Manage a lock file to prevent concurrent execution
 This module takes out an exclusive lock on a file, preventing
 multiple instances of the builder running concurrently against
 the same build home. The scheme to use for locking the file, can
-be one of C<flock>, C<fcntl>, or C<file>. C<fcntl> is preferred 
-since it works across NFS. If this isn't supported on the OS running 
+be one of C<flock>, C<fcntl>, or C<file>. C<fcntl> is preferred
+since it works across NFS. If this isn't supported on the OS running
 the builder, then C<flock> should be used. As a last resort the C<file>
-method should be used, with does a simple file presence/creation check, 
-although if the builder fails in a bad way it is possible the lock will 
+method should be used, with does a simple file presence/creation check,
+although if the builder fails in a bad way it is possible the lock will
 not be cleaned up correctly.
 
 =head1 METHODS
@@ -67,7 +67,7 @@ use POSIX qw(:unistd_h :errno_h);
 use Log::Log4perl;
 
 =item my $stage = Test::AutoBuild::Lock->new(file => $lock_file_path,
-                                             method => $lock_method);
+					     method => $lock_method);
 
 Creates a new lock manager, for the file specified by the C<file>
 parameter. This should be a fully qualified path for the file to be locked.
@@ -81,7 +81,7 @@ to acquire the lock.
 sub init {
     my $self = shift;
     my %params = @_;
-    
+
     $self->{file} = exists $params{"file"} ? $params{"file"} : catfile($ENV{HOME}, ".build.mutex");
     $self->{method} = exists $params{"method"} ? $params{"method"} : "fcntl";
     $self->{lock} = undef;
@@ -108,7 +108,7 @@ sub lock {
     if (!$self->can($subname)) {
 	die "unsupported locking scheme $method";
     }
-    
+
     my ($lock, $message) = $self->$subname($lockfile);
     if (defined $lock) {
 	$log->debug("Got lock ($lockfile) with $method");
@@ -163,7 +163,7 @@ sub _lock_file {
 
     my $old_sigint = $SIG{'INT'};
     $SIG{'INT'} = sub { $self->_unlock_file(); if ($old_sigint) {&{$old_sigint};} exit 1};
-    
+
     return $fh;
 }
 
@@ -175,9 +175,9 @@ sub _lock_flock {
     if (!$fh) {
 	return (undef, "cannot create $lockfile: $!");
     }
-    flock ($fh, LOCK_EX | LOCK_NB) 
+    flock ($fh, LOCK_EX | LOCK_NB)
 	or return (undef, "cannot obtain lock on $lockfile: $!");
-    
+
     return $fh;
 }
 
@@ -197,7 +197,7 @@ sub _lock_fcntl {
 
     fcntl($fh, F_SETLK, $lock)
 	or return (undef, "cannot obtain lock on $lockfile: $!");
-    
+
     return $fh;
 }
 
@@ -205,7 +205,7 @@ sub _unlock_file {
     my $self = shift;
     my $lockfile = shift;
     my $lock = shift;
-    
+
     $lock->close()
 	or die "cannot lock lock $lockfile: $!";
     unlink $lockfile
@@ -225,14 +225,14 @@ sub _unlock_flock {
     my $self = shift;
     my $lockfile = shift;
     my $lock = shift;
-    
+
     $lock->close()
 	or die "cannot close lock $lockfile: $!";
 }
 
 sub _fcntl_data {
     my $self = shift;
-    
+
     if ($^O =~ /linux/) {
 	return $self->_fcntl_data_linux(@_);
     } elsif ($^O =~ /bsd/) {
@@ -255,7 +255,7 @@ sub _fcntl_data {
 sub _fcntl_data_linux {
     my $self = shift;
     my ($type, $whence, $start, $len, $pid) = @_;
-    
+
     my $signature = 's s l l i';
     return pack($signature, $type, $whence, $start, $len, $pid);
 }
@@ -270,9 +270,9 @@ sub _fcntl_data_linux {
 sub _fcntl_data_bsd {
     my $self = shift;
     my ($type, $whence, $start, $len, $pid) = @_;
-    
+
     my $signature = 'll ll i s s';
-    return pack(0, $start, 0, $len, $pid, $type, $whence);
+    return pack($signature, 0, $start, 0, $len, $pid, $type, $whence);
 }
 
 
@@ -288,7 +288,7 @@ sub _fcntl_data_sunos {
     my ($type, $whence, $start, $len, $pid) = @_;
 
     my $signature = 's s l l s s';
-    return pack($type, $whence, $start, $len, $pid, 0);
+    return pack($signature, $type, $whence, $start, $len, $pid, 0);
 }
 
 1 # So that the require or use succeeds.
@@ -304,7 +304,7 @@ Dennis Gregorovic <dgregorovic@alum.mit.edu>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2004 Red Hat, Inc. 
+Copyright (C) 2004 Red Hat, Inc.
 Copyright (C) 2005 Daniel Berrange.
 
 =head1 SEE ALSO

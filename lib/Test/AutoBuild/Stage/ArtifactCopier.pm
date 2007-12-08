@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: ArtifactCopier.pm,v 1.11 2006/04/18 13:14:10 danpb Exp $
+# $Id: ArtifactCopier.pm,v 1.12 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -71,51 +71,51 @@ sub process {
     $clean = 1 unless ( defined ($clean) && $clean == 0 );
     if ( $clean ) {
 	$log->debug("Cleaning artifact directories");
-        if ( $directory =~ m,\%m, ) {
-            foreach my $name (@modules) {
+	if ( $directory =~ m,\%m, ) {
+	    foreach my $name (@modules) {
 		$log->info("Removing contents of $directory");
-                $directory = $self->option("directory");
-                $directory =~ s,\%m,$name,g;
-                Test::AutoBuild::Lib::delete_files($directory);
-            }
-        } else {
-            Test::AutoBuild::Lib::delete_files($directory);
-        }
+		$directory = $self->option("directory");
+		$directory =~ s,\%m,$name,g;
+		Test::AutoBuild::Lib::delete_files($directory);
+	    }
+	} else {
+	    Test::AutoBuild::Lib::delete_files($directory);
+	}
     }
 
     foreach my $name (@modules) {
 	$log->debug("Copying artifacts for $name");
-        my $dst_base = $self->option("directory");
-        $dst_base =~ s,\%m,$name,g;
+	my $dst_base = $self->option("directory");
+	$dst_base =~ s,\%m,$name,g;
 
-        my $src_base = $runtime->module($name)->dir;
+	my $src_base = $runtime->module($name)->dir;
 
-        eval {
-            mkpath($dst_base);
-        };
-        if ($@) {
-            die "could not create directory '$dst_base': $@";
-        }
+	eval {
+	    mkpath($dst_base);
+	};
+	if ($@) {
+	    die "could not create directory '$dst_base': $@";
+	}
 
-        foreach my $artifact (@{$runtime->module($name)->artifacts}) {
-            my $src = catfile($src_base, $artifact->{src});
-            my $dst = catfile($dst_base, $artifact->{dst});
+	foreach my $artifact (@{$runtime->module($name)->artifacts}) {
+	    my $src = catfile($src_base, $artifact->{src});
+	    my $dst = catfile($dst_base, $artifact->{dst});
 
-            my $publisher = $runtime->publisher($artifact->{publisher});
+	    my $publisher = $runtime->publisher($artifact->{publisher});
 
 	    $log->info("Copying $src to $dst with publisher '" . $publisher->name . "'");
 
-            die "cannot find publisher $artifact->{publisher}\n"
-                unless $publisher;
+	    die "cannot find publisher $artifact->{publisher}\n"
+		unless $publisher;
 
-            # Only try copying if its a single file which exists,
-            # or if its a globbed path
-            if (-e $src or $src =~ /\*/) {
-                $publisher->publish($src, $dst);
-            } else {
-                $log->warn("Skipping $src because it does not exist");
-            }
-        }
+	    # Only try copying if its a single file which exists,
+	    # or if its a globbed path
+	    if (-e $src or $src =~ /\*/) {
+		$publisher->publish($src, $dst);
+	    } else {
+		$log->warn("Skipping $src because it does not exist");
+	    }
+	}
     }
 }
 
@@ -137,6 +137,6 @@ Copyright (C) 2002-2004 Daniel Berrange <dan@berrange.com>
 
 =head1 SEE ALSO
 
-C<perl(1)>, L<Test::AutoBuild::Stage> 
+C<perl(1)>, L<Test::AutoBuild::Stage>
 
 =cut

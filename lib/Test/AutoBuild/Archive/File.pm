@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: File.pm,v 1.7 2006/02/02 10:30:48 danpb Exp $
+# $Id: File.pm,v 1.8 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -58,13 +58,13 @@ use Log::Log4perl;
 sub init {
     my $self = shift;
     my %params = @_;
-    
+
     $self->SUPER::init(@_);
 
     $self->archive_dir(exists $params{archive_dir} ? $params{archive_dir} : die "archive_dir parameter is required");
 
     my $dir = catdir($self->archive_dir, $self->key);
-    
+
     die "no directory found for archive"
 	unless -d $dir;
 }
@@ -101,12 +101,12 @@ sub _save_metadata {
 	    die "could not create directory '$dir': $@";
 	}
     }
- 
+
     my $data_file = File::Spec->catfile($dir, $type);
     my $log = Log::Log4perl->get_logger();
     $log->debug("Saving metadata of type $type into $dir");
     -e $data_file and die "cannot write to an existing archive: $data_file";
-    
+
     unless (store $metadata, $data_file) {
 	die "cannot write to archive metadata file: $data_file";
     }
@@ -118,7 +118,7 @@ sub _persist_files {
     my $bucket = shift;
     my $files = shift;
     my $options = shift;
-    
+
     my $dir = $self->_get_directory($object, $bucket);
     unless (-d $dir) {
 	eval {
@@ -128,7 +128,7 @@ sub _persist_files {
 	    die "could not create directory '$dir': $@";
 	}
     }
- 
+
     my $file_dir = File::Spec->catdir($dir, "VROOT");
     my $log = Log::Log4perl->get_logger();
     $log->debug("Saving files into $dir");
@@ -158,7 +158,7 @@ sub _link_files {
     my $bucket = shift;
     my $archive = shift;
     my $options = shift;
-    
+
     my $file_dir = catdir($archive->_get_directory($module, $bucket), "VROOT");
     my $files = $archive->get_files($module, $bucket);
 
@@ -167,7 +167,7 @@ sub _link_files {
 	move => ($options->{move} ? 1 : 0),
 	base => $file_dir,
     };
-    
+
     $self->_persist_files($module, $bucket, $files, $newoptions);
 }
 
@@ -198,7 +198,7 @@ sub _has_metadata {
     my $object = shift;
     my $bucket = shift;
     my $type = shift;
-    
+
     my $dir = $self->_get_directory($object, $bucket);
 
     my $data_file = File::Spec->catfile($dir, $type);
@@ -216,7 +216,7 @@ sub _get_metadata {
     $log->debug("Trying to get metadata of type $type from $dir");
     my $data_file = File::Spec->catfile($dir, $type);
     -e $data_file or return;
-    
+
     my $data = retrieve $data_file or return;
     return $data;
 }
@@ -230,13 +230,13 @@ sub _restore_files {
 
     my $log = Log::Log4perl->get_logger();
     $log->debug("Copying files for $object in $bucket to $target");
- 
+
     my $dir = $self->_get_directory($object, $bucket);
     my $file_dir = File::Spec->catdir($dir, "VROOT");
     die "no files available to restore" unless -d $file_dir;
 
     my $files = $self->get_files($object, $bucket);
-    
+
     for my $file (keys %{$files}) {
 	my $src = catfile($file_dir, $file);
 	my $dst = catfile($target, $file);
@@ -251,7 +251,7 @@ sub _restore_files {
 sub size {
     my $self = shift;
     my $seen_files = shift;
-    
+
     $seen_files = {} unless defined $seen_files;
 
     my $total_size = 0;
@@ -263,7 +263,7 @@ sub size {
 	    my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,
 		$atime,$mtime,$ctime,$blksize,$blocks)
 		= stat($_);
-	    
+
 	    my $key = "$dev.$ino";
 	    if (!exists $seen_files->{$key}) {
 		$total_size += $size;

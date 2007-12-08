@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use Log::Log4perl;
 
-BEGIN { 
+BEGIN {
   use_ok("Test::AutoBuild::Runtime");
   use_ok("Test::AutoBuild::Module");
   use_ok("Test::AutoBuild::ArchiveManager::Memory");
@@ -63,10 +63,10 @@ TEST_MINIMAL: {
     my $runtime = Test::AutoBuild::Runtime->new(counter => Test::AutoBuild::Counter::Dummy->new(1));
     isa_ok($runtime, "Test::AutoBuild::Runtime");
     is($runtime->build_counter, 1, "counter is 1");
-    
+
     my $runtime2 = $runtime->new(counter => Test::AutoBuild::Counter::Dummy->new(1));
     isa_ok($runtime2, "Test::AutoBuild::Runtime");
-    
+
     my @modules = $runtime->modules();
     is($#modules, -1, "modules is empty");
 
@@ -84,7 +84,7 @@ TEST_MINIMAL: {
 
     my @groups = $runtime->groups();
     is($#groups, -1, "groups is empty");
-    
+
     my $archive = $runtime->archive();
     ok(!defined $archive, "archive not defined");
 }
@@ -99,9 +99,9 @@ TEST_MAXIMAL: {
 						monitors => \%monitors,
 						repositories => \%repositories);
     isa_ok($runtime, "Test::AutoBuild::Runtime");
-    
+
     is($runtime->build_counter, 10, "counter is 10");
-    
+
     my $archiveman = $runtime->archive_manager;
     ok(defined $archiveman, "archive manager is defined");
 
@@ -122,7 +122,7 @@ TEST_MAXIMAL: {
 	$runtime->module("no-such");
     };
     ok(defined $@, "got error with unknown name");
-    
+
     my @publishers = $runtime->publishers();
     my @ex_publishers = keys %publishers;
     is($#publishers, 1, "publishers has 2 entries");
@@ -183,16 +183,16 @@ TEST_MODULE_ORDERING: {
     my $runtime = Test::AutoBuild::Runtime->new(counter => Test::AutoBuild::Counter::Dummy->new(1),
 						archive_manager => Test::AutoBuild::ArchiveManager::Memory->new(),
 						modules => \%modules);
-    
+
     my @ordered = $runtime->sorted_modules();
-    
+
     ok(@ordered == 5, "5 modules sorted");
-    
+
     my %ordered;
     for (my $i = 0 ; $i <= $#ordered ; $i++) {
 	$ordered{$ordered[$i]} = $i;
     }
-    
+
     ok($ordered{test1} < $ordered{test2}, "test1 is before test2");
     ok($ordered{test1} < $ordered{test4}, "test1 is before test4");
     ok($ordered{test2} < $ordered{test4}, "test2 is before test4");
@@ -204,7 +204,7 @@ TEST_NOTIFICATIONS: {
     my $runtime = Test::AutoBuild::Runtime->new(counter => Test::AutoBuild::Counter::Dummy->new(1),
 						archive_manager => Test::AutoBuild::ArchiveManager::Memory->new(),
 						monitors => \%monitors);
-    
+
     my @expected = (
 		    ["beginCycle", time],
 		    ["beginStage", "build", time],
@@ -213,15 +213,15 @@ TEST_NOTIFICATIONS: {
 		    ["completeStage", "test", time],
 		    ["endCycle", time],
 		    );
-    
+
     foreach my $args (@expected) {
 	$runtime->notify(@{$args});
     }
-    
+
     my $mon1 = $runtime->monitor("test1");
     my @actual = $mon1->messages();
     ok(eq_array(\@expected, \@actual), "monitor 1 got all notifications");
-    
+
     my $mon2 = $runtime->monitor("test2");
     @actual = $mon2->messages();
     ok(eq_array(\@expected, \@actual), "monitor 2 got all notifications");
@@ -230,15 +230,15 @@ TEST_NOTIFICATIONS: {
 TEST_ATTRIBUTES: {
     my $runtime = Test::AutoBuild::Runtime->new(counter => Test::AutoBuild::Counter::Dummy->new(1),
 						archive_manager => Test::AutoBuild::ArchiveManager::Memory->new());
-    
+
     is($runtime->attribute("foo"), undef, "foo undefined");
-    
+
     is($runtime->attribute("foo", "bar"), "bar", "foo set to bar & bar returned");
-    
+
     is($runtime->attribute("foo"), "bar", "foo is bar");
 
     is($runtime->attribute("foo", "wiz"), "wiz", "foo set to wiz & wiz returned");
-    
+
     is($runtime->attribute("foo"), "wiz", "foo is wiz");
 
     my @attributes = sort { $a cmp $b } $runtime->attributes();
@@ -251,7 +251,7 @@ TEST_MACROS: {
 		   'test-mod-2' => Test::AutoBuild::Module->new(name => "test2", depends => [ 'test1'], label => 'Test2', sources => [], runtime => undef),
 		   'test-mod-3' => Test::AutoBuild::Module->new(name => "test3", label => 'Test3', sources => [],  runtime => undef),
 		   );
-    
+
     my %package_types = (
 			 'test-type-1' => Test::AutoBuild::PackageType->new(name => "test1", label => "Test", extension => "*.txt"),
 			 'test-type-2' => Test::AutoBuild::PackageType->new(name => "test2", label => "Test", extension => "*.txt"),
@@ -260,7 +260,7 @@ TEST_MACROS: {
 						archive_manager => Test::AutoBuild::ArchiveManager::Memory->new(),
 						package_types => \%package_types,
 						modules => \%modules);
-    
+
     my $template1 = "foo-%m/%p";
     my @expected1a = (
 		     "foo-test-mod-1/test-type-1",
@@ -281,12 +281,12 @@ TEST_MACROS: {
     my @actual1a = sort $runtime->expand_macros($template1);
     ok(eq_array(\@expected1a, \@actual1a), "expanded templates");
 
-    my @actual1b = sort $runtime->expand_macros($template1, 
+    my @actual1b = sort $runtime->expand_macros($template1,
 						{ module => "test-mod-1"});
     ok(eq_array(\@expected1b, \@actual1b), "expanded templates");
 
-    my @actual1c = sort $runtime->expand_macros($template1, 
-						{ 
+    my @actual1c = sort $runtime->expand_macros($template1,
+						{
 						    module => "test-mod-1",
 						    package_type => "test-type-2",
 						});
@@ -304,9 +304,9 @@ use base qw(Test::AutoBuild::Monitor);
 sub new {
   my $class = shift;
   my $self = $class->SUPER::new(@_);
-  
+
   $self->{messages} = [];
-  
+
   return $self;
 }
 
@@ -329,9 +329,9 @@ use base qw(Test::AutoBuild::Counter);
 sub new {
     my $class = shift;
     my $self = $class->SUPER::new();
-    
+
     $self->{counter} = shift;
-    
+
     return $self;
 }
 

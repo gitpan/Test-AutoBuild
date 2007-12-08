@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Stage.pm,v 1.10 2006/02/02 10:30:48 danpb Exp $
+# $Id: Stage.pm,v 1.12 2007/12/08 21:03:02 danpb Exp $
 
 =pod
 
@@ -34,9 +34,9 @@ Test::AutoBuild::Stage - The base class for an AutoBuild stage
   use Test::AutoBuild::Stage
 
   my $stage = Test::AutoBuild::Stage->new(name => $token,
-                                          label => $string,
-                                          [critical => $boolean,]
-                                          [enabled => $boolean]);
+					  label => $string,
+					  [critical => $boolean,]
+					  [enabled => $boolean]);
 
   # Execute the stage
   $stage->run($runtime);
@@ -51,7 +51,7 @@ Test::AutoBuild::Stage - The base class for an AutoBuild stage
       .. do recovery case ...
     }
   } elsif ($stage->success() ||  # Everything's ok
-           $stage->skipped()) {  
+	   $stage->skipped()) {
     .. do normal case ...
   }
 
@@ -83,7 +83,7 @@ the C<fail> method having been called.
 If the stage completed its processing, but encountered
 and handled one or more problems. Such problems may include
 failure of a module build, failure of a test suite. Upon
-encountering such an problem, the stage should call the 
+encountering such an problem, the stage should call the
 C<fail> method providing a description of the problem, and
 then return from the C<process> method.
 
@@ -104,9 +104,9 @@ being set to false.
 
 =head1 CONFIGURATION
 
-All stage modules have a number of standard configuration 
+All stage modules have a number of standard configuration
 options that are used. Sub-classes are not permitted to
-define additional configuration parameters, rather, they 
+define additional configuration parameters, rather, they
 should use the C<options> parameter for their custom configuration
 needs.
 
@@ -129,13 +129,13 @@ skipped.
 
 =item critical
 
-A boolean flag indicating whether failure of a stage should be 
-considered fatal to the build process. NB, if a stage aborts, 
+A boolean flag indicating whether failure of a stage should be
+considered fatal to the build process. NB, if a stage aborts,
 it is always considered fatal, regardless of this flag.
 
 =item options
 
-A hash containing options specific to the particular stage sub-class. 
+A hash containing options specific to the particular stage sub-class.
 
 =back
 
@@ -148,6 +148,7 @@ A hash containing options specific to the particular stage sub-class.
 package Test::AutoBuild::Stage;
 
 use strict;
+use warnings;
 use Carp qw(confess);
 use Class::MethodMaker
     new_with_init => 'new',
@@ -157,10 +158,10 @@ use Log::Log4perl;
 use Test::AutoBuild::Result;
 
 =item my $stage = Test::AutoBuild::Stage->new(name => $name,
-                                              label => $label,
-                                              [critical => $boolean,]
-                                              [enabled => $boolean,]
-                                              [options => \%options]);
+					      label => $label,
+					      [critical => $boolean,]
+					      [enabled => $boolean,]
+					      [options => \%options]);
 
 Creates a new stage, with a name specified by the C<name> parameter
 and label by the C<label> parameter. The optional C<critical> parameter
@@ -183,21 +184,21 @@ sub init {
     my %params = @_;
 
     exists $params{name} ?
-        $self->name($params{name}) :
-        confess "name parameter is required";
+	$self->name($params{name}) :
+	confess "name parameter is required";
     exists $params{label} ?
-        $self->label($params{label}) :
-        confess "label parameter is required";
+	$self->label($params{label}) :
+	confess "label parameter is required";
     exists $params{critical} ?
-        $self->is_critical($params{critical}) :
-        $self->is_critical(1);
+	$self->is_critical($params{critical}) :
+	$self->is_critical(1);
     exists $params{enabled} ?
-        $self->is_enabled($params{enabled}) :
-        $self->is_enabled(1);
+	$self->is_enabled($params{enabled}) :
+	$self->is_enabled(1);
     $self->{options} = exists $params{options} ? $params{options} : {};
-    
+
     $self->status("pending");
-    
+
     $self->{results} = {};
 }
 
@@ -217,7 +218,7 @@ sub pending {
 =item my $boolean = $stage->failed();
 
 Returns a true value if the stage encountered one or
-more problems during execution. To mark a stage as 
+more problems during execution. To mark a stage as
 failed, use the C<fail> method supplying a explanation
 of the failure.
 
@@ -315,13 +316,13 @@ sub prepare {
     my $self = shift;
     my $runtime = shift;
     my $context = shift;
-    
-    my $result = defined $context ? 
+
+    my $result = defined $context ?
 	Test::AutoBuild::Result->new(name => $self->name . " [$context] ",
 				     label => $self->label . " [" . $runtime->module($context)->label . "]") :
 	Test::AutoBuild::Result->new(name => $self->name,
 				     label => $self->label);
-    
+
     my $key = defined $context ? $self->name . "." . $context : $self->name;
 
     $self->{results}->{$key} = $result;
@@ -350,7 +351,7 @@ sub run {
 	eval {
 	    $self->status("success");
 	    $self->process($runtime, $context);
-	    
+
 	    if ($self->failed) {
 		$runtime->notify("failStage", $self->name, time, $self->is_critical ? "critical": "recoverable", $self->log);
 	    } else {
@@ -369,7 +370,7 @@ sub run {
     }
 
     $self->end_time(time);
-    
+
     my $key = defined $context ? $self->name . "." . $context : $self->name;
     my $result = $self->{results}->{$key};
     if ($result) {
@@ -384,9 +385,9 @@ sub run {
 =item $stage->process($runtime);
 
 This method should be implemented by subclasses to provide
-whatever processing logic is required. The C<$runtime> parameter 
+whatever processing logic is required. The C<$runtime> parameter
 should be an instance of the L<Test::AutoBuild::Runtime> module.
-The C<process> method should call the C<fail> method is an 
+The C<process> method should call the C<fail> method is an
 expected error occurrs, otherwise it should simply call C<die>.
 
 =cut
@@ -406,7 +407,7 @@ __END__
 
 =head1 AUTHORS
 
-Daniel Berrange <dan@berrange.com>, 
+Daniel Berrange <dan@berrange.com>,
 Dennis Gregorovic <dgregorovic@alum.mit.edu>
 
 =head1 COPYRIGHT

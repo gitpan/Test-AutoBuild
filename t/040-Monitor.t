@@ -1,4 +1,4 @@
-# -*- cperl -*-
+# -*- perl -*-
 
 use Test::More tests => 16;
 use warnings;
@@ -7,7 +7,7 @@ use Log::Log4perl;
 
 Log::Log4perl::init("t/log4perl.conf");
 
-BEGIN { 
+BEGIN {
   use_ok("Test::AutoBuild::Monitor") or die;
 }
 
@@ -19,7 +19,7 @@ TEST_ONE: {
 							 foo => "bar"
 							 });
   isa_ok($monitor, "Test::AutoBuild::Monitor");
-  
+
   is($monitor->option("foo"), "bar", "foo is bar");
   is($monitor->option("foo", "eek"), "eek", "foo is eek");
   is($monitor->option("foo"), "eek", "foo is eek");
@@ -54,7 +54,7 @@ TEST_ENV: {
 			       env => {
 				       ENV1 => "foo",
 				      });
-  
+
   is($monitor->env("ENV2"), undef, "ENV2 is undefined");
   is($monitor->env("ENV2", "eek"), "eek", "ENV2 is eek");
 
@@ -76,7 +76,7 @@ use base qw(Test::AutoBuild::Monitor);
 
 sub process {
   my $self = shift;
-  
+
   $self->{ENV1} = $ENV{ENV1};
   $self->{ENV2} = $ENV{ENV2};
 }

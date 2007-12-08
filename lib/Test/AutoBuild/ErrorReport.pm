@@ -20,7 +20,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: ErrorReport.pm,v 1.2 2006/08/09 03:45:54 danpb Exp $
+# $Id: ErrorReport.pm,v 1.3 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -60,15 +60,15 @@ use Carp qw(longmess);
 
 use Class::MethodMaker
   get_set => [qw(
-                 message
+		 message
 		 cause
-                 trace
-                 code
+		 trace
+		 code
 		 engine
 		 )];
 
 =item my $error = Test::AutoBuild::ErrorReport->new(message => $message,
-                                                    [trace => $stacktrace,]);
+						    [trace => $stacktrace,]);
 
 Creates a new error report with the error message passed via the C<message>
 parameter. The optional C<stacktrace> parameter can provide a call / stack
@@ -85,7 +85,7 @@ sub new {
     my %params = @_;
 
     bless $self, $class;
-    
+
     $self->message(exists $params{message} ? $params{message} : die "message parameter is required");
     $self->cause(exists $params{cause} ? $params{cause} : undef);
     $self->trace(exists $params{trace} ? $params{trace} : Carp::longmess);
@@ -116,7 +116,7 @@ sub print {
 
 sub log {
     my $self = shift;
-    
+
     my $file = catfile($ENV{HOME}, "autobuild-" . $self->code . ".log");
     $self->save($file);
     return $file;
@@ -135,7 +135,7 @@ sub save {
 sub dump {
     my $self = shift;
     my $fh = shift;
-    
+
     print $fh "============================================================\n";
     print $fh " Test-AutoBuild Error Report\n";
     print $fh "============================================================\n";
@@ -159,7 +159,7 @@ sub dump {
 	print $fh "    ", $_, " = ", (defined $Config{$_} ? $Config{$_} : ""), "\n";
     }
     print $fh "============================================================\n";
-    
+
 }
 
 1; # So that the require or use succeeds.
@@ -170,7 +170,7 @@ __END__
 
 =head1 AUTHORS
 
-Daniel Berrange <dan@berrange.com>, 
+Daniel Berrange <dan@berrange.com>,
 Dennis Gregorovic <dgregorovic@alum.mit.edu>
 
 =head1 COPYRIGHT

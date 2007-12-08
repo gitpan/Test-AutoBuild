@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Module.pm,v 1.38 2006/06/05 12:38:08 danpb Exp $
+# $Id: Module.pm,v 1.41 2007/12/08 20:10:26 danpb Exp $
 
 =pod
 
@@ -31,13 +31,13 @@ Test::AutoBuild::Module - represents a code module to be built
   use Test::AutoBuild::Module;
 
   my $module = Test::AutoBuild::Module->new(name => $name,
-                                            label => $label,
-                                            sources => $sources,
-                                            [dependencies => \@modules,]
-                                            [env => \%env,]
-                                            [options => \%options,]
-                                            [groups => \@groups,]
-                                            [dir => $directory]);
+					    label => $label,
+					    sources => $sources,
+					    [dependencies => \@modules,]
+					    [env => \%env,]
+					    [options => \%options,]
+					    [groups => \@groups,]
+					    [dir => $directory]);
 
   $module->build();
   $module->install();
@@ -46,7 +46,7 @@ Test::AutoBuild::Module - represents a code module to be built
 =head1 DESCRIPTION
 
 The Test::AutoBuild::Module module provides a representation of
-a single code module to be built / tested. 
+a single code module to be built / tested.
 
 =head1 OPTIONS
 
@@ -63,43 +63,43 @@ package Test::AutoBuild::Module;
 use strict;
 use warnings;
 use Carp qw(confess);
-use File::Spec::Functions;
+use File::Spec::Functions qw(rel2abs catdir file_name_is_absolute catfile);
 use Class::MethodMaker
     new_with_init => "new",
     get_set => [qw(
-                   artifacts
-                   depends
+		   artifacts
+		   depends
 		   changed
 		   changes
-                   dir
-                   env
-                   groups
-                   label
-                   links
-                   name
-                   packages
+		   dir
+		   env
+		   groups
+		   label
+		   links
+		   name
+		   packages
 		   installed
-                   sources
-                   use_archive
-                   admin_email
-                   admin_name
-                   group_email
-                   group_name
-                   )];
+		   sources
+		   use_archive
+		   admin_email
+		   admin_name
+		   group_email
+		   group_name
+		   )];
 
 use Cwd;
 use Log::Log4perl;
 
 =item my $module = Test::AutoBuild::Module->new(name => $name,
-                                                label => $label,
-                                                sources => $sources,
-                                                [depends => \@modules,]
-                                                [links => \%links,]
-                                                [artifacts => \%artifacts,]
-                                                [env => \%env,]
-                                                [options => \%options,]
-                                                [groups => \@groups,]
-                                                [dir => $directory]);
+						label => $label,
+						sources => $sources,
+						[depends => \@modules,]
+						[links => \%links,]
+						[artifacts => \%artifacts,]
+						[env => \%env,]
+						[options => \%options,]
+						[groups => \@groups,]
+						[dir => $directory]);
 
 Creates a new code module object. C<name> is a alphanumeric
 token for the name of the module. C<label> is a short human
@@ -140,6 +140,9 @@ sub init {
     $self->{options} = exists $params{options} ? $params{options} : {};
     $self->{is_installed} = {};
     $self->{results} = {
+	checkout => {
+	    status => "pending",
+	},
 	build => {
 	    status => "pending",
 	},
@@ -161,7 +164,7 @@ parameter is supplied the name is also updated.
 =item my $sources = $module->sources($newsources)
 
 Returns an array references, where each element is as
-hash with two keys. The value associated with the key 
+hash with two keys. The value associated with the key
 C<repository> is the name of the soruce repository. The
 value associated with the key C<path> is the path within
 the source repository to checkout. If the C<$newsources>
@@ -186,7 +189,7 @@ Returns the value of the option referenced by C<name>.
 If the C<newvalue> parameter is supplied, then the
 option is also updated. Options are arbitrary key +
 value pairs intended for stages to use for configuring
-module specific options. For example the 
+module specific options. For example the
 L<Test::AutoBuild::Stage::Build> module uses the
 C<control-file> option key to allow override of the
 shell script used to perform a build. To avoid clashes
@@ -201,14 +204,14 @@ sub option {
    my $name = shift;
 
    $self->{options}->{$name} = shift if @_;
-   
+
    # XXX fixme
    if (0) {
    if (! exists $self->{options}->{$name}) {
        my $groups = $self->runtime->groups;
        foreach (@{$self->groups()}) {
-           my $value = $groups->{$_}->option($name);
-           return $value if defined $value;
+	   my $value = $groups->{$_}->option($name);
+	   return $value if defined $value;
        }
    }
    }
@@ -233,8 +236,8 @@ sub is_installed {
 
 =item $module->install($runtime, $dir);
 
-Installs all this module's files from a previously populated build 
-cache, into the directory C<$dir>. If any dependant modules have 
+Installs all this module's files from a previously populated build
+cache, into the directory C<$dir>. If any dependant modules have
 not yet been installed, they will be installed first.
 
 =cut
@@ -247,14 +250,14 @@ sub install {
     my $log = Log::Log4perl->get_logger();
 
     if ($self->is_installed($dir)) {
-        $log->debug("Module " . $self->name . " is already installed into '$dir'");
-        return;
+	$log->debug("Module " . $self->name . " is already installed into '$dir'");
+	return;
     }
 
     foreach my $depend (@{$self->depends}) {
-        $runtime->module($depend)->install($runtime, $dir);
+	$runtime->module($depend)->install($runtime, $dir);
     }
-    
+
     my $archive = $runtime->archive;
     if (!defined $archive) {
 	die "cannot install files with an archive";
@@ -276,9 +279,9 @@ is no test called C<$name>, an error will be thrown.
 sub test_status {
     my $self = shift;
     my $name = shift;
-    
+
     die "no test with name $name" unless exists $self->{results}->{"test-" . $name};
-    
+
     return $self->{results}->{"test-" . $name}->{status};
 }
 
@@ -295,7 +298,7 @@ sub test_output_log_file {
     my $self = shift;
     my $name = shift;
 
-    return $self->_result_log_file("test-$name", "output"); 
+    return $self->_result_log_file("test-$name", "output");
 }
 
 =item $module->test_result_log_file($name);
@@ -310,14 +313,14 @@ sub test_result_log_file {
     my $self = shift;
     my $name = shift;
 
-    return $self->_result_log_file("test-$name", "result"); 
+    return $self->_result_log_file("test-$name", "result");
 }
 
 
 =item my $seconds = $module->test_start_date($name);
 
 Retrieves the timestamp at which the test called C<$name> began
-execution. If no test called C<$name> has been run yet, an error 
+execution. If no test called C<$name> has been run yet, an error
 will be thrown.
 
 =cut
@@ -326,9 +329,9 @@ will be thrown.
 sub test_start_date {
     my $self = shift;
     my $name = shift;
-    
+
     die "no test with name $name" unless exists $self->{results}->{"test-" . $name};
-    
+
     return $self->{results}->{"test-" . $name}->{start_date};
 }
 
@@ -336,7 +339,7 @@ sub test_start_date {
 =item my $seconds = $module->test_end_date($name);
 
 Retrieves the timestamp at which the test called C<$name> completed
-execution. If no test called C<$name> has been run yet, an error 
+execution. If no test called C<$name> has been run yet, an error
 will be thrown.
 
 =cut
@@ -345,9 +348,9 @@ will be thrown.
 sub test_end_date {
     my $self = shift;
     my $name = shift;
-    
+
     die "no test with name $name" unless exists $self->{results}->{"test-" . $name};
-    
+
     return $self->{results}->{"test-" . $name}->{end_date};
 }
 
@@ -361,9 +364,9 @@ for this module.
 
 sub tests {
     my $self = shift;
-    
-    return map { /^test-(.*)$/ ; $1 } 
-      sort { $self->{results}->{$a}->{order} <=> $self->{results}->{$b}->{order} } 
+
+    return map { /^test-(.*)$/ ; $1 }
+      sort { $self->{results}->{$a}->{order} <=> $self->{results}->{$b}->{order} }
       grep { /^test-/ } keys %{$self->{results}};
 }
 
@@ -394,14 +397,14 @@ will be relative to the runtime's log root directory.
 
 sub build_output_log_file {
     my $self = shift;
-    return $self->_result_log_file("build", "output"); 
+    return $self->_result_log_file("build", "output");
 }
 
 =item $module->build_result_log_file();
 
 Retrieves the name of the logfile into which results
-for the build process unittests should be saved. The 
-logfile name will be relative to the runtime's log 
+for the build process unittests should be saved. The
+logfile name will be relative to the runtime's log
 root directory.
 
 =cut
@@ -409,7 +412,7 @@ root directory.
 
 sub build_result_log_file {
     my $self = shift;
-    return $self->_result_log_file("build", "result"); 
+    return $self->_result_log_file("build", "result");
 }
 
 =item my $seconds = $module->test_start_date();
@@ -440,12 +443,69 @@ sub build_end_date {
     return $self->{results}->{build}->{end_date};
 }
 
+=item my $status = $module->checkout_status;
+
+Retrieves the status of the module SCM checkout. If the module has not
+yet been checked out, it will return 'pending'; Ff the checkout has been
+run it will return one of 'success', 'failed'. If it was 'success' then
+the C<changes> method will return a list of changesets.
+
+=cut
+
+sub checkout_status {
+    my $self = shift;
+    return $self->{results}->{checkout}->{status};
+}
+
+
+=item $module->checkout_output_log_file();
+
+Retrieves the name of the logfile into which console output
+for the checkout process should be saved. The logfile name
+will be relative to the runtime's log root directory.
+
+=cut
+
+
+sub checkout_output_log_file {
+    my $self = shift;
+    return $self->_result_log_file("checkout", "output");
+}
+
+=item my $seconds = $module->test_start_date();
+
+Retrieves the timestamp at which the checkout process began
+execution. If the checkout has not run yet, an undefined value
+will be returned.
+
+=cut
+
+sub checkout_start_date {
+    my $self = shift;
+    return $self->{results}->{checkout}->{start_date};
+}
+
+
+=item my $seconds = $module->test_end_date();
+
+Retrieves the timestamp at which the checkout process completed
+execution. If the checkout has not run yet, an undefined value
+will be returned.
+
+=cut
+
+
+sub checkout_end_date {
+    my $self = shift;
+    return $self->{results}->{checkout}->{end_date};
+}
+
 # Internal method, may disappear at any time!
 sub _result_log_file {
     my $self = shift;
     my $cmdname = shift;
     my $type = shift;
-    
+
     return $self->name . "-" . $cmdname . "-" . $type . ".log";
 }
 
@@ -456,10 +516,11 @@ sub _add_result {
     my $status = shift;
     my $start = shift || time;
     my $end = shift || $start;
-    
+
     die "already got a result for action $action"
       if exists $self->{results}->{$action} &&
-        !($action eq "build" && $self->{results}->{$action}->{status} eq "pending");
+	!($action eq "build" && $self->{results}->{$action}->{status} eq "pending") &&
+	!($action eq "checkout" && $self->{results}->{$action}->{status} eq "pending");
 
     my @results = keys %{$self->{results}};
 
@@ -474,17 +535,22 @@ sub _add_result {
 
 =item my $stauts = $module->status
 
-Retrieves the overall status of this module. If the
-module build failed, is pending, or was skipped, then
-this returns 'failed', 'pending', or 'skipped' 
-respectively; If any test script failed, this returns 
-'failed'; otherwise it returns 'success'.
+Retrieves the overall status of this module. If the module
+failed to checkout from SCM, then the SCM status is returned.
+If the module build failed, is pending, or was skipped, then
+this returns 'failed', 'pending', or 'skipped' respectively;
+If any test script failed, this returns 'failed'; otherwise
+it returns 'success'.
 
 =cut
 
 sub status {
     my $self = shift;
-    
+
+    if ($self->checkout_status() ne "success") {
+	return $self->checkout_status();
+    }
+
     if ($self->build_status() eq "cached" ||
 	$self->build_status() eq "success") {
 	foreach my $name ($self->tests) {
@@ -527,7 +593,7 @@ sub _save_log {
     my $self = shift;
     my $logfile = shift;
     my $data = shift;
-    
+
     open LOG, ">$logfile"
 	or die "cannot create $logfile: $!";
     print LOG $data;
@@ -560,54 +626,46 @@ sub invoke_shell {
     my $log = Log::Log4perl->get_logger();
     $log->debug("Running $controlfile with output to $logfile args (". join(", ", @{$args}) . ")");
 
-    my $cwd = getcwd;
     my $wkdir = catdir($runtime->source_root, $self->dir);
 
-    unless (chdir $wkdir) {
-	$self->_save_log($logfile, "cannot change into directory '$wkdir'");
-	return 1;
+    if (!file_name_is_absolute($controlfile)) {
+	$controlfile = rel2abs($controlfile, $wkdir);
     }
-
-    local %ENV = %ENV;
-    my %env = $runtime->get_shell_environment($self);
-    foreach (keys %env) {
-        $log->debug("Setting module global environment '$_' to '" . $env{$_} . "'");
-        $ENV{$_} = $env{$_};
-    }
-    my $env = $self->env;
-    foreach (keys %{$env}) {
-        $log->debug("Setting module specified environment '$_' to '" . $env->{$_} . "'");
-        $ENV{$_} = $env->{$_};
-    }
-
-    $controlfile = "./" . $controlfile unless $controlfile =~ m,^(\.)?/,;
     if (!-e $controlfile) {
-	$self->_save_log($logfile, "cannot find control file '" . 
-			 $controlfile . "' from working directory '" . $wkdir . "'");
-        unless (chdir $cwd) {
-            die "could not change back to directory: '$cwd'";
-        }
+	$self->_save_log($logfile, "cannot find control file '$controlfile'");
 	return 1;
     }
     if (!-x _) {
-	$self->_save_log($logfile, "control file '$controlfile' is not executable " .
-			 "from working directory '" . $wkdir . "'");
-	unless (chdir $cwd) {
-            die "could not change back to directory: '$cwd'";
-        }
-        return 1;
+	$self->_save_log($logfile, "control file '$controlfile' is not executable");
+	return 1;
     }
-    
-    my $argv = join(" ", @{$args});
-    `$controlfile $argv </dev/null 1>$logfile 2>&1`;
-    
-    my $res = $?;
-    
-    unless (chdir $cwd) {
-        die "could not change back to directory: '$cwd'";
+
+    my $status;
+    eval {
+	my %env = $runtime->get_shell_environment($self);
+	foreach my $key (%{$self->env}) {
+	    $env{$key} = $self->env->{$key};
+	}
+
+	my $cmdopt = $self->option("command") || {};
+	my $mod = $cmdopt->{module} || "Test::AutoBuild::Command::Local";
+	my $opts = $cmdopt->{options} || {};
+	eval "use $mod;";
+	die "cannot load $mod: $!" if $@;
+
+	my $c = $mod->new(cmd => [$controlfile, @{$args}],
+			  dir => $wkdir,
+			  env => \%env,
+			  options => $opts);
+
+	$status = $c->run($logfile, $logfile);
+    };
+    if ($@) {
+	$self->_save_log($logfile, $@);
+	return 1;
     }
-    
-    return $res;
+    $log->debug("Job status is $status");
+    return $status;
 }
 
 
@@ -616,12 +674,12 @@ sub invoke_shell {
 This method runs a task named C<$taskname> by invoking the
 shell command C<$controlfile> in the source directory for
 this module. The taskname must either be C<build> or be
-prefixed by the string C<test->. If the taskname is L<build> 
-then after execution any files created in the install root 
-will be recorded as installed files - later available by 
-invoking the C<installed> method. Likewise any files created 
-in the package root, matching known package types will be 
-recorded as generated packages - later available by invoking 
+prefixed by the string C<test->. If the taskname is L<build>
+then after execution any files created in the install root
+will be recorded as installed files - later available by
+invoking the C<installed> method. Likewise any files created
+in the package root, matching known package types will be
+recorded as generated packages - later available by invoking
 the C<packags> method. The start and end times of the task,
 along with its success/failure status will be record and
 later available from the corresponding C<build_XXX> or
@@ -639,11 +697,11 @@ sub run_task {
     my $taskname = shift;
     my $controlfile = shift;
 
-    
+
 
     my $log = Log::Log4perl->get_logger();
     foreach my $depend (@{$self->depends}) {
-        $runtime->module($depend)->install($runtime, $runtime->install_root);
+	$runtime->module($depend)->install($runtime, $runtime->install_root);
     }
     my $before_packages;
     my $before_installed;
@@ -685,7 +743,7 @@ sub run_task {
 This is a wrapper around the C<run_task> method which makes use
 of the currently configured L<Test::AutoBuild::ArchiveManager> to
 cache successfull invocations of a task. On subsequent invocations,
-provided there have been no source code checkout changes since the 
+provided there have been no source code checkout changes since the
 previous archive, and no dependant modules have been re-built, the
 archived result will be restored, rather than invoking the task
 again. From the caller's POV, there should be no functional difference
@@ -699,17 +757,17 @@ sub cachable_run_task {
     my $runtime = shift;
     my $taskname = shift;
     my $controlfile = shift;
-    
+
     my $log = Log::Log4perl->get_logger();
     my $arcman = $runtime->archive_manager();
 
     if ($self->should_skip($runtime)) {
 	$self->_add_result($taskname, "skipped");
-        $log->info("skipping " . $taskname);
-        return;
+	$log->info("skipping " . $taskname);
+	return;
     }
 
-    if ($self->{use_archive} && 
+    if ($self->{use_archive} &&
 	defined $arcman) {
 	my $cache = $arcman->get_previous_archive($runtime);
 	if ($self->archive_usable($runtime, $cache, $taskname)) {
@@ -721,7 +779,7 @@ sub cachable_run_task {
 	my $archive = $arcman->get_current_archive($runtime);
 	$self->archive_result($runtime, $archive, $taskname);
     } else {
-        $log->info("skipping cache entirely");
+	$log->info("skipping cache entirely");
 	$self->run_task($runtime, $taskname, $controlfile);
     }
 }
@@ -748,25 +806,25 @@ sub unarchive_result {
     my $log = Log::Log4perl->get_logger();
     $log->debug("Restoring result for $taskname");
 
-    $self->_add_result($taskname, 
-		       "cache", 
+    $self->_add_result($taskname,
+		       "cache",
 		       $cache->get_data($self->name, $taskname)->{start_date},
 		       $cache->get_data($self->name, $taskname)->{end_date},
 		       );
-    
+
     $cache->extract_files($self->name, $taskname, $runtime->log_root, { link => 1 });
 
     if ($taskname eq "build") {
 	$log->debug("Unarchiving build packages and changes");
 
 	# Changes from source repository
-        # Don't toggle 'changed' flag because this is a cached build
+	# Don't toggle 'changed' flag because this is a cached build
 	#$self->changed($cache->get_data($self->name, "changes")->{changed});
 	$self->changes($cache->get_data($self->name, "changes")->{changes});
-	
+
 	# Installed files
 	$self->installed($cache->extract_files($self->name, "installed", $runtime->install_root, { link => 1 }));
-	
+
 	# Generated packages
 	$self->packages($cache->extract_files($self->name, "packages", $runtime->package_root, { link => 1}));
     }
@@ -775,8 +833,8 @@ sub unarchive_result {
 =item my $bool = $module->archive_usable($runtime, $archive, $taskname)
 
 Returns a true value, if the archive C<$archive> contains a usable saved
-entry for the task C<$taskname>. An archive for a module's task is defined 
-to be usable if all dependant modules are also usable; if the archive 
+entry for the task C<$taskname>. An archive for a module's task is defined
+to be usable if all dependant modules are also usable; if the archive
 contains a bucket with the name C<$taskname>; if the status of the save
 task is C<success> or C<cached>; and if no source code changes have been
 made.
@@ -817,7 +875,7 @@ sub archive_usable {
 	$log->info("archive was not a success");
 	return 0;
     }
-    
+
     if ($self->changed) {
 	$log->info("Not using archive because code changes have been made");
 	return 0;
@@ -854,7 +912,7 @@ sub archive_result {
 
     my $stdout_log = catfile($runtime->log_root, $self->_result_log_file($taskname, "stdout"));
     my $result_log = catfile($runtime->log_root, $self->_result_log_file($taskname, "result"));
-    
+
     my $stdout_log_stat = stat $stdout_log;
     my $result_log_stat = stat $result_log;
 
@@ -869,37 +927,95 @@ sub archive_result {
 
     if ($taskname eq "build") {
 	$log->debug("Saving build install fils, packages and changes");
-	
+
 	$archive->save_files($self->name,
 			     "installed",
 			     $self->installed,
-			     { 
-				 link => 1, 
+			     {
+				 link => 1,
 				 base => $runtime->install_root,
 			     });
 	$archive->save_files($self->name,
 			     "packages",
 			     $self->packages(),
-			     { 
+			     {
 				 link => 1,
 				 base => $runtime->package_root,
 			     });
 	$archive->save_data($self->name,
 			    "changes",
-			    { 
-				changed => $self->changed, 
+			    {
+				changed => $self->changed,
 				changes => $self->changes(),
 			    });
     }
 }
 
 
+sub checkout {
+    my $self = shift;
+    my $runtime = shift;
+
+    # List of all changes
+    my %changes;
+
+    my $logfile = catfile($runtime->log_root, $self->checkout_output_log_file());
+    unlink($logfile) if -f $logfile;
+
+    $self->changes({});
+
+    my $start = time;
+    foreach my $entry (@{$self->sources()}) {
+	my $repository = $runtime->repository($entry->{repository});
+	if (!defined $repository) {
+	    $self->_add_result("checkout", "failed", $start, time);
+	    $self->_save_log($logfile, "cannot find repository definition '" .
+			     $entry->{repository} ."'");
+	    return;
+	}
+
+	my $path = $entry->{path};
+	my $src;
+	my $dst;
+	# scmpath -> localpath
+	if ($path =~ /^\s*(\S+)\s*->\s*(\S+)\s*$/) {
+	    $src = $1;
+	    $dst = catfile($self->dir, $2);
+	} else {
+	    $src = $path;
+	    $dst = $self->dir;
+	}
+
+	my ($changed, $changes);
+	eval {
+	    ($changed, $changes) = $repository->export($runtime, $src, $dst, $logfile);
+	};
+	if ($@) {
+	    $self->_add_result("checkout", "failed", $start, time);
+	    $self->_save_log($logfile, "cannot export module $@");
+	    return;
+	}
+	if ($changed) {
+	    $self->changed(1);
+	}
+	if (defined $changes) {
+	    foreach (keys %{$changes}) {
+		$changes{$_} = $changes->{$_};
+	    }
+	}
+    }
+
+    $self->_add_result("checkout", "success", $start, time);
+
+    $self->changes(\%changes);
+}
+
 =item $module->build($runtime, $controlfile);
 
 Runs the build task, by invoking the shell command C<$controlfile>
 in the source directory of this module. Refer to the C<run_task>
 and C<invoke_shell> methods for further details of the context of
-execution. Results and information about the task can later be 
+execution. Results and information about the task can later be
 invoking the various C<build_XXX> methods.
 
 =cut
@@ -908,15 +1024,15 @@ sub build {
     my $self = shift;
     my $runtime = shift;
     my $controlfile = shift;
-    
+
     $self->cachable_run_task($runtime, "build", $controlfile);
 }
 
 =item $module->test($runtime, $testname, $controlfile);
 
-Runs a test task with the name C<$testname>, by invoking the shell 
-command C<$controlfile> in the source directory of this module. Refer 
-to the C<run_task> and C<invoke_shell> methods for further details 
+Runs a test task with the name C<$testname>, by invoking the shell
+command C<$controlfile> in the source directory of this module. Refer
+to the C<run_task> and C<invoke_shell> methods for further details
 of the context of execution. Results and information about the
 task can later be retrieved passing the C<$testname> to the various
 C<test_XXX> methods.
@@ -929,7 +1045,7 @@ sub test {
     my $testname = shift;
     my $controlfile = shift;
 
-    $self->cachable_run_task($runtime, "test-$testname", $controlfile); 
+    $self->cachable_run_task($runtime, "test-$testname", $controlfile);
 }
 
 =item my $bool = $module->should_skip($runtime);
@@ -947,19 +1063,26 @@ sub should_skip {
     my $log = Log::Log4perl->get_logger();
     my $depends = $self->depends();
 
+    # Skip any modules which failed SCM checkout
+    if ($self->checkout_status() ne "success") {
+	return 1;
+    }
+
+    # Skip any modules which depend on modules which
+    # are still pending, or failed their build
     my $skip = 0;
     foreach my $depend (@{$depends}) {
 	my $module = $runtime->module($depend);
-        if ($module->build_status() eq 'pending') {
-            $log->warn("Skipping " . $self->label() . " because " . $module->label() . " has not run");
-            $skip = 1;
-        }
+	if ($module->build_status() eq 'pending') {
+	    $log->warn("Skipping " . $self->label() . " because " . $module->label() . " has not run");
+	    $skip = 1;
+	}
 
-        if ($module->build_status() ne 'success' &&
-            $module->build_status() ne 'cache' ) {
-            $log->debug("Skipping " . $self->label() . " because " . $module->label() . " failed");
-            $skip = 1;
-        }
+	if ($module->build_status() ne 'success' &&
+	    $module->build_status() ne 'cache' ) {
+	    $log->debug("Skipping " . $self->label() . " because " . $module->label() . " failed");
+	    $skip = 1;
+	}
     }
 
     return $skip;

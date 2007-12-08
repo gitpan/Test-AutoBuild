@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: PackageCopier.pm,v 1.9 2006/02/02 10:30:48 danpb Exp $
+# $Id: PackageCopier.pm,v 1.10 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -60,7 +60,7 @@ sub handle_directory {
     my @modules = $runtime->modules();
 
     my $log = Log::Log4perl->get_logger();
-    
+
     for my $name (@modules) {
 	if (!exists $directory_attrs->{'module'} || $directory_attrs->{'module'} eq $name) {
 	    my $packages = $runtime->module($name)->packages();

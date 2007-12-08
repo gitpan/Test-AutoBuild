@@ -1,5 +1,4 @@
-# -*- cperl -*-
-# $Id: 070-Lib.t,v 1.11 2005/12/01 16:53:20 danpb Exp $
+# -*- perl -*-
 
 use Test::More tests => 31;
 
@@ -172,33 +171,33 @@ sub create_file {
   my $file = catfile($base, $name);
   open FILE, ">$file"
     or die "cannot create $file: $!";
-  
+
   print FILE $name, "\n";
-  
+
   close FILE;
 }
 
 sub create_dir {
   my $base = shift;
   my $name = shift;
-  
+
   my $file = catfile($base, $name);
-  
+
   mkdir $file, 0777;
 }
 
 sub content {
   my @args = @_;
   my $file = catfile(@args);
-  
+
   open FILE, "<$file"
     or return undef;
-  
+
   local $/ = undef;
-  
+
   my $content = <FILE>;
 
   close FILE;
-  
+
   return $content;
 }

@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: ArchiveManager.pm,v 1.6 2006/02/02 10:30:48 danpb Exp $
+# $Id: ArchiveManager.pm,v 1.7 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -106,16 +106,16 @@ To delete an instance of L<Test::AutoBuild::Archive> no longer required.
 =over 4
 
 =item my $manager = Test::AutoBuild::ArchiveManager->new('max-age' => $age,
-                                                         'max-instance' => $count,
-                                                         'max-size' => $size,
-                                                         'options' => \%options);
+							 'max-instance' => $count,
+							 'max-size' => $size,
+							 'options' => \%options);
 
 This method creates a new archive manager instance. This method is not for use
 by end users since this is an abstract base class; indeed this metohd will die
 unless the class being constructed is a subclass. The C<max-age> parameter
-is used to set the C<max_age> property, defaulting to C<7d>. The C<max-size> 
-parameter is used to set the C<max_size> property defaulting to C<1g>. The 
-C<max-instance> parameter is used to set the C<max_instance> property defaulting 
+is used to set the C<max_age> property, defaulting to C<7d>. The C<max-size>
+parameter is used to set the C<max_size> property defaulting to C<1g>. The
+C<max-instance> parameter is used to set the C<max_instance> property defaulting
 to C<10>. The final C<options> parameter is a hash reference containing
 arbitrary key, value pairs. These are not used by this class, however, may be
 used by subclasses for implementation specific configuration parameters.
@@ -137,23 +137,23 @@ sub init {
 
     die ref($self) . " is an abstract module and must be sub-classed"
 	if ref($self) eq "Test::AutoBuild::ArchiveManager";
- 
+
     $self->max_age(exists $params{'max-age'} ? $params{'max-age'} : "7d");
     $self->max_instance(exists $params{'max-instance'} ? $params{'max-instance'} : "10");
     $self->max_size(exists $params{'max-size'} ? $params{'max-size'} : "1g");
-    
+
     $self->{options} = $params{options} ? $params{options} : {};
 }
-    
+
 
 =pod
 
 =item my $value = $manager->option($name[, $newvalue]);
 
-Retrieves the subclass specific configuration option specified 
+Retrieves the subclass specific configuration option specified
 by the C<$name> parameter. If there is no stored option associated
-with the key C<$name>, then C<undef> is returned. If the C<$newvalue> 
-parameter is supplied, then the stored option value is updated. 
+with the key C<$name>, then C<undef> is returned. If the C<$newvalue>
+parameter is supplied, then the stored option value is updated.
 
 =cut
 
@@ -170,10 +170,10 @@ sub option {
 
 =item my $archive = $manager->get_current_archive();
 
-This retrieves the most recently created, and still valid, 
-archive instance managed by this object. If there are no 
+This retrieves the most recently created, and still valid,
+archive instance managed by this object. If there are no
 valid archives currently managed, this returns C<undef>.
-This is the method one would typically use to retrieve 
+This is the method one would typically use to retrieve
 the archive into which the current build cycle's results
 will be stored.
 
@@ -181,7 +181,7 @@ will be stored.
 
 sub get_current_archive {
     my $self = shift;
-    
+
     my @archives = $self->list_archives;
     if ($#archives > -1) {
 	return $archives[$#archives];
@@ -204,7 +204,7 @@ can be extracted.
 
 sub get_previous_archive {
     my $self = shift;
-    
+
     my @archives = $self->list_archives;
     if ($#archives > 0) {
 	return $archives[$#archives-1];
@@ -219,7 +219,7 @@ sub get_previous_archive {
 This creates a new instance of the L<Test::AutoBuild::Archive>
 subclass used by this object, assigning it the unique key
 C<$key>. Archive keys should be generated such that when comparing
-the keys for two archives, the key associated with the newest 
+the keys for two archives, the key associated with the newest
 archive compares numerically larger than that of the older archive.
 For all intents & purposes this means, that keys should be monotonically
 increasing integers. New prescence of a newly created archive is
@@ -227,7 +227,7 @@ immediately reflected by the other methods in this class. ie, what
 was the 'current archive' is will become the 'previous archive', and
 the new archive will be the new 'previous archive'. Any expiry / validity
 rules will also immediately take effect, for example 'max-instances' may
-cause an older archive to become invalid. This method must be overriden 
+cause an older archive to become invalid. This method must be overriden
 by subclass, since the default implementation will simply call C<die>.
 
 =cut
@@ -246,8 +246,8 @@ sub create_archive {
 This deletes archive instance associated with this manager which
 has the key C<$key>. If there is no matching achive instance, this
 method will call C<die>. The deletion of an archive is immediately
-reflected by the other methods in this class. This method must be 
-overriden by subclass, since the default implementation will simply 
+reflected by the other methods in this class. This method must be
+overriden by subclass, since the default implementation will simply
 call C<die>.
 
 =cut
@@ -285,7 +285,7 @@ sub list_archives {
 =item my @archives = $manager->list_invalid_archives;
 
 Returns a list of all invalid archive instances currently managed by
-this manager. An archive is invalid, if its inclusion in the list 
+this manager. An archive is invalid, if its inclusion in the list
 would cause any of the C<max-size>, C<max-instance>, or C<max-age>
 constraints to be violated. Invalid archives are typically candidates
 for immediate deletion.
@@ -294,7 +294,7 @@ for immediate deletion.
 
 sub list_invalid_archives {
     my $self = shift;
-    
+
     my $now = time;
     my @invalid;
     my $log = Log::Log4perl->get_logger();
@@ -318,10 +318,10 @@ sub list_invalid_archives {
 	if ($self->_is_archive_to_large($size)) {
 	    $log->info("Archive $i is invalid because the total size is too great");
 	    push @invalid, $archives[$i];
-	    next;	    
+	    next;
 	}
     }
-    
+
     return @invalid;
 }
 
@@ -329,7 +329,7 @@ sub list_invalid_archives {
 sub total_size {
     my $self = shift;
     my @archives = shift;
-    
+
     my $size;
     my $seen = {};
     foreach my $archive (@archives) {
@@ -357,7 +357,7 @@ sub _has_archive_expired {
     } else {
 	die "max_age option, if it exists, must have form NNd (days), NNh (hours) or NNm (mins)";
     }
-    
+
     my $log = Log::Log4perl->get_logger();
     $log->debug("Max age of $max_age correspond to $max_age_seconds");
 
@@ -375,7 +375,7 @@ sub _has_archive_expired {
 sub _is_archive_to_large {
     my $self = shift;
     my $size = shift;
-    
+
     my $max_size = $self->max_size;
     my $max_size_bytes;
     if ($max_size =~ /^(\d+(?:\.\d+)?)GB?$/i) {
@@ -389,7 +389,7 @@ sub _is_archive_to_large {
     } else {
 	die "max_size option, if it exists, must have form NNg (gigabytes), NNm (megabytes) or NNk (kilobytes)";
     }
-    
+
     if ($size > $max_size_bytes) {
 	return 1;
     }
@@ -407,7 +407,7 @@ __END__
 The following properties each have a correspondingly named method
 which supports getting & setting of the property value. The getter
 is the no-arg version, while the setter is the one-argument version.
-eg, 
+eg,
 
   my $age = $manager->max_age
   $manager->max_age("7d");
@@ -416,10 +416,10 @@ eg,
 
 =item max_age
 
-This property controls how long an archive can exist before it is 
-considered invalid & thus a candidate for removal. It is represented as an 
-integer, followed by a unit specifier, eg '7d' for seven days, '8h' for eight 
-hours, or '9m' for nine minutes. 
+This property controls how long an archive can exist before it is
+considered invalid & thus a candidate for removal. It is represented as an
+integer, followed by a unit specifier, eg '7d' for seven days, '8h' for eight
+hours, or '9m' for nine minutes.
 
 =item max_instance
 
@@ -429,21 +429,21 @@ count.
 
 =item max_size
 
-This property controls the maximum storage to allow to be 
-consumed by all managed archives. It is represented as an integer followed 
+This property controls the maximum storage to allow to be
+consumed by all managed archives. It is represented as an integer followed
 by a unit specifier, eg '1g' for 1 gigabyte, or '2m' for 2 megabytes.
 
 =back
 
 =head1 BUGS
 
-Although nicely documented, the C<max_instance> and C<max_size> properties 
+Although nicely documented, the C<max_instance> and C<max_size> properties
 are not currently used when determining list of invalid archives. This
 ommision ought to be fixed at some point....
 
 =head1 AUTHORS
 
-Daniel Berrange <dan@berrange.com>, 
+Daniel Berrange <dan@berrange.com>,
 Dennis Gregorovic <dgregorovic@alum.mit.edu>
 
 =head1 COPYRIGHT

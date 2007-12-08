@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Build.pm,v 1.21 2006/02/02 10:30:48 danpb Exp $
+# $Id: Build.pm,v 1.23 2007/12/08 20:10:26 danpb Exp $
 
 =pod
 
@@ -55,10 +55,10 @@ use Test::AutoBuild::Lib;
 
 sub init {
     my $self = shift;
-    
+
     $self->SUPER::init(@_);
-    
-    $self->option("strict-deps", 1) 
+
+    $self->option("strict-deps", 1)
 	unless defined $self->option("strict-deps");
 }
 
@@ -66,9 +66,9 @@ sub prepare {
     my $self = shift;
     my $runtime = shift;
     my $context = shift;
-    
+
     my $result = $self->SUPER::prepare($runtime, $context);
-    
+
     if (!defined $context) {
 	foreach my $name ($runtime->sorted_modules()) {
 	    my $module = $runtime->module($name);
@@ -92,7 +92,7 @@ sub process {
     my $log = Log::Log4perl->get_logger();
 
     if ($log->is_debug()) {
-        $log->debug("Build order: \n" . join ("\n  ", @ordered_modules) . "\nEnd");
+	$log->debug("Build order: \n" . join ("\n  ", @ordered_modules) . "\nEnd");
     }
 
     my $failed = 0;
@@ -101,7 +101,7 @@ sub process {
 	$runtime->notify("beginBuild", $name, time);
 
 	# We only want to build against the minimal actual dependancies
-	# so blow away everything in this module's build root now & let 
+	# so blow away everything in this module's build root now & let
 	# 'build()' install only those deps actually required
 	if ($self->option("strict-deps")) {
 	    &Test::AutoBuild::Lib::delete_files($runtime->install_root);
@@ -110,53 +110,54 @@ sub process {
 	    }
 	}
 
-        my $controlfile = $module->option("control-file");
+	my $controlfile = $module->option("control-file");
 	$controlfile = $self->option("control-file") unless defined $controlfile;
 	$controlfile = "autobuild.sh" unless defined $controlfile;
-	
-        my $timeout = $self->option("build-timeout");
-        if (defined $timeout) {
-            $log->debug("timeout set to: $timeout");
-            eval {
-                local $SIG{ALRM} = sub { die "timeout" };
-                alarm $timeout;
-                eval {
-                    $module->build($runtime, $controlfile);
-                };
-                alarm 0;
-            };
-            alarm 0;
-            if ($@) {
-                if ($@ =~ /timeout/) {
-                    $module->build_status('failed');
-                    $log->warn("timed out");
-                } else {
-                    die $@;
-                }
-            }
-        } else {
-            $module->build($runtime, $controlfile);
-        }
 
-        if ($module->build_status() eq 'failed') {
+	my $timeout = $self->option("build-timeout");
+	if (defined $timeout) {
+	    $log->debug("timeout set to: $timeout");
+	    eval {
+		local $SIG{ALRM} = sub { die "timeout" };
+		alarm $timeout;
+		eval {
+		    $module->build($runtime, $controlfile);
+		};
+		alarm 0;
+	    };
+	    alarm 0;
+	    if ($@) {
+		if ($@ =~ /timeout/) {
+		    $module->build_status('failed');
+		    $log->warn("timed out");
+		} else {
+		    die $@;
+		}
+	    }
+	} else {
+	    $module->build($runtime, $controlfile);
+	}
+
+	if ($module->build_status() ne 'success' &&
+	    $module->build_status() ne 'cached') {
 	    $failed = 1;
-        }
+	}
 
 	$runtime->notify("endBuild", $name, time, $module->build_status);
-        if ($failed && $self->option('abort_on_fail')) {
-            last;
-        }
+	if ($failed && $self->option('abort_on_fail')) {
+	    last;
+	}
     }
     if ($failed) {
 	$self->fail("One or more modules failed during build");
     }
-    
+
     if (!defined $module) {
 	foreach my $name ($runtime->sorted_modules()) {
 	    my $module = $runtime->module($name);
 	    my $key = $self->name . "." . $name;
 	    my $subres = $self->{results}->{$key};
-	    
+
 	    # XXX log summary
 	    #$subres->log($module->build_output_log_summary);
 	    $subres->log("");

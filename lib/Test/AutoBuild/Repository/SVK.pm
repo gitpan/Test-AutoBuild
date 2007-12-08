@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: SVK.pm,v 1.6 2006/02/02 10:30:48 danpb Exp $
+# $Id: SVK.pm,v 1.10 2007/12/08 21:03:02 danpb Exp $
 
 =pod
 
@@ -90,6 +90,7 @@ to process the module
 package Test::AutoBuild::Repository::SVK;
 
 use strict;
+use warnings;
 use Carp qw(confess);
 
 use base qw(Test::AutoBuild::Repository);
@@ -115,19 +116,20 @@ sub export {
     my $runtime = shift;
     my $src = shift;
     my $dst = shift;
+    my $logfile = shift;
 
     my $changed = 0;
 
-    $self->run("svk mirror //$dst $src");
-    $self->run("svk sync //$dst");
-    
+    $self->_run(["svk", "mirror", "//$dst", $src], undef, $logfile);
+    $self->_run(["svk", "sync", "//$dst"], undef, $logfile);
+
     if (-d $dst) {
-	my $output = $self->run("svk up $dst");
+	my $output = $self->_run(["svk", "up", $dst], undef, $logfile);
 	if (!($output =~ /^\s*$/)) {
 	    $changed = 1;
 	}
     } else {
-	$self->run("svk checkout //$dst $dst");
+	$self->_run(["svk", "checkout", "//$dst",$dst], undef, $logfile);
 	$changed = 1;
     }
 

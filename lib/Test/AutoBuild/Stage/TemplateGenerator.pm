@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: TemplateGenerator.pm,v 1.14 2006/02/02 10:30:48 danpb Exp $
+# $Id: TemplateGenerator.pm,v 1.16 2007/12/08 20:16:11 danpb Exp $
 
 =pod
 
@@ -74,16 +74,16 @@ sub _generate_templates {
 
     my $path = $self->option("template-src-dir");
     my %config = (
-                  INCLUDE_PATH => $path,
+		  INCLUDE_PATH => $path,
 		  RECURSION => 1,
-                  );
+		  );
     my $template = Template->new(\%config);
 
     my $overall_status = 'success';
     foreach my $name ($runtime->modules()) {
-        if ($runtime->module($name)->status() eq 'failed') {
-            $overall_status = 'failed';
-        }
+	if ($runtime->module($name)->status() eq 'failed') {
+	    $overall_status = 'failed';
+	}
     }
 
     my $now = time;
@@ -110,35 +110,35 @@ sub _generate_templates {
 
     my @failed;
     foreach my $file (@{$files}) {
-        my ($src, $dst, $localvars) = @{$file};
+	my ($src, $dst, $localvars) = @{$file};
 
-        $log->info("Got $src, $dst: " . join (',', map {$_ . "=" . $localvars->{$_}} keys %{$localvars}));
+	$log->info("Got $src, $dst: " . join (',', map {$_ . "=" . $localvars->{$_}} keys %{$localvars}));
 
-        my $dest = File::Spec->catfile($self->option("template-dest-dir"), $dst);
-        my $fh = IO::File->new(">$dest")
-            or die "cannot  create $dest: $!";
+	my $dest = File::Spec->catfile($self->option("template-dest-dir"), $dst);
+	my $fh = IO::File->new(">$dest")
+	    or die "cannot  create $dest: $!";
 
 	my $customvars = $self->option("variables") || {};
 
 	my %vars;
-        foreach (keys %{$globalvars}) {
+	foreach (keys %{$globalvars}) {
 	    $vars{$_} = $globalvars->{$_};
-        }
-        foreach (keys %{$localvars}) {
+	}
+	foreach (keys %{$localvars}) {
 	    $vars{$_} = $localvars->{$_};
-        }
+	}
 	foreach (keys %{$customvars}) {
 	    $vars{$_} = $customvars->{$_};
-        }
+	}
 
-        if (!$template->process($src, \%vars, $fh)) {
-	    push @failed, $template->error->as_string;
-            $log->warn($template->error->as_string);
-        }
+	if (!$template->process($src, \%vars, $fh)) {
+	    push @failed, $template->error->stringify;
+	    $log->warn($template->error->stringify);
+	}
 
-        $fh->close;
+	$fh->close;
     }
-    
+
     if (@failed) {
 	$self->fail(join("\n", @failed));
     }
@@ -158,8 +158,8 @@ sub _expand_templates {
 	} else {
 	    $src = $dst = $_;
 	}
-        $log->info("Adding $src, $dst");
-        push @in, [ $src, $dst, { templateSrc => $src, templateDst => $dst } ];
+	$log->info("Adding $src, $dst");
+	push @in, [ $src, $dst, { templateSrc => $src, templateDst => $dst } ];
     }
     return Test::AutoBuild::Lib::_expand_standard_macros(\@in, $runtime);
 }

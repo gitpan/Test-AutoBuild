@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Change.pm,v 1.2 2006/02/02 10:30:48 danpb Exp $
+# $Id: Change.pm,v 1.3 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -56,7 +56,7 @@ use Class::MethodMaker
 =item my $change = Test::AutoBuild::Change->new(%params);
 
 Creates a new change object, initializing with a set of
-named parameters. The C<number> parameter is a number 
+named parameters. The C<number> parameter is a number
 representing the change, typically either a plain integer,
 or a version string (ie set of period separated integers).
 The C<date> parameter specifies in seconds since the epoch,
@@ -72,7 +72,7 @@ the changelist.
 sub init {
     my $self = shift;
     my %params = @_;
-    
+
     $self->number(exists $params{number} ? $params{number} : die "number parameter is required");
     $self->date(exists $params{date} ? $params{date} : die "date parameter is required");
     $self->user(exists $params{user} ? $params{user} : die "user parameter is required");
@@ -84,7 +84,7 @@ sub init {
 
 Retrieves the number associated with this change. This is
 typically an integer (eg 43212), or a version string (eg
-1.5.2). 
+1.5.2).
 
 =item my $date = $change->date();
 

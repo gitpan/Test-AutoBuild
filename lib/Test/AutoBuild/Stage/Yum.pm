@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Yum.pm,v 1.7 2006/02/02 10:30:49 danpb Exp $
+# $Id: Yum.pm,v 1.9 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -34,11 +34,11 @@ Test::AutoBuild::Stage::Yum - Create an index for Yum package management tool
   use Test::AutoBuild::Stage::Yum
 
   my $stage = Test::AutoBuild::Stage::Yum->new(name => "yum",
-                                               label => "Create yum index",
-                                               options => {
-                                                 directory => "/var/lib/builder/public_html/dist",
-                                                 parameters => "-d -s -n",
-                                               });
+					       label => "Create yum index",
+					       options => {
+						 directory => "/var/lib/builder/public_html/dist",
+						 parameters => "-d -s -n",
+					       });
 
   $stage->run($runtime);
 
@@ -99,7 +99,6 @@ use base qw(Test::AutoBuild::Stage);
 use warnings;
 use strict;
 use Log::Log4perl;
-use Test::AutoBuild::Lib;
 
 =item $stage->process($runtime);
 
@@ -119,17 +118,39 @@ sub process {
 	$directories = [$dir];
     }
     if (defined $directories) {
-        foreach my $directory (@{$directories}) {
-            my $dirs = Test::AutoBuild::Lib::_expand_standard_macros([[ "", $directory, {} ]], $runtime);
-            foreach my $expanded_dir (@{$dirs}) {
-                if (-d $expanded_dir->[1]) {
+	foreach my $directory (@{$directories}) {
+	    my $dirs = Test::AutoBuild::Lib::_expand_standard_macros([[ "", $directory, {} ]], $runtime);
+	    foreach my $expanded_dir (@{$dirs}) {
+		if (-d $expanded_dir->[1]) {
 		    my $parameters = $self->option('parameters') ||  "";
-                    Test::AutoBuild::Lib::run("yum-arch $parameters $expanded_dir->[1]");
-                } else {
-                    $log->warn("directory does not exists: " . $expanded_dir->[1]);
-                }
-            }
-        }
+		    my $cmdopt = $self->option("command") || {};
+		    my $mod = $cmdopt->{module} || "Test::AutoBuild::Command::Local";
+		    my $opts = $cmdopt->{options} || {};
+		    eval "use $mod;";
+		    die "cannot load $mod: $!" if $@;
+
+		    my @cmd = ("yum-arch",
+			       ref($parameters)? @{$parameters} : ($parameters),
+			       $expanded_dir->[1]);
+		    my $c = $mod->new(cmd => \@cmd,
+				      dir => $expanded_dir->[1],
+				      options => $opts);
+
+		    my ($output, $errors);
+		    my $status = $c->run(\$output, \$errors);
+
+		    $output = "" unless defined $output;
+		    $errors = "" unless defined $errors;
+		    my $log = Log::Log4perl->get_logger();
+		    $log->debug("Output: [$output]") if $output;
+		    $log->debug("Errors: [$errors]") if $errors;
+
+		    die "command '" . join("' '", @cmd) . "' exited with status $status\n$errors" if $status;
+		} else {
+		    $log->warn("directory does not exists: " . $expanded_dir->[1]);
+		}
+	    }
+	}
     }
 }
 

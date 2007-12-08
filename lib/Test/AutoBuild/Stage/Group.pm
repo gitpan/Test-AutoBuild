@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Group.pm,v 1.12 2006/04/18 13:16:20 danpb Exp $
+# $Id: Group.pm,v 1.13 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -62,21 +62,21 @@ stages, ie an array of hashes.
     stages = (
       # Basic build
       {
-        name = build
-        label = Build
-        module = Test::AutoBuild::Stage::Build
-        options = {
-          ...snip build options...
-        }
+	name = build
+	label = Build
+	module = Test::AutoBuild::Stage::Build
+	options = {
+	  ...snip build options...
+	}
       }
       # Generate isos
       {
-        name = iso
-        label = ISO image generator
-        module = Test::AutoBuild::Stage::ISOGenetator
-        options = {
-          ...snip options...
-        }
+	name = iso
+	label = ISO image generator
+	module = Test::AutoBuild::Stage::ISOGenetator
+	options = {
+	  ...snip options...
+	}
       }
     )
   }
@@ -136,9 +136,9 @@ sub prepare {
     my $self = shift;
     my $runtime = shift;
     my $context = shift;
-    
+
     my $result = $self->SUPER::prepare($runtime, $context);
-    
+
     foreach my $stage ($self->stages) {
 	my $subres = $stage->prepare($runtime, $context);
 	$result->add_result($subres);
@@ -148,9 +148,9 @@ sub prepare {
 
 =item $stage->process($runtime);
 
-Runs all sub-stages returned by the C<stages> method. If any sub-stages 
-fails & that stage is marked as critical, this stage will be marked as 
-failing and return control immediately. If the sub-stage is non-critical, 
+Runs all sub-stages returned by the C<stages> method. If any sub-stages
+fails & that stage is marked as critical, this stage will be marked as
+failing and return control immediately. If the sub-stage is non-critical,
 then the processing will continue onto the next sub-stage.
 
 =cut
@@ -189,6 +189,6 @@ Copyright (C) 2004 Red Hat, Inc.
 
 =head1 SEE ALSO
 
-C<perl(1)>, L<Test::AutoBuild::Stage> 
+C<perl(1)>, L<Test::AutoBuild::Stage>
 
 =cut

@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: HTMLStatus.pm,v 1.22 2006/04/18 03:06:44 danpb Exp $
+# $Id: HTMLStatus.pm,v 1.24 2007/12/08 20:10:26 danpb Exp $
 
 =pod
 
@@ -61,41 +61,38 @@ sub process {
 
     foreach my $name (sort { $runtime->module($a)->label cmp $runtime->module($b)->label } $runtime->modules) {
 	my $module = $runtime->module($name);
-        my @packs = ();
-        my $packages = $module->packages();
+	my @packs = ();
+	my $packages = $module->packages();
 
-        foreach my $filename (keys %{$packages}) {
-            (my $fn = $packages->{$filename}->name) =~ s,.*/,,;
+	foreach my $filename (keys %{$packages}) {
+	    (my $fn = $packages->{$filename}->name) =~ s,.*/,,;
 
-            my $size = $packages->{$filename}->size();
+	    my $size = $packages->{$filename}->size();
 
 	    my $platform = $packages->{$filename}->platform;
 	    $platform = $runtime->host_platform unless $platform;
-            my $p = {
-                'filename' => $fn,
-                'size' => $size,
+	    my $p = {
+		'filename' => $fn,
+		'size' => $size,
 		'platform' => $platform,
-                'prettysize' => Test::AutoBuild::Lib::pretty_size($size),
-                'md5sum' => $packages->{$filename}->md5sum,
-                'type' => $packages->{$filename}->type->name,
-            };
-            push @packs, $p;
-        }
-        @packs = sort { $a->{type} cmp $b->{type} or $a->{filename} cmp $b->{filename} } @packs;
+		'prettysize' => Test::AutoBuild::Lib::pretty_size($size),
+		'md5sum' => $packages->{$filename}->md5sum,
+		'type' => $packages->{$filename}->type->name,
+	    };
+	    push @packs, $p;
+	}
+	@packs = sort { $a->{type} cmp $b->{type} or $a->{filename} cmp $b->{filename} } @packs;
 
-        my $links = $module->links();
-        my $artifacts = $module->artifacts();
+	my $links = $module->links();
+	my $artifacts = $module->artifacts();
 
-        my @artifacts;
-        foreach my $artifact (@{$artifacts}) {
-            push @artifacts, {
-                label => $artifact->{label},
-                path => $artifact->{path} ? $artifact->{path} : $artifact->{dst},
-            };
-        }
-
-        my $build_start = $module->build_start_date;
-        my $build_end = $module->build_end_date;
+	my @artifacts;
+	foreach my $artifact (@{$artifacts}) {
+	    push @artifacts, {
+		label => $artifact->{label},
+		path => $artifact->{path} ? $artifact->{path} : $artifact->{dst},
+	    };
+	}
 
 	my @tests;
 	foreach my $test ($module->tests) {
@@ -110,7 +107,7 @@ sub process {
 		duration => Test::AutoBuild::Lib::pretty_time($test_end - $test_start),
 		status => $module->test_status($test),
 		output_log_file => @output_log_stat ? $module->build_output_log_file($test) : "",
-	        result_log_file => @result_log_stat ? $module->build_result_log_file($test) : "",
+		result_log_file => @result_log_stat ? $module->build_result_log_file($test) : "",
 		output_log_size => @output_log_stat ? Test::AutoBuild::Lib::pretty_size($output_log_stat[7]) : "",
 		result_log_size => @result_log_stat ? Test::AutoBuild::Lib::pretty_size($result_log_stat[7]) : "",
 	    };
@@ -133,72 +130,88 @@ sub process {
 	    }
 	}
 
+	my $checkout_start = $module->checkout_start_date;
+	my $checkout_end = $module->checkout_end_date;
+
+	my $build_start = $module->build_start_date;
+	my $build_end = $module->build_end_date;
+
+
+	my @checkout_log_stat = stat catfile($runtime->log_root, $module->checkout_output_log_file);
 	my @output_log_stat = stat catfile($runtime->log_root, $module->build_output_log_file);
 	my @result_log_stat = stat catfile($runtime->log_root, $module->build_result_log_file);
 
-        my $mod = {
-            'name' => $name,
-            'label' => $module->label,
+	my $mod = {
+	    'name' => $name,
+	    'label' => $module->label,
 	    'status' => $module->status,
-            'build_status' => $module->build_status,
-            'groups' => $module->groups,
-            'build_duration' => Test::AutoBuild::Lib::pretty_time($build_end - $build_start),
-            'build_date' => scalar (Test::AutoBuild::Lib::pretty_date($build_start)),
+	    'groups' => $module->groups,
+
+	    'checkout_status' => $module->checkout_status,
+	    'checkout_duration' => Test::AutoBuild::Lib::pretty_time($checkout_end - $checkout_start),
+	    'checkout_date' => scalar (Test::AutoBuild::Lib::pretty_date($checkout_start)),
+	    'checkout_output_log_file' => @checkout_log_stat ? $module->checkout_output_log_file : "",
+	    'checkout_output_log_size' => @checkout_log_stat ? Test::AutoBuild::Lib::pretty_size($checkout_log_stat[7]) : "",
+
+	    'build_status' => $module->build_status,
+	    'build_duration' => Test::AutoBuild::Lib::pretty_time($build_end - $build_start),
+	    'build_date' => scalar (Test::AutoBuild::Lib::pretty_date($build_start)),
 	    'build_output_log_file' => @output_log_stat ? $module->build_output_log_file : "",
 	    'build_result_log_file' => @result_log_stat ? $module->build_result_log_file : "",
 	    'build_output_log_size' => @output_log_stat ? Test::AutoBuild::Lib::pretty_size($output_log_stat[7]) : "",
 	    'build_result_log_size' => @result_log_stat ? Test::AutoBuild::Lib::pretty_size($result_log_stat[7]) : "",
+
 	    'admin_email' => $module->admin_email,
 	    'admin_name' => $module->admin_name,
-            'packages' => \@packs,
-            'links' => $links,
-            'artifacts' => \@artifacts,
+	    'packages' => \@packs,
+	    'links' => $links,
+	    'artifacts' => \@artifacts,
 	    'tests' => \@tests,
 	    'changes' => \@changes
-        };
-	
-        push @modules, $mod;
+	};
+
+	push @modules, $mod;
     }
 
     my @groups;
     foreach my $name (sort { $runtime->group($a)->label cmp $runtime->group($b)->label } $runtime->groups) {
-        my $group = $runtime->group($name);
+	my $group = $runtime->group($name);
 
-        my @groupmods = grep { grep { $_ eq $name } @{$_->{groups}} } @modules;
-        $log->info("Got $name " . scalar(@groupmods));
-        my $entry = {
-            name => $name,
-            label => $group->label,
-            modules => \@groupmods,
-        };
+	my @groupmods = grep { grep { $_ eq $name } @{$_->{groups}} } @modules;
+	$log->info("Got $name " . scalar(@groupmods));
+	my $entry = {
+	    name => $name,
+	    label => $group->label,
+	    modules => \@groupmods,
+	};
 
-        push @groups, $entry;
+	push @groups, $entry;
     }
 
     my @platforms;
     foreach my $name (sort { $runtime->platform($a)->label cmp $runtime->platform($b)->label } $runtime->platforms) {
-        my $platform = $runtime->platform($name);
+	my $platform = $runtime->platform($name);
 
 	my %options;
 	foreach ($platform->options) {
 	    $options{$_} = $platform->option($_);
 	}
-	
-        my $entry = {
-            'name' => $name,
-            'label' => $platform->label,
+
+	my $entry = {
+	    'name' => $name,
+	    'label' => $platform->label,
 	    'operating_system' => $platform->operating_system,
 	    'architecture' => $platform->architecture,
 	    'options' => \%options,
-        };
+	};
 
-        push @platforms, $entry;
+	push @platforms, $entry;
     }
 
     my @repositories;
     foreach my $name (sort { $runtime->repository($a)->label cmp $runtime->repository($b)->label } $runtime->repositories) {
-        my $repository = $runtime->repository($name);
-	
+	my $repository = $runtime->repository($name);
+
 	my @repositorymods;
 	foreach my $modvars (@modules) {
 	    my @paths = $runtime->module($modvars->{name})->paths($repository);
@@ -207,34 +220,34 @@ sub process {
 	    }
 	}
 
-        my $entry = {
-            name => $name,
-            label => $repository->label,
-            modules => \@repositorymods,
-        };
+	my $entry = {
+	    name => $name,
+	    label => $repository->label,
+	    modules => \@repositorymods,
+	};
 
-        push @repositories, $entry;
+	push @repositories, $entry;
     }
 
     my @package_types;
     foreach my $name (sort { $runtime->package_type($a)->label cmp $runtime->package_type($b)->label } $runtime->package_types) {
-        my $package_type = $runtime->package_type($name);
+	my $package_type = $runtime->package_type($name);
 
-        my $entry = {
-            name => $name,
-            label => $package_type->label,
-        };
+	my $entry = {
+	    name => $name,
+	    label => $package_type->label,
+	};
 
-        push @package_types, $entry;
+	push @package_types, $entry;
     }
 
     my %vars = (
-                'modules' => \@modules,
-                'groups' => \@groups,
+		'modules' => \@modules,
+		'groups' => \@groups,
 		'platforms' => \@platforms,
-                'repositories' => \@repositories,
-                'package_types' => \@package_types,
-                );
+		'repositories' => \@repositories,
+		'package_types' => \@package_types,
+		);
 
     foreach my $name ($runtime->attributes) {
 	$log->debug("Stuffing attribute '$name' into template variables");

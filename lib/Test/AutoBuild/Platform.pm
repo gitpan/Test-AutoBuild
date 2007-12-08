@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Platform.pm,v 1.3 2006/04/18 03:06:44 danpb Exp $
+# $Id: Platform.pm,v 1.4 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -41,22 +41,22 @@ Test::AutoBuild::Platform - represents a build host's environment
   # Or create a platform describing a chroot environment which
   # has a differing OS, but same architecture
   my $platform = Test::AutoBuild::Platform->new(name => "host",
-                                                label => "Fedora Core 3");
+						label => "Fedora Core 3");
 
   # Or create a platform describing an emulated OS
   my $platform = Test::AutoBuild::Platform->new(name => "host",
-                                                label => "Free BSD",
-                                                operating_system => "bsd",
-                                                architecture => "x86_64");
+						label => "Free BSD",
+						operating_system => "bsd",
+						architecture => "x86_64");
 
   # Create a platform describing the host, with some 'interesting'
   # extra metadata about the toolchain
   my $platform = Test::AutoBuild::Platform->new(name => "host",
-                                                options => {
-          'compiler.cc' => "GCC 3.2.3",
-          'compiler.c++' => "G++ 3.2.3",
-          'linker' => "GNU LD 2.15",
-        });
+						options => {
+	  'compiler.cc' => "GCC 3.2.3",
+	  'compiler.c++' => "G++ 3.2.3",
+	  'linker' => "GNU LD 2.15",
+	});
 
 =head1 METHODS
 
@@ -75,24 +75,24 @@ use POSIX qw(uname);
 
 use Class::MethodMaker
   get_set => [qw(
-                name
-                label
-                architecture
-                operating_system
+		name
+		label
+		architecture
+		operating_system
 		 )];
 
 =item my $stage = Test::AutoBuild::Platform->new(name => $name,
-                                                 [label => $label,]);
-                                                 [architecture => $arch,]);
-                                                 [operating_system => $os,]
-                                                 [options => \%options]);
+						 [label => $label,]);
+						 [architecture => $arch,]);
+						 [operating_system => $os,]
+						 [options => \%options]);
 
 Creates a new platform object describing a build root environment. The C<name>
-parameter is a short tag for the platform. The optional C<label> parameter is a 
-free text descriptive title for the platform, typically the OS distribution name. 
-If omitted, the first line of /etc/issue will be used. The C<architecture> parameter 
-is the formal machine architecture, defaulting to the 'machine' field from the 
-C<uname(2)> system call. The C<operating_system> parameter is the formal operating 
+parameter is a short tag for the platform. The optional C<label> parameter is a
+free text descriptive title for the platform, typically the OS distribution name.
+If omitted, the first line of /etc/issue will be used. The C<architecture> parameter
+is the formal machine architecture, defaulting to the 'machine' field from the
+C<uname(2)> system call. The C<operating_system> parameter is the formal operating
 system name, defaulting to the 'sysname' field from the C<uname(2)> system call.
 The optional C<options> parameter is a hash reference containing arbitrary
 deployment specific metadata about the platform.
@@ -108,7 +108,7 @@ sub new {
     $self->{options} = exists $params{options} ? $params{options} : {};
 
     bless $self, $class;
-    
+
     $self->name(exists $params{name} ? $params{name} : die "name parameter is required");
     $self->label(exists $params{label} ? $params{label} : $self->_guess_host_label());
     $self->architecture(exists $params{architecture} ? $params{architecture} : $self->_guess_architecture());
@@ -119,7 +119,7 @@ sub new {
 
 sub _guess_host_label {
     my $self = shift;
-    
+
     my $issue = catfile(rootdir, "etc", "issue");
     if (-f $issue) {
 	open ISSUE, "<$issue"
@@ -131,12 +131,12 @@ sub _guess_host_label {
 	# sufficient
 	my $line = <ISSUE>;
 	close ISSUE;
-	
+
 	chomp $line;
 	return $line;
     } else {
 	my ($sysname, $nodename, $release, $version, $machine) = uname();
-	
+
 	return "$sysname $release $version ($machine)";
     }
 }
@@ -144,7 +144,7 @@ sub _guess_host_label {
 sub _guess_architecture {
     my $self = shift;
     my ($sysname, $nodename, $release, $version, $machine) = uname();
-    
+
     return $machine;
 }
 
@@ -152,7 +152,7 @@ sub _guess_architecture {
 sub _guess_operating_system {
     my $self = shift;
     my ($sysname, $nodename, $release, $version, $machine) = uname();
-    
+
     return $sysname;
 }
 
@@ -179,7 +179,7 @@ sub option {
 =item my @names = $platform->options;
 
 Return a list of all custom options set against this platform. The
-names returned can be used in calling the C<option> method to 
+names returned can be used in calling the C<option> method to
 lookup a value.
 
 =cut
@@ -197,7 +197,7 @@ __END__
 
 =head1 AUTHORS
 
-Daniel Berrange <dan@berrange.com>, 
+Daniel Berrange <dan@berrange.com>,
 Dennis Gregorovic <dgregorovic@alum.mit.edu>
 
 =head1 COPYRIGHT

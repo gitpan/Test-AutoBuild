@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Memory.pm,v 1.6 2006/02/02 10:30:48 danpb Exp $
+# $Id: Memory.pm,v 1.7 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -51,7 +51,7 @@ use Log::Log4perl;
 sub init {
     my $self = shift;
     my %params = @_;
-    
+
     $self->SUPER::init(@_);
     $self->{objects} = {};
 }
@@ -62,7 +62,7 @@ sub _save_metadata {
     my $bucket = shift;
     my $type = shift;
     my $metadata = shift;
-    
+
     $self->{objects}->{$object} = {} unless exists $self->{objects}->{$object};
     $self->{objects}->{$object}->{$bucket} = {} unless exists $self->{objects}->{$object}->{$bucket};
     $self->{objects}->{$object}->{$bucket}->{$type} = $metadata;
@@ -86,11 +86,11 @@ sub _persist_files {
     my $bucket = shift;
     my $files = shift;
     my $options = shift;
-    
+
     my $store = [];
     $self->{objects}->{$object} = {} unless exists $self->{objects}->{$object};
     $self->{objects}->{$object}->{$bucket} = {} unless exists $self->{objects}->{$object}->{$bucket};
-    $self->{objects}->{$object}->{$bucket}->{FILES} = $store;    
+    $self->{objects}->{$object}->{$bucket}->{FILES} = $store;
 
     for my $file (keys %{$files}) {
 	$self->_persist_file($store, $file, $options);
@@ -102,7 +102,7 @@ sub _persist_file {
     my $store = shift;
     my $file = shift;
     my $options = shift;
-    
+
     my $src = catfile($options->{base}, $file);
 
     my $record = { type => "unknown", file => $file, mode => $file->mode };
@@ -136,16 +136,16 @@ sub _persist_file {
 
 sub _get_objects {
     my $self = shift;
-    
+
     return keys %{$self->{objects}};
 }
 
 sub _get_buckets {
     my $self = shift;
     my $object = shift;
-    
+
     return () unless exists $self->{objects}->{$object};
-    
+
     return keys %{$self->{objects}->{$object}};
 }
 
@@ -166,15 +166,15 @@ sub _restore_files {
     my $object = shift;
     my $bucket = shift;
     my $target = shift;
-    
+
     my $log = Log::Log4perl->get_logger();
     $log->debug("Copying files for $object in $bucket to $target");
-    
+
     return unless exists $self->{objects}->{$object};
     return unless exists $self->{objects}->{$object}->{$bucket};
 
     my $store = $self->{objects}->{$object}->{$bucket}->{FILES};
-    
+
     foreach my $file (@{$store}) {
 	$self->_restore_file($file, $target);
     }
@@ -184,7 +184,7 @@ sub _restore_file {
     my $self = shift;
     my $file = shift;
     my $target = shift;
-    
+
     my $name = catfile($target, $file->{file});
     if ($file->{type} eq "file") {
 	open FILE, ">$name"
@@ -205,7 +205,7 @@ sub _restore_file {
 
 sub size {
     my $self = shift;
-    
+
     my $size = 0;
     foreach my $object (%{$self->{objects}}) {
 	foreach my $bucket (%{$self->{objects}->{$object}}) {

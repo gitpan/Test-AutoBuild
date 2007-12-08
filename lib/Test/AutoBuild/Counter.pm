@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Counter.pm,v 1.4 2006/02/02 10:30:48 danpb Exp $
+# $Id: Counter.pm,v 1.6 2007/12/08 17:35:16 danpb Exp $
 
 =pod
 
@@ -37,9 +37,6 @@ Test::AutoBuild::Counter - The base class for an AutoBuild stage
 
   # Retrieve the current counter
   $counter->value();
-
-=head1 CONFIGURATION
-
 
 =head1 METHODS
 
@@ -67,14 +64,12 @@ sub new {
     my %params = @_;
 
     $self->{options} = exists $params{options} ? $params{options} : {};
-    
+
     bless $self, $class;
-    
+
     return $self;
 }
 
-
-=pod
 
 =item $value = $counter->option($name[, $newvalue]);
 
@@ -94,9 +89,6 @@ sub option {
    return $self->{options}->{$name};
 }
 
-
-
-=pod
 
 =item $counter->generate($runtime);
 
@@ -120,7 +112,7 @@ __END__
 
 =head1 AUTHORS
 
-Daniel Berrange <dan@berrange.com>, 
+Daniel Berrange <dan@berrange.com>,
 Dennis Gregorovic <dgregorovic@alum.mit.edu>
 
 =head1 COPYRIGHT

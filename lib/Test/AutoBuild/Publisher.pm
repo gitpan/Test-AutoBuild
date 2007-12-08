@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Publisher.pm,v 1.3 2006/02/02 10:30:48 danpb Exp $
+# $Id: Publisher.pm,v 1.5 2007/12/08 21:03:02 danpb Exp $
 
 =pod
 
@@ -31,8 +31,8 @@ Test::AutoBuild::Publisher - Simple publishering of modules
   use Test::AutoBuild::Publisher
 
   my $publisher = Test::AutoBuild::Publisher->new(name => $name,
-                                                  label => $label,
-                                                  options => \%options);
+						  label => $label,
+						  options => \%options);
 
   my $name = $publisher->name([$newname]);
   my $label = $publisher->label([$newlabel]);
@@ -57,11 +57,12 @@ The valid configuration options for the C<publishers> block are
 package Test::AutoBuild::Publisher;
 
 use strict;
+use warnings;
 use Carp qw(confess);
 
 =item my $publisher = Test::AutoBuild::Publisher->new(name => $name,
-                                                      label => $label,
-                                                      [options => \%options]);
+						      label => $label,
+						      [options => \%options]);
 
 Creates a new publisher object. C<modules> is an array ref of Test::AutoBUild::Module
 objects representing the members of the publisher. C<name> is a short

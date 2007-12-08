@@ -111,6 +111,15 @@ be exported by an FTP server.
 
 =back
 
+=head1 LICENSE
+
+Copyright (C) 2002-2006 Daniel P. Berrange
+
+Test-AutoBuild is distributed under the terms of the GNU GPL v2+.
+This is free software; see the source for copying conditions.  There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR  A  PARTICULAR
+PURPOSE.
+
 =head1 SEE ALSO
 
 L<auto-build(1)>, L<auto-build.conf(5)>

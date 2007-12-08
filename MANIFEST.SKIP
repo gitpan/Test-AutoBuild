@@ -9,6 +9,7 @@ CVS/
 ^build-stamp$
 ^Test-AutoBuild-
 ^Makefile$
+^Makefile.old$
 ^libtest-autobuild-perl_
 (^|/)\.#.*
 ^coverage/
@@ -19,3 +20,5 @@ CVS/
 ^t/build-repos
 ^pod2htm.*
 ^results.log$
+.*\.rej
+.*\.orig
