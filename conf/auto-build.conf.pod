@@ -280,7 +280,7 @@ in the HTML status pages.
 =item type = cvs
 
 Specifies the source control tool used to access files within the repository. 
-There are seven source control tools currently supported
+There are many source control tools supported
 
 =over 4
 
@@ -327,6 +327,52 @@ repositories are located. For example
 
   options = {
     base-url = http://www.selenic.com/
+  }
+
+=item git
+
+The GIT repository type requires that the command C<git> be present in
+the $PATH. Additionally, it must be at least version 1.5.0.0 or later. The 
+'base-url' option should be set to identify the base URL under which the 
+repositories are located. For example
+
+  options = {
+    base-url = git://anongit.freedesktop.org/git/
+  }
+
+=item bzr
+
+The Bazaar repository type requires that the command C<gbzr> be present in
+the $PATH. Additionally, it must be at least version 0.91 or later. The 
+'base-url' option should be set to identify the base URL under which the 
+repositories are located. For example
+
+  options = {
+    base-url = http://www.darcs.net/repos/
+  }
+
+=item mtn
+
+The Monotone repository type requires that the command C<mtn> be present in
+the $PATH. Additionally, it must be at least version 0.37 or later. The 
+'server' option should be set to identify the hostname & port number at
+which the repository is located. For example
+
+  options = {
+    server = guitone.thomaskeller.biz
+  }
+
+The module path will simply be the name of the branch to checkout
+
+=item darcs
+
+The Darcs repository type requires that the command C<darcs> be present in
+the $PATH. Additionally, it must be at least version 1.0.0 or later. The 
+'base-url' option should be set to identify the base URL under which the 
+repositories are located. For example
+
+  options = {
+    base-url = http://www.darcs.net/repos/
   }
 
 =item svn

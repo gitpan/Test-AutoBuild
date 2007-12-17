@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: AutoBuild.pm,v 1.48 2007/12/08 17:35:16 danpb Exp $
+# $Id: AutoBuild.pm,v 1.49 2007/12/17 00:29:28 danpb Exp $
 
 =pod
 
@@ -641,7 +641,7 @@ use File::Spec::Functions;
 use UNIVERSAL;
 
 use vars qw($VERSION);
-$VERSION = '1.2.1';
+$VERSION = '1.2.2';
 
 =item $builder = Test::AutoBuild->new(config => $config);
 

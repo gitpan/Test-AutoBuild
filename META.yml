@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name:         Test-AutoBuild
 abstract:     Framework for performing continuous, unattended, automated software builds
-version:      1.2.1
+version:      1.2.2
 author:
   - Daniel P. Berrange <dan@berrange.com>
 license: gpl
@@ -34,6 +34,7 @@ requires:
    Symbol:                        0
    Sys::Hostname:                 0
    Template:                      0
+   XML::Simple:                   0
 build_requires:
    Test::More:                    0
 

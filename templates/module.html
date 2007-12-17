@@ -38,7 +38,7 @@
       [% END %]
     [% END %]
 
-    [% IF build_status == 'success' or build_status == 'cache' %]
+    [% IF build_status == 'success' or build_status == 'cached' %]
       [% IF artifacts.size > 0 %]
         [% FOREACH artifacts %]
         <tr class="[% IF (links.size + loop.index()) % 2 != 0 %]odd[%ELSE%]even[%END%]">
@@ -79,7 +79,7 @@
   [% END %]
 
   <h3>Generated packages</h3>
-  [% IF build_status == 'success' or build_status == 'cache' %]
+  [% IF build_status == 'success' or build_status == 'cached' %]
     [% IF packages.size > 0 %]
       [% FOREACH platforms %]
         <h4>Packages: [% label %]</h4>

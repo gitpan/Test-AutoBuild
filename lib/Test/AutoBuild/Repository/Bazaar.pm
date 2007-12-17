@@ -1,8 +1,8 @@
 # -*- perl -*-
 #
-# Test::AutoBuild::Repository::Mercurial by Daniel Berrange
+# Test::AutoBuild::Repository::Bazaar by Daniel Berrange
 #
-# Copyright (C) 2004 Daniel Berrange
+# Copyright (C) 2004-2007 Daniel Berrange
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,24 +18,24 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Mercurial.pm,v 1.11 2007/12/10 01:41:32 danpb Exp $
+# $Id: Bazaar.pm,v 1.1 2007/12/11 05:07:23 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::Repository::Mercurial - A repository for Mercurial
+Test::AutoBuild::Repository::Bazaar - A repository for Bazaar
 
 =head1 SYNOPSIS
 
-  use Test::AutoBuild::Repository::Mercurial
+  use Test::AutoBuild::Repository::Bazaar
 
 
 =head1 DESCRIPTION
 
 This module provides a repository implementation for the
-Mercurial revision control system. It requires that the
-'hg' command version 0.7 or higher be installed. It has
+Bazaar revision control system. It requires that the
+'bzr' command version 0.91 or higher be installed. It has
 full support for detecting updates to an existing checkout.
 
 =head1 METHODS
@@ -44,7 +44,7 @@ full support for detecting updates to an existing checkout.
 
 =cut
 
-package Test::AutoBuild::Repository::Mercurial;
+package Test::AutoBuild::Repository::Bazaar;
 
 use base qw(Test::AutoBuild::Repository);
 use warnings;
@@ -54,7 +54,7 @@ use Log::Log4perl;
 use Test::AutoBuild::Change;
 use Date::Manip;
 
-=item my $repository = Test::AutoBuild::Repository::Mercurial->new(  );
+=item my $repository = Test::AutoBuild::Repository::Bazaar->new(  );
 
 =cut
 
@@ -78,18 +78,21 @@ sub export {
     my $log = Log::Log4perl->get_logger();
 
     # Don't support using multiple paths yet
+    my $changed = 0;
+    my $orig;
+    my $now;
     if (-d $dst) {
+	$orig = $self->_get_current($dst, $logfile);
+	$log->debug("Current changeset in $dst is $orig");
 	$self->_pull_repository($src, $dst, $logfile);
     } else {
-	$self->_clone_repository($src, $dst, $logfile);
+	$self->_checkout_repository($src, $dst, $logfile);
+	$changed = 1;
     }
 
-    my $changed = 0;
+    $now = $self->_get_current($dst, $logfile);
+
     my %changes;
-
-    my $current = $self->_get_changeset($dst, $logfile);
-    $log->debug("Current changeset in $dst is $current");
-
     my $all_changes = $self->_get_changes($dst, $logfile);
 
     my $sync_to;
@@ -99,21 +102,29 @@ sub export {
 	#$log->debug("Compare changelist $_ at " . $all_changes->{$_}->date . " to " . $runtime->timestamp);
 	last if $all_changes->{$_}->date > $runtime->timestamp;
 	$sync_to = $_;
+#	warn "[$_ ] $found\n";
 	$changes{$all_changes->{$_}->number} = $all_changes->{$_} if $found;
-	$found = 1 if $current eq $_;
+	$found = 1 if defined $orig && $orig eq $_;
     }
 
-    $log->debug("Sync to change $sync_to");
 
-    if ($current ne $sync_to) {
-	my ($output, $errors) = $self->_run(["hg", "update", "-C", $sync_to], $dst, $logfile);
+    if ($sync_to &&
+	(!$orig ||
+	$orig ne $sync_to)) {
+	$log->debug("Sync to change $sync_to");
 	$changed = 1;
+    }
+
+    if ($sync_to ne $now) {
+	my ($output, $errors) = $self->_run(["bzr", "uncommit", "--force", "--revision", "revid:" . $sync_to], $dst, $logfile);
+	($output, $errors) = $self->_run(["bzr", "revert"], $dst, $logfile);
+	($output, $errors) = $self->_run(["bzr", "update"], $dst, $logfile);
     }
 
     return ($changed, \%changes);
 }
 
-sub _clone_repository {
+sub _checkout_repository {
     my $self = shift;
     my $path = shift;
     my $dest = shift;
@@ -127,7 +138,7 @@ sub _clone_repository {
     my $url = "$base_url/$path";
 
     $log->info("Cloning repository at $url");
-    my ($result, $errors) = $self->_run(["hg", "clone", $url, $dest], undef, $logfile);
+    my ($result, $errors) = $self->_run(["bzr", "clone", $url, $dest], undef, $logfile);
 }
 
 sub _pull_repository {
@@ -144,24 +155,24 @@ sub _pull_repository {
     my $url = "$base_url/$path";
 
     $log->info("Pulling from repository at $url");
-    my ($result, $errors) = $self->_run(["hg", "pull", "$url"], $dest, $logfile);
+    my ($result, $errors) = $self->_run(["bzr", "pull", "$url"], $dest, $logfile);
 }
 
-sub _get_changeset {
+sub _get_current {
     my $self = shift;
     my $path = shift;
     my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
-    my ($output, $errors) = $self->_run(["hg", "identify", "-v"], $path, $logfile);
-
+    my ($output, $errors) = $self->_run(["bzr", "log", "--show-ids", "--short", "--limit=1"], $path, $logfile);
+#    warn $output;
     my @lines = split /\n/, $output;
     foreach (@lines) {
-	if (/^([a-f0-9]+)(?:\s+(.*))?$/i) {
+	if (/^\s*revision-id:\s*(.*?)\s*$/i) {
 	    return $1;
 	}
     }
-    die "cannot extract current changelist from hg identify -v output";
+    die "cannot extract current changelist from bzr log --show-ids --short --limit=1 output";
 }
 
 sub _get_changes {
@@ -171,46 +182,41 @@ sub _get_changes {
 
     my $log = Log::Log4perl->get_logger();
 
-    my ($data, $errors) = $self->_run(["hg", "history", "-v"], $path, $logfile);
+    my ($data, $errors) = $self->_run(["bzr", "log", "--show-ids", "--timezone=utc"], $path, $logfile);
 
     my @lines = split /\n/, $data;
 
     my %logs;
     my $number;
-    my $hash;
     foreach my $line (@lines) {
 	next if $line =~ /^\s*$/;
 	#$log->debug("[$line]");
-	if ($line =~ m,^changeset:\s*(\d+):([a-f0-9]+)\s*$,i) {
+	if ($line =~ m,^revno:\s*(\d+(?:\.\d+)*)\s*$,i) {
 	    $number = $1;
-	    $hash = $2;
-	    $log->debug("Version number " . $number . " changeset hash " . $hash);
-	    $logs{$hash} = { number => $number };
-	} elsif (defined $hash) {
-	    if ($line =~ m,^user:\s*(.*?)\s*$,) {
-		$logs{$hash}->{user} = $1;
-		#$log->debug("User " . $logs{$hash}->{user});
-	    } elsif ($line =~ m,^date:\s*(.*?)\s*$,) {
-		$logs{$hash}->{date} = $1;
-		$log->debug("Date " . $logs{$hash}->{date});
-	    } elsif ($line =~ m,^files:\s*(.*?)\s*$,) {
-		$logs{$hash}->{files} = $1;
-		#$log->debug("Files " . $logs{$hash}->{files});
-	    } elsif ($line =~ m,^description:\s*(.*?)\s*$,) {
-		$logs{$hash}->{description} = '';
-		#$log->debug("Description started ");
-	    } elsif (defined $logs{$hash}->{description}) {
+	    $log->debug("Version number " . $number );
+	    $logs{$number} = { number => $number };
+	} elsif (defined $number) {
+	    if ($line =~ m,^committer:\s*(.*?)\s*$,) {
+		$logs{$number}->{user} = $1;
+		$log->debug("User $1");
+	    } elsif ($line =~ m,^revision-id:\s*(.*?)\s*$,) {
+		$logs{$number}->{hash} = $1;
+		$log->debug("Hash $1");
+	    } elsif ($line =~ m,^timestamp:\s*(.*?)\s*$,) {
+		$logs{$number}->{timestamp} = $1;
+		$log->debug("Timestamp $1");
+	    } elsif ($line =~ m,^message:\s*(.*?)\s*$,) {
+		$logs{$number}->{description} = $1;
+	    } elsif ($line =~ m,^\s*\-+\s*$,) {
+		$number = undef;
+	    } elsif (defined $logs{$number}->{description}) {
 		$line =~ s/(^\s*)|(\s*$)//g;
-		if ($logs{$hash}->{description} eq "") {
-		    $logs{$hash}->{description} .= $line;
+		if ($logs{$number}->{description} eq "") {
+		    $logs{$number}->{description} .= $line;
 		} else {
-		    $logs{$hash}->{description} .= "\n" . $line;
+		    $logs{$number}->{description} .= "\n" . $line;
 		}
 		#$log->debug("Append Desc " . $line);
-	    } elsif ($line =~ m,^(tag|parent|branch),) {
-		# nada
-	    } else {
-		$log->warn("Got unexpected changelist tag " . $line);
 	    }
 	} else {
 	    $log->warn("Got content outside changelist " . $line);
@@ -220,10 +226,10 @@ sub _get_changes {
     my %changes;
     foreach (keys %logs) {
 	# XXX hate to hardcode date format. Probably break in non en_* locales
-	die "cannot grok date '"  . $logs{$_}->{date} . "'"
-	    unless $logs{$_}->{date} =~ /(\w+)\s+(\w+)\s+(\d+)\s+(\d+):(\d+):(\d+)\s+(\d+)\s+(\S+)\s*$/;
-	my $mungedDate = "$1 $2 $3 $7 $4:$5:$6";
-	my $timezone = $8;
+	die "cannot grok date '"  . $logs{$_}->{timestamp} . "'"
+	    unless $logs{$_}->{timestamp} =~ /\s*(.*?)\s+((?:\-|\+)\d+)\s*$/;
+	my $mungedDate = $1;
+	my $timezone = $2;
 
 	my $date = ParseDateString($mungedDate);
 	die "cannot parse date '" . $mungedDate . "'" unless $date;
@@ -233,13 +239,11 @@ sub _get_changes {
 	my $time = UnixDate($date, "%o");
 	#$log->debug("Date was $date and time is $time");
 
-	my @files = $logs{$_}->{files} ? split / /, $logs{$_}->{files} : ();
-
-	$changes{$_} = Test::AutoBuild::Change->new(number => $logs{$_}->{number},
-						    date => $time,
-						    user => $logs{$_}->{user},
-						    description => $logs{$_}->{description},
-						    files => \@files);
+	$changes{$logs{$_}->{hash}} = Test::AutoBuild::Change->new(number => $logs{$_}->{number},
+								   date => $time,
+								   user => $logs{$_}->{user},
+								   description => $logs{$_}->{description},
+								   files => []);
     }
     return \%changes;
 }
@@ -256,7 +260,7 @@ Daniel Berrange
 
 =head1 COPYRIGHT
 
-Copyright (C) 2004 Daniel Berrange
+Copyright (C) 2004-2007 Daniel Berrange
 
 =head1 SEE ALSO
 

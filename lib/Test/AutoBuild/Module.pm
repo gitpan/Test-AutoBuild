@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Module.pm,v 1.41 2007/12/08 20:10:26 danpb Exp $
+# $Id: Module.pm,v 1.42 2007/12/10 03:16:16 danpb Exp $
 
 =pod
 
@@ -807,7 +807,7 @@ sub unarchive_result {
     $log->debug("Restoring result for $taskname");
 
     $self->_add_result($taskname,
-		       "cache",
+		       "cached",
 		       $cache->get_data($self->name, $taskname)->{start_date},
 		       $cache->get_data($self->name, $taskname)->{end_date},
 		       );
@@ -871,7 +871,7 @@ sub archive_usable {
 
     my $data = $archive->get_data($self->name, $taskname);
     if ($data->{status} ne "success" &&
-	$data->{status} ne "cache") {
+	$data->{status} ne "cached") {
 	$log->info("archive was not a success");
 	return 0;
     }
@@ -1079,7 +1079,7 @@ sub should_skip {
 	}
 
 	if ($module->build_status() ne 'success' &&
-	    $module->build_status() ne 'cache' ) {
+	    $module->build_status() ne 'cached' ) {
 	    $log->debug("Skipping " . $self->label() . " because " . $module->label() . " failed");
 	    $skip = 1;
 	}

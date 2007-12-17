@@ -1,6 +1,16 @@
 Change Log for Test::AutoBuild
 ==============================
 
+v1.2.2: (16-12-2007)
+--------------------
+
+ * Add support for GIT repositories
+ * Add support for Monotone repositories
+ * Add support for Darcs repositories
+ * Add support for Bazaar repositories
+ * Make command line show SCM checkout progress
+ * Fix use of cache vs cached.
+
 v1.2.1: (08-12-2007)
 --------------------
 

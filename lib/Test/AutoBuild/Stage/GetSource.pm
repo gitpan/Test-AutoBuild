@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: GetSource.pm,v 1.17 2007/12/08 20:10:26 danpb Exp $
+# $Id: GetSource.pm,v 1.18 2007/12/10 04:44:42 danpb Exp $
 
 =pod
 
@@ -109,8 +109,10 @@ sub process {
 		next MODULE;
 	    }
 	}
+	$runtime->notify("beginCheckout", $name, time);
 	my $module = $runtime->module($name);
 	$module->checkout($runtime);
+	$runtime->notify("endCheckout", $name, time, $module->checkout_status);
 	if ($module->checkout_status() eq "failed") {
 	    $failed = 1;
 	}

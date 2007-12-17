@@ -1,7 +1,7 @@
 # -*- rpm-spec -*-
 # Copyright (C) 2001-2004 Daniel Berrange <dan@berrange.com>
 #
-# $Id: Test-AutoBuild.spec.PL,v 1.38 2007/12/08 22:20:36 danpb Exp $
+# $Id: Test-AutoBuild.spec.PL,v 1.45 2007/12/17 00:29:28 danpb Exp $
 
 use strict;
 use warnings;
@@ -54,13 +54,19 @@ BuildRequires: perl(Template)
 BuildRequires: perl(IO::Scalar)
 BuildRequires: perl(Date::Manip)
 BuildRequires: perl(Class::MethodMaker)
+BuildRequires: perl(XML::Simple)
+BuildRequires: perl(Test::More)
 BuildRequires: perl(Test::Pod)
 BuildRequires: perl(Test::Pod::Coverage)
-BuildRequires: /usr/bin/cvs
-BuildRequires: /usr/bin/svn
-BuildRequires: /usr/bin/tla
-BuildRequires: /usr/bin/hg
-BuildRequires: /usr/bin/svk
+BuildRequires: cvs >= 1.11
+BuildRequires: subversion >= 1.0.0
+BuildRequires: tla >= 1.1.0
+BuildRequires: mercurial >= 0.7
+BuildRequires: perl-SVK >= 1.0
+BuildRequires: git >= 1.5.0.0
+BuildRequires: darcs >= 1.0.0
+BuildRequires: bzr >= 0.91
+BuildRequires: monotone >= 0.37
 %if %{with_selinux}
 BuildRequires: selinux-policy-devel
 %endif
@@ -76,15 +82,19 @@ Requires: /usr/bin/genbasedir
 # For Test::AutoBuild::Publisher::XSLTransform
 Requires: /usr/bin/xsltproc
 
+%if %{with_selinux}
 Requires(post): policycoreutils
 Requires(postun): policycoreutils
+%endif
 
 %package account
 Summary: User account and directory structure for running builder
 Group: Development/Tools
 Url: http://autobuild.org/
 Requires: perl-%{appname} = %{version}-%{release}
+%if %{with_selinux}
 Requires(post): policycoreutils
+%endif
 
 %package cvs
 Summary: CVS source repository integration for autobuild engine
@@ -99,6 +109,34 @@ Group: Development/Tools
 Url: http://autobuild.org/
 Requires: perl-%{appname} = %{version}-%{release}
 Requires: mercurial >= 0.7
+
+%package git
+Summary: Git source repository integration for autobuild engine
+Group: Development/Tools
+Url: http://autobuild.org/
+Requires: perl-%{appname} = %{version}-%{release}
+Requires: git >= 1.5.0.0
+
+%package darcs
+Summary: Darcs source repository integration for autobuild engine
+Group: Development/Tools
+Url: http://autobuild.org/
+Requires: perl-%{appname} = %{version}-%{release}
+Requires: darcs >= 1.0.0
+
+%package bzr
+Summary: Bazaar source repository integration for autobuild engine
+Group: Development/Tools
+Url: http://autobuild.org/
+Requires: perl-%{appname} = %{version}-%{release}
+Requires: bzr >= 0.91
+
+%package monotone
+Summary: Monotone source repository integration for autobuild engine
+Group: Development/Tools
+Url: http://autobuild.org/
+Requires: perl-%{appname} = %{version}-%{release}
+Requires: monotone >= 0.37
 
 %package subversion
 Summary: Subversion source repository integration for autobuild engine
@@ -155,6 +193,34 @@ Test-AutoBuild is a Perl framework for performing continuous, unattended,
 automated software builds.
 
 This sub-package provides the module for integrating with the Mercurial
+version control system
+
+%description git
+Test-AutoBuild is a Perl framework for performing continuous, unattended,
+automated software builds.
+
+This sub-package provides the module for integrating with the Git
+version control system
+
+%description darcs
+Test-AutoBuild is a Perl framework for performing continuous, unattended,
+automated software builds.
+
+This sub-package provides the module for integrating with the Darcs
+version control system
+
+%description bzr
+Test-AutoBuild is a Perl framework for performing continuous, unattended,
+automated software builds.
+
+This sub-package provides the module for integrating with the Bazaar
+version control system
+
+%description monotone
+Test-AutoBuild is a Perl framework for performing continuous, unattended,
+automated software builds.
+
+This sub-package provides the module for integrating with the Monotone
 version control system
 
 %description subversion
@@ -234,21 +300,21 @@ make test
 # In case of upgrade from old version, relocate the home dir
 usermod -d /var/lib/builder -s /sbin/nologin builder
 
+%if %{with_selinux}
 %post
 # Always run, even on upgrade so we reload it
-%if %{with_selinux}
 /usr/sbin/semodule -i %{_datadir}/selinux/packages/auto-build/auto-build.pp >/dev/null
 fixfiles -R %{name} restore
 %endif
 
-%post account
 %if %{with_selinux}
+%post account
 fixfiles -R %{name}-account restore
 %endif
 
+%if %{with_selinux}
 %postun
 # Unload if last module
-%if %{with_selinux}
 if [ $1 -eq 0 ]; then
   /usr/sbin/semodule -r autobuild >/dev/null
 fi
@@ -320,6 +386,26 @@ fi
 %doc README
 %{perl_vendorlib}/Test/AutoBuild/Repository/Mercurial.pm
 
+%files git
+%defattr(-,root,root)
+%doc README
+%{perl_vendorlib}/Test/AutoBuild/Repository/Git.pm
+
+%files darcs
+%defattr(-,root,root)
+%doc README
+%{perl_vendorlib}/Test/AutoBuild/Repository/Darcs.pm
+
+%files bzr
+%defattr(-,root,root)
+%doc README
+%{perl_vendorlib}/Test/AutoBuild/Repository/Bazaar.pm
+
+%files monotone
+%defattr(-,root,root)
+%doc README
+%{perl_vendorlib}/Test/AutoBuild/Repository/Monotone.pm
+
 %files subversion
 %defattr(-,root,root)
 %doc README
@@ -351,6 +437,9 @@ fi
 %config(noreplace) %attr(-,builder,builder) %{_localstatedir}/lib/builder/.cvspass
 
 %changelog
+* Sun Dec 16 2007 Daniel Berrange <dan@berrange.com> - 1.2.2-1
+- Added support for GIT, Monotone, Darcs and Bazaar repositories
+
 * Sat Jun 30 2007 Daniel Berrange <dan@berrange.com> - 1.2.1-1
 - Added in SELinux policy
 

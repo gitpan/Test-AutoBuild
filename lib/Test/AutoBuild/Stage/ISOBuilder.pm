@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: ISOBuilder.pm,v 1.12 2007/12/08 17:35:16 danpb Exp $
+# $Id: ISOBuilder.pm,v 1.13 2007/12/10 03:16:16 danpb Exp $
 
 =pod
 
@@ -79,7 +79,7 @@ sub process {
 	    my $module = $runtime->module($mod);
 	    die "cannot find module $mod" unless defined $module;
 	    if ($module->build_status() ne "success" &&
-		$module->build_status() ne "cache") {
+		$module->build_status() ne "cached") {
 		$self->fail("cannot create ISO because module " . $module->name . " failed");
 		return;
 	    }

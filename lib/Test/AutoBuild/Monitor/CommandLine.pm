@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: CommandLine.pm,v 1.5 2007/12/08 17:35:16 danpb Exp $
+# $Id: CommandLine.pm,v 1.6 2007/12/12 03:31:36 danpb Exp $
 
 =pod
 
@@ -101,7 +101,7 @@ sub init {
 
     $self->{command} = $0;
     $self->{stages} = [];
-    $self->{build} = undef;
+    $self->{module} = undef;
 }
 
 =item $monitor->process($event_name, @args);
@@ -109,8 +109,8 @@ sub init {
 This method changes the contents of $0 to reflect current
 build state. It understands the following events (which can
 be nested): C<beginStage>, C<completeStage>, C<failStage>,
-C<abortStage>, C<beginBuild>, C<endBuild>. All other events
-are ignored.
+C<abortStage>, C<beginBuild>, C<endBuild>. C<beginCheckout>,
+C<endCheckout>. All other events are ignored.
 
 =cut
 
@@ -122,21 +122,25 @@ sub process {
     if ($name eq "beginStage") {
 	push @{$self->{stages}}, $args[0];
 
-	$self->{build} = undef;
+	$self->{module} = undef;
     } elsif ($name eq "completeStage" ||
 	     $name eq "failStage" ||
 	     $name eq "abortStage") {
 	pop @{$self->{stages}};
-	$self->{build} = undef;
+	$self->{module} = undef;
     } elsif ($name eq "beginBuild") {
-	$self->{build} = $args[0];
+	$self->{module} = $args[0];
     } elsif ($name eq "endBuild") {
-	$self->{build} = undef;
+	$self->{module} = undef;
+    } elsif ($name eq "beginCheckout") {
+	$self->{module} = $args[0];
+    } elsif ($name eq "endCheckout") {
+	$self->{module} = undef;
     }
 
     $0 = $self->{command} .
 	" [running " . join("->", @{$self->{stages}}) .
-	($self->{build} ? " (" . $self->{build} . ")]" : "]");
+	($self->{module} ? " (" . $self->{module} . ")]" : "]");
 }
 
 

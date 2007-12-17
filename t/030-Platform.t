@@ -22,7 +22,7 @@ TEST_HOST: {
 
     SKIP: {
 	my $issue = catfile(rootdir, "etc", "issue");
-	skip 1, "no $issue file to verify" unless -f $issue;
+	skip "no $issue file to verify", 1 unless -f $issue;
 	open ISSUE, $issue
 	    or die "cannot read $issue: $!";
 	my $label = <ISSUE>;

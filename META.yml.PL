@@ -55,6 +55,7 @@ requires:
    Symbol:                        0
    Sys::Hostname:                 0
    Template:                      0
+   XML::Simple:                   0
 build_requires:
    Test::More:                    0
 

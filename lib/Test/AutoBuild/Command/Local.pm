@@ -20,7 +20,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Local.pm,v 1.3 2007/12/08 17:35:16 danpb Exp $
+# $Id: Local.pm,v 1.4 2007/12/11 05:01:11 danpb Exp $
 
 =pod
 
@@ -80,7 +80,7 @@ sub run {
 	die "cannot change into " . $self->dir . ": $!" unless chdir $self->dir;
     }
 
-    $log->debug("running: '" . join("' '", $self->cmd) . "' in '$cwd'");
+    $log->debug("running: '" . join("' '", $self->cmd) . "' in /" . getcwd  . "'");
 
     local %ENV = %ENV;
     my %env = $self->env;

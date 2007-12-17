@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.32 2007/12/08 22:41:15 danpb Exp $
+# $Id: Makefile.PL,v 1.33 2007/12/10 04:45:18 danpb Exp $
 # -*- perl -*-
 
 use strict;
@@ -39,6 +39,7 @@ WriteMakefile(
                   'Sys::Hostname' => '0',
                   'Template' => '0',
 		  'Test::More' => '0',
+		  'XML::Simple' => '0',
               },
               dist =>
               {

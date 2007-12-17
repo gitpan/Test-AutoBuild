@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: EmailAlert.pm,v 1.11 2006/06/05 12:38:41 danpb Exp $
+# $Id: EmailAlert.pm,v 1.12 2007/12/10 02:20:27 danpb Exp $
 
 =pod
 
@@ -196,7 +196,7 @@ sub process {
 			    foreach my $name (@modules) {
 				if ($runtime->module($name)->status eq "failed") {
 				    my $result = $cache->get_data($name, "build");
-				    if ($result->{status} ne "failed") {
+				    if (!$result->{status} || $result->{status} ne "failed") {
 					$log->debug("Previous status was " . $result->{status});
 					$newfail = 1;
 				    }

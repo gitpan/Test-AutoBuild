@@ -119,7 +119,7 @@ ARCHIVING: {
 
     $module2->unarchive_result($runtime, $archive, "build");
 
-    is($module2->build_status, "cache", "status is cache");
+    is($module2->build_status, "cached", "status is cached");
     is($module2->build_start_date, $now, "start time matches");
     is($module2->build_end_date, $then, "end time matches");
 

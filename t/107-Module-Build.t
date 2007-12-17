@@ -175,14 +175,14 @@ EOF
 
     $module->packages({});
     $module->installed({});
-    $module->status("pending");
-    $module->{results} = {};
+    $module->{results} = { 'build' => { 'status' => 'pending'},
+			   'checkout' => { 'status' => 'pending'} };
     $module->_add_result("checkout", "success");
 
     $arcman->create_archive("2");
     $module->build($runtime, "autobuild.sh");
+    is($module->build_status, "cached", "status is cached");
 
-    is($module->status, "cache", "status is cached");
     $installed = $module->installed();
     ok(exists $installed->{catfile($install_root, "foo", "bar.txt")}, "foo/bar.txt exists");
     ok(exists $installed->{catfile($install_root, "foo", "wizz.txt")}, "foo/bar.txt exists");

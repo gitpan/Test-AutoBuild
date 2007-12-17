@@ -26,12 +26,10 @@ rm -rf MANIFEST blib
 # Make makefiles.
 
 perl Makefile.PL PREFIX=$AUTOBUILD_INSTALL_ROOT
-make manifest
-echo $NAME.spec >> MANIFEST
-echo META.yml >> MANIFEST
 
 # Build the RPM.
 make
+make manifest
 if [ -n "$HTMLURLPREFIX" ]
 then
   make htmlifypods HTMLURLPREFIX=$HTMLURLPREFIX

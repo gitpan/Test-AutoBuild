@@ -1,6 +1,6 @@
 # -*- perl -*-
 #
-# Test::AutoBuild::Repository::Mercurial by Daniel Berrange
+# Test::AutoBuild::Repository::Monotone by Daniel Berrange
 #
 # Copyright (C) 2004 Daniel Berrange
 #
@@ -18,23 +18,23 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Mercurial.pm,v 1.11 2007/12/10 01:41:32 danpb Exp $
+# $Id: Monotone.pm,v 1.1 2007/12/12 03:33:00 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::Repository::Mercurial - A repository for Mercurial
+Test::AutoBuild::Repository::Monotone - A repository for Monotone
 
 =head1 SYNOPSIS
 
-  use Test::AutoBuild::Repository::Mercurial
+  use Test::AutoBuild::Repository::Monotone
 
 
 =head1 DESCRIPTION
 
 This module provides a repository implementation for the
-Mercurial revision control system. It requires that the
+Monotone revision control system. It requires that the
 'hg' command version 0.7 or higher be installed. It has
 full support for detecting updates to an existing checkout.
 
@@ -44,7 +44,7 @@ full support for detecting updates to an existing checkout.
 
 =cut
 
-package Test::AutoBuild::Repository::Mercurial;
+package Test::AutoBuild::Repository::Monotone;
 
 use base qw(Test::AutoBuild::Repository);
 use warnings;
@@ -54,7 +54,7 @@ use Log::Log4perl;
 use Test::AutoBuild::Change;
 use Date::Manip;
 
-=item my $repository = Test::AutoBuild::Repository::Mercurial->new(  );
+=item my $repository = Test::AutoBuild::Repository::Monotone->new(  );
 
 =cut
 
@@ -77,20 +77,38 @@ sub export {
     my $logfile = shift;
     my $log = Log::Log4perl->get_logger();
 
-    # Don't support using multiple paths yet
-    if (-d $dst) {
-	$self->_pull_repository($src, $dst, $logfile);
+    die "missing branch spec" unless $src =~ /^\s*(.*?):(.*)\s*$/;
+    my $branch = $2;
+    $src = $1;
+
+    my $server = $self->option("server");
+    my $path = $self->option("path");
+    die "server or path option is required" unless $server or $path;
+    $src =~ s,^/,,;
+
+    my $db;
+    if ($path) {
+	$db = $path . "/" . $src;
     } else {
-	$self->_clone_repository($src, $dst, $logfile);
+	$db = $self->_setup_repo($dst, $logfile);
+	$self->_pull_repo($db, $server, $branch, $logfile);
     }
 
+    # Don't support using multiple paths yet
+    my $current;
     my $changed = 0;
+    if (!-d $dst) {
+	$changed = 1;
+	$self->_checkout_repo($db, $branch, $dst, $logfile);
+    } else {
+	$current = $self->_get_changeset($dst, $logfile);
+    }
+
+
     my %changes;
 
-    my $current = $self->_get_changeset($dst, $logfile);
-    $log->debug("Current changeset in $dst is $current");
 
-    my $all_changes = $self->_get_changes($dst, $logfile);
+    my $all_changes = $self->_get_changes($dst, $branch, $logfile);
 
     my $sync_to;
     my $found = 0;
@@ -99,52 +117,59 @@ sub export {
 	#$log->debug("Compare changelist $_ at " . $all_changes->{$_}->date . " to " . $runtime->timestamp);
 	last if $all_changes->{$_}->date > $runtime->timestamp;
 	$sync_to = $_;
+	$log->debug("Add " . $all_changes->{$_}->number) if $found;
 	$changes{$all_changes->{$_}->number} = $all_changes->{$_} if $found;
-	$found = 1 if $current eq $_;
+	$found = 1 if defined $current && $current eq $_;
     }
 
-    $log->debug("Sync to change $sync_to");
+    if ($sync_to) {
+	$log->debug("Sync to change $sync_to");
+    }
 
-    if ($current ne $sync_to) {
-	my ($output, $errors) = $self->_run(["hg", "update", "-C", $sync_to], $dst, $logfile);
+    if (defined $current &&
+	$current ne $sync_to) {
 	$changed = 1;
     }
+
+    my ($output, $errors) = $self->_run(["mtn", "update", "-r", $sync_to], $dst, $logfile);
 
     return ($changed, \%changes);
 }
 
-sub _clone_repository {
+sub _setup_repo {
     my $self = shift;
-    my $path = shift;
-    my $dest = shift;
+    my $dst = shift;
     my $logfile = shift;
-    my $log = Log::Log4perl->get_logger();
 
-    my $base_url = $self->option("base-url");
-    die "base-url option is required" unless $base_url;
-    $base_url =~ s,\/$,,;
-    $path =~ s,^/,,;
-    my $url = "$base_url/$path";
-
-    $log->info("Cloning repository at $url");
-    my ($result, $errors) = $self->_run(["hg", "clone", $url, $dest], undef, $logfile);
+    my $db = $dst . ".db";
+    my ($output, $errors) = $self->_run(["mtn", "db", "init", "-d", $db], undef, $logfile)
+	unless -f $db;
+    return $db;
 }
 
-sub _pull_repository {
+sub _checkout_repo {
     my $self = shift;
-    my $path = shift;
+    my $db = shift;
+    my $branch = shift;
     my $dest = shift;
     my $logfile = shift;
     my $log = Log::Log4perl->get_logger();
 
-    my $base_url = $self->option("base-url");
-    die "base-url option is required" unless $base_url;
-    $base_url =~ s,\/$,,;
-    $path =~ s,^/,,;
-    my $url = "$base_url/$path";
 
-    $log->info("Pulling from repository at $url");
-    my ($result, $errors) = $self->_run(["hg", "pull", "$url"], $dest, $logfile);
+    $log->info("Checking out from db $db to $dest");
+    my ($result, $errors) = $self->_run(["mtn", "checkout", "-d", $db, "--branch", $branch, $dest], undef, $logfile);
+}
+
+sub _pull_repo {
+    my $self = shift;
+    my $db = shift;
+    my $server = shift;
+    my $branch = shift;
+    my $logfile = shift;
+    my $log = Log::Log4perl->get_logger();
+
+    $log->info("Pulling from repository at $server");
+    my ($result, $errors) = $self->_run(["mtn", "pull", "-d", $db, $server, $branch], undef, $logfile);
 }
 
 sub _get_changeset {
@@ -153,65 +178,73 @@ sub _get_changeset {
     my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
-    my ($output, $errors) = $self->_run(["hg", "identify", "-v"], $path, $logfile);
+    my ($output, $errors) = $self->_run(["mtn", "status"], $path, $logfile);
 
     my @lines = split /\n/, $output;
     foreach (@lines) {
-	if (/^([a-f0-9]+)(?:\s+(.*))?$/i) {
+	if (/^Changes against parent ([a-f0-9]+)\s*$/i) {
 	    return $1;
 	}
     }
-    die "cannot extract current changelist from hg identify -v output";
+    die "cannot extract current changelist from mtn status output";
 }
 
 sub _get_changes {
     my $self = shift;
     my $path = shift;
+    my $branch = shift;
     my $logfile = shift;
 
     my $log = Log::Log4perl->get_logger();
 
-    my ($data, $errors) = $self->_run(["hg", "history", "-v"], $path, $logfile);
+    my ($data, $errors) = $self->_run(["mtn", "log", "--no-graph", "--from", "b:$branch"], $path, $logfile);
 
     my @lines = split /\n/, $data;
 
     my %logs;
-    my $number;
     my $hash;
     foreach my $line (@lines) {
 	next if $line =~ /^\s*$/;
 	#$log->debug("[$line]");
-	if ($line =~ m,^changeset:\s*(\d+):([a-f0-9]+)\s*$,i) {
-	    $number = $1;
-	    $hash = $2;
-	    $log->debug("Version number " . $number . " changeset hash " . $hash);
-	    $logs{$hash} = { number => $number };
+	if ($line =~ m,^revision:\s*([a-f0-9]+)\s*$,i) {
+	    $hash = $1;
+	    $log->debug("Changeset hash " . $hash);
+	    $logs{$hash} = { hash => $hash };
 	} elsif (defined $hash) {
-	    if ($line =~ m,^user:\s*(.*?)\s*$,) {
+	    if ($line =~ m,^Author:\s*(.*?)\s*$,) {
 		$logs{$hash}->{user} = $1;
 		#$log->debug("User " . $logs{$hash}->{user});
-	    } elsif ($line =~ m,^date:\s*(.*?)\s*$,) {
+	    } elsif ($line =~ m,^Date:\s*(.*?)\s*$,) {
 		$logs{$hash}->{date} = $1;
 		$log->debug("Date " . $logs{$hash}->{date});
-	    } elsif ($line =~ m,^files:\s*(.*?)\s*$,) {
-		$logs{$hash}->{files} = $1;
+	    } elsif ($line =~ m,^(?:Added|Modified|Deleted|Renamed)\s+(?:attrs|entries|directories|files):\s*$,) {
+		$logs{$hash}->{files} = [];
 		#$log->debug("Files " . $logs{$hash}->{files});
-	    } elsif ($line =~ m,^description:\s*(.*?)\s*$,) {
+	    } elsif ($line =~ m,^ChangeLog:\s*(.*?)\s*$,) {
 		$logs{$hash}->{description} = '';
 		#$log->debug("Description started ");
+	    } elsif ($line =~ m,^\s*\-+\s*$,) {
+		$hash = undef;
 	    } elsif (defined $logs{$hash}->{description}) {
 		$line =~ s/(^\s*)|(\s*$)//g;
 		if ($logs{$hash}->{description} eq "") {
-		    $logs{$hash}->{description} .= $line;
+		    if ($line ne "") {
+			$logs{$hash}->{description} .= $line;
+		    }
 		} else {
 		    $logs{$hash}->{description} .= "\n" . $line;
 		}
 		#$log->debug("Append Desc " . $line);
-	    } elsif ($line =~ m,^(tag|parent|branch),) {
+	    } elsif (defined $logs{$hash}->{files}) {
+		$line =~ s/(^\s*)|(\s*$)//g;
+		push @{$logs{$hash}->{files}}, $line;
+	    } elsif ($line =~ m,^(Branch|Ancestor|Tag),) {
 		# nada
 	    } else {
 		$log->warn("Got unexpected changelist tag " . $line);
 	    }
+	} elsif ($line =~ m,^\s*\-+\s*$,) {
+	    # nada
 	} else {
 	    $log->warn("Got content outside changelist " . $line);
 	}
@@ -219,27 +252,19 @@ sub _get_changes {
 
     my %changes;
     foreach (keys %logs) {
-	# XXX hate to hardcode date format. Probably break in non en_* locales
-	die "cannot grok date '"  . $logs{$_}->{date} . "'"
-	    unless $logs{$_}->{date} =~ /(\w+)\s+(\w+)\s+(\d+)\s+(\d+):(\d+):(\d+)\s+(\d+)\s+(\S+)\s*$/;
-	my $mungedDate = "$1 $2 $3 $7 $4:$5:$6";
-	my $timezone = $8;
-
-	my $date = ParseDateString($mungedDate);
-	die "cannot parse date '" . $mungedDate . "'" unless $date;
+	my $date = ParseDateString($logs{$_}->{date});
+	die "cannot parse date '" . $logs{$_}->{date} . "'" unless $date;
 	#$log->debug("Initial parsing from '$mungedDate' gives $date");
-	$date = Date_ConvTZ($date, $timezone, "GMT");
-	#$log->debug("After adjustment from $timezone to GMT date is $date");
 	my $time = UnixDate($date, "%o");
 	#$log->debug("Date was $date and time is $time");
 
-	my @files = $logs{$_}->{files} ? split / /, $logs{$_}->{files} : ();
+	$log->debug("Change " . $logs{$_}->{hash} . " " . $date . " " . $logs{$_}->{description});
 
-	$changes{$_} = Test::AutoBuild::Change->new(number => $logs{$_}->{number},
+	$changes{$_} = Test::AutoBuild::Change->new(number => $logs{$_}->{date},
 						    date => $time,
 						    user => $logs{$_}->{user},
 						    description => $logs{$_}->{description},
-						    files => \@files);
+						    files => $logs{$_}->{files});
     }
     return \%changes;
 }
