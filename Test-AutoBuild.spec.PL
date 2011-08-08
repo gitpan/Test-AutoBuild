@@ -1,7 +1,7 @@
 # -*- rpm-spec -*-
 # Copyright (C) 2001-2004 Daniel Berrange <dan@berrange.com>
 #
-# $Id: Test-AutoBuild.spec.PL,v 1.45 2007/12/17 00:29:28 danpb Exp $
+# $Id: Test-AutoBuild.spec.PL,v 1.48 2011/08/08 15:50:24 danpb Exp $
 
 use strict;
 use warnings;
@@ -66,7 +66,7 @@ BuildRequires: perl-SVK >= 1.0
 BuildRequires: git >= 1.5.0.0
 BuildRequires: darcs >= 1.0.0
 BuildRequires: bzr >= 0.91
-BuildRequires: monotone >= 0.37
+BuildRequires: monotone >= 0.48
 %if %{with_selinux}
 BuildRequires: selinux-policy-devel
 %endif
@@ -269,10 +269,9 @@ control system
 %__make install \
   WITH_SELINUX=%{with_selinux} \
   PERL_INSTALL_ROOT=$RPM_BUILD_ROOT \
-  sysconfdir=$RPM_BUILD_ROOT%{_sysconfdir} \
-  bindir=$RPM_BUILD_ROOT%{_bindir} \
-  selinuxdir=$RPM_BUILD_ROOT%{_datadir}/selinux \
-  INSTALLVENDORMAN5DIR=$RPM_BUILD_ROOT%{_mandir}/man5
+  INSTALLSYSCONF=%{_sysconfdir} \
+  INSTALLSELINUX=%{_datadir}/selinux \
+  INSTALLVENDORMAN5DIR=%{_mandir}/man5
 find $RPM_BUILD_ROOT -name perllocal.pod -exec rm -f {} \;
 find $RPM_BUILD_ROOT -name .packlist -exec rm -f {} \;
 %__cp $RPM_BUILD_ROOT%{_sysconfdir}/auto-build.d/auto-build.conf \
@@ -437,30 +436,3 @@ fi
 %config(noreplace) %attr(-,builder,builder) %{_localstatedir}/lib/builder/.cvspass
 
 %changelog
-* Sun Dec 16 2007 Daniel Berrange <dan@berrange.com> - 1.2.2-1
-- Added support for GIT, Monotone, Darcs and Bazaar repositories
-
-* Sat Jun 30 2007 Daniel Berrange <dan@berrange.com> - 1.2.1-1
-- Added in SELinux policy
-
-* Thu Sep 14 2006 Daniel berrange <dan@berrange.com> - 1.2.0-3
-- Added <perlvendorlib>/Test directory to list of owned dirs
-
-* Sun Sep 10 2006 Daniel Berrange <dan@berrange.com> - 1.2.0-2
-- Use macros for all path prefixes
-- Added buildrequires on Test::Pod and Test::Pod::Coverage
-- Added docs/ dir to documentation files
-- Use macros for all programs used in build/install where available
-- Fixed buildroot to comply with Fedora standards
-- Make use of fedora-usermgmt package for creating builder account
-- Ensure main package owns all directories it creates in /etc/ & perl lib dir
-
-* Sat Sep  2 2006 Daniel Berrange <dan@berrange.com> - 1.2.0-1
-- Misc fixes to bring closer in line with Fedora Extras guidelines
-
-* Thu Feb  2 2006 Daniel Berrange <dan@berrange.com> - 1.1.4-1
-- Relocate from /var/builder to /var/lib/builder for FHS compliance
-
-* Wed Dec 28 2005 Daniel Berrange <dan@berrange.com> - 1.1.3-1
-- Modular RPM packaging for source repository plugins
-

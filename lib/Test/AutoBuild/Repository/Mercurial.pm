@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Mercurial.pm,v 1.11 2007/12/10 01:41:32 danpb Exp $
+# $Id: Mercurial.pm,v 1.14 2011/03/28 16:26:34 danpb Exp $
 
 =pod
 
@@ -157,7 +157,7 @@ sub _get_changeset {
 
     my @lines = split /\n/, $output;
     foreach (@lines) {
-	if (/^([a-f0-9]+)(?:\s+(.*))?$/i) {
+	if (/^([a-f0-9]+)\+?(?:\s+(.*))?$/i) {
 	    return $1;
 	}
     }
@@ -227,11 +227,11 @@ sub _get_changes {
 
 	my $date = ParseDateString($mungedDate);
 	die "cannot parse date '" . $mungedDate . "'" unless $date;
-	#$log->debug("Initial parsing from '$mungedDate' gives $date");
+	$log->debug("Initial parsing from '$mungedDate' gives $date");
 	$date = Date_ConvTZ($date, $timezone, "GMT");
-	#$log->debug("After adjustment from $timezone to GMT date is $date");
-	my $time = UnixDate($date, "%o");
-	#$log->debug("Date was $date and time is $time");
+	$log->debug("After adjustment from $timezone to GMT date is $date");
+	my $time = UnixDate($date, "%s");
+	$log->debug("Date was $date and time is $time");
 
 	my @files = $logs{$_}->{files} ? split / /, $logs{$_}->{files} : ();
 

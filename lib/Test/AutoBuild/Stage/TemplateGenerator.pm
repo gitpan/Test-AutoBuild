@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: TemplateGenerator.pm,v 1.16 2007/12/08 20:16:11 danpb Exp $
+# $Id: TemplateGenerator.pm,v 1.17 2008/08/28 10:04:36 danpb Exp $
 
 =pod
 
@@ -132,8 +132,9 @@ sub _generate_templates {
 	}
 
 	if (!$template->process($src, \%vars, $fh)) {
-	    push @failed, $template->error->stringify;
-	    $log->warn($template->error->stringify);
+	    my $err = $template->error;
+	    push @failed, "$err";
+	    $log->warn("$err");
 	}
 
 	$fh->close;

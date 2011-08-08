@@ -21,13 +21,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Memory.pm,v 1.4 2007/12/08 17:35:16 danpb Exp $
+# $Id: Memory.pm,v 1.5 2008/01/06 19:00:22 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::ArchiveManager::Memory - Disk based archive manager
+Test::AutoBuild::ArchiveManager::Memory - In memory based archive manager
 
 =head1 SYNOPSIS
 

@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.33 2007/12/10 04:45:18 danpb Exp $
+# $Id: Makefile.PL,v 1.34 2008/01/06 20:27:58 danpb Exp $
 # -*- perl -*-
 
 use strict;
@@ -71,76 +71,14 @@ sub postamble {
     '
 WITH_SELINUX    = 0
 
-sysconfdir      = $(PREFIX)/etc
-bindir          = $(PREFIX)/bin
-pkgsysconfdir   = $(sysconfdir)/auto-build.d
-pkgdatadir      = $(PREFIX)/share/$(DISTNAME)-$(VERSION)
-selinuxdir      = $(PREFIX)/share/selinux
-selinuxpkgdir   = $(selinuxdir)/packages
-
 # NB do not use prefix here
-selinuxdevdir   = /usr/share/selinux/devel
+SELINUXDEV   = /usr/share/selinux/devel
 
 pure_all ::
-	test -d $(selinuxdevdir) -a $(WITH_SELINUX) = 1 && make -C conf/selinux ||:
+	if [ -d "$(SELINUXDEV)" -a "$(WITH_SELINUX)" = "1" ] ; then make -C conf/selinux ; fi
 
 clean ::
-	test -d $(selinuxdevdir) -a $(WITH_SELINUX) = 1 && make -C conf/selinux clean ||:
-
-install ::
-	install -d -m 0755 $(pkgsysconfdir)
-	for i in conf/*.conf ; do \
-		conf=`echo $$i | sed -e \'s/conf\///\'`; \
-		if [ -f $(pkgsysconfdir)/$$conf ]; then \
-			install -c -m 0644 $$i $(pkgsysconfdir)/$$conf-example; \
-			echo "Not overwriting existing config file $(pkgsysconfdir)/$$conf" ; \
-		else \
-			install -c -m 0644 $$i $(pkgsysconfdir)/$$conf; \
-		fi \
-	done
-	install -d -m 0755 $(pkgsysconfdir)/engine
-	for i in conf/engine/*.conf ; do \
-	        conf=`echo $$i | sed -e \'s/conf\///\'`; \
-	        if [ -f $(pkgsysconfdir)/$$conf ]; then \
-	                install -c -m 0644 $$i $(pkgsysconfdir)/$$conf-example; \
-	                echo "Not overwriting existing config file $(pkgsysconfdir)/$$conf" ; \
-	        else \
-	                install -c -m 0644 $$i $(pkgsysconfdir)/$$conf; \
-	        fi \
-	done
-	install -d -m 0755 $(pkgsysconfdir)/cron
-	for i in conf/cron/*.conf ; do \
-	        conf=`echo $$i | sed -e \'s/conf\///\'`; \
-	        if [ -f $(pkgsysconfdir)/$$conf ]; then \
-	                install -c -m 0644 $$i $(pkgsysconfdir)/$$conf-example; \
-	                echo "Not overwriting existing config file $(pkgsysconfdir)/$$conf" ; \
-	        else \
-	                install -c -m 0644 $$i $(pkgsysconfdir)/$$conf; \
-	        fi \
-	done
-	install -d -m 0755 $(pkgsysconfdir)/httpd
-	for i in conf/httpd/*.conf ; do \
-	        conf=`echo $$i | sed -e \'s/conf\///\'`; \
-	        if [ -f $(pkgsysconfdir)/$$conf ]; then \
-	                install -c -m 0644 $$i $(pkgsysconfdir)/$$conf-example; \
-	                echo "Not overwriting existing config file $(pkgsysconfdir)/$$conf" ; \
-	        else \
-	                install -c -m 0644 $$i $(pkgsysconfdir)/$$conf; \
-	        fi \
-	done
-	install -d -m 0755 $(pkgsysconfdir)/templates
-	install -c -m 0644 templates/*.txt $(pkgsysconfdir)/templates/
-	install -c -m 0644 templates/*.html $(pkgsysconfdir)/templates/
-	install -c -m 0644 templates/*.tt $(pkgsysconfdir)/templates/
-	install -c -m 0644 templates/*.css $(pkgsysconfdir)/templates/
-	install -c -m 0644 templates/*.rss $(pkgsysconfdir)/templates/
-	install -c -m 0644 templates/*.png $(pkgsysconfdir)/templates/
-	if [ -d $(selinuxdevdir) -a $(WITH_SELINUX) = 1 ]; then \
-		install -d -m 0755 $(selinuxpkgdir)/auto-build/ ;\
-		install -c -m 0644 conf/selinux/auto-build.pp $(selinuxpkgdir)/auto-build/auto-build.pp ;\
-		install -c -m 0755 blib/script/auto-build $(bindir)/auto-build-secure ;\
-	fi
-
+	if [ -d "$(SELINUXDEV)" -a "$(WITH_SELINUX)" = "1" ] ; then make -C conf/selinux clean ; fi
 
 HTMLDIR = blib/html
 
@@ -149,36 +87,91 @@ HTMLPODS = $(MAN3PODS:lib/%.pm=$(HTMLDIR)/%.html)
 
 MAN5EXT = 5
 INST_MAN5DIR = blib/man5
+INST_SYSCONF = blib/sysconf
+INST_SELINUX = blib/selinux
+
+INSTALLSYSCONF = $(PERLPREFIX)/etc
+DESTINSTALLSYSCONF = $(DESTDIR)/$(INSTALLSYSCONF)
+INSTALLSELINUX = $(PERLPREFIX)/share/selinux
+DESTINSTALLSELINUX = $(DESTDIR)/$(INSTALLSELINUX)
 
 $(INST_MAN5DIR)/.exists :: $(INST_MAN3DIR)/.exists
 	$(NOECHO) $(MKPATH) $(INST_MAN5DIR)
 	$(NOECHO) $(EQUALIZE_TIMESTAMP) $(INST_MAN3DIR)/.exists $(INST_MAN5DIR)/.exists
 	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_MAN5DIR)
 
-all:: manify5pods
+$(INST_SYSCONF)/.exists :: $(INST_MAN3DIR)/.exists
+	$(NOECHO) $(MKPATH) $(INST_SYSCONF)
+	$(NOECHO) $(MKPATH) $(INST_SYSCONF)/templates
+	$(NOECHO) $(MKPATH) $(INST_SYSCONF)/cron
+	$(NOECHO) $(MKPATH) $(INST_SYSCONF)/httpd
+	$(NOECHO) $(MKPATH) $(INST_SYSCONF)/engine
+	$(NOECHO) $(EQUALIZE_TIMESTAMP) $(INST_MAN3DIR)/.exists $(INST_SYSCONF)/.exists
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SYSCONF)
+
+$(INST_SELINUX)/.exists :: $(INST_MAN3DIR)/.exists
+	$(NOECHO) $(MKPATH) $(INST_SELINUX)
+	$(NOECHO) $(EQUALIZE_TIMESTAMP) $(INST_MAN3DIR)/.exists $(INST_SELINUX)/.exists
+	-$(NOECHO) $(CHMOD) $(PERM_RWX) $(INST_SELINUX)
+
+all:: manify5pods prepconf prepscripts prepselinux
 
 manify5pods: $(INST_MAN5DIR)/.exists conf/auto-build.conf.pod
 	$(NOECHO) $(POD2MAN_EXE) --section=5 --perm_rw=$(PERM_RW)\
           conf/auto-build.conf.pod $(INST_MAN5DIR)/auto-build.conf.$(MAN5EXT)
 
-INSTALLMAN5DIR = $(PERLPREFIX)/share/man/man5
-DESTINSTALLMAN5DIR = $(DESTDIR)$(INSTALLMAN5DIR)
-INSTALLSITEMAN5DIR = $(SITEPREFIX)/share/man/man5
-DESTINSTALLSITEMAN5DIR = $(DESTDIR)$(INSTALLSITEMAN5DIR)
-INSTALLVENDORMAN5DIR = $(VENDORPREFIX)/share/man/man5
-DESTINSTALLVENDORMAN5DIR = $(DESTDIR)$(INSTALLVENDORMAN5DIR)
+prepconf: $(INST_SYSCONF)/.exists
+	$(NOECHO) for i in conf/*.conf conf/engine/*.conf conf/cron/*.conf conf/httpd/*.conf; do \
+		conf=`echo $$i | sed -e \'s/conf\///\'`; \
+                $(RM_F) $(INST_SYSCONF)/$$conf; \
+                $(CP) $$i $(INST_SYSCONF)/$$conf; \
+                $(FIXIN) $(INST_SYSCONF)/$$conf; \
+                $(CHMOD) $(PERM_RW) $(INST_SYSCONF)/$$conf; \
+	done
+	$(NOECHO) for i in templates/*.txt templates/*.html templates/*.tt templates/*.css templates/*.rss templates/*.png ; do \
+                $(RM_F) $(INST_SYSCONF)/$$i; \
+                $(CP) $$i $(INST_SYSCONF)/$$i; \
+                $(FIXIN) $(INST_SYSCONF)/$$i; \
+                $(CHMOD) $(PERM_RW) $(INST_SYSCONF)/$$i; \
+        done
+
+prepscripts: $(INST_SCRIPT)/.exists
+	if [ -d "$(SELINUXDEV)" -a "$(WITH_SELINUX)" = "1" ]; then \
+		$(RM_F) $(INST_SCRIPT)/auto-build-secure; \
+		$(CP) bin/auto-build $(INST_SCRIPT)/auto-build-secure; \
+		$(FIXIN) $(INST_SCRIPT)/auto-build-secure; \
+		$(CHMOD) $(PERM_RWX) $(INST_SCRIPT)/auto-build-secure; \
+	fi
+
+prepselinux: $(INST_SELINUX)/.exists
+	if [ -d "$(SELINUXDEV)" -a "$(WITH_SELINUX)" = "1" ]; then \
+		$(RM_F) $(INST_SELINUX)/auto-build.pp; \
+		$(CP) conf/selinux/auto-build.pp $(INST_SELINUX)/auto-build.pp; \
+		$(FIXIN) $(INST_SELINUX)/auto-build.pp; \
+		$(CHMOD) $(PERM_RW) $(INST_SELINUX)/auto-build.pp; \
+	fi
+
+INSTALLMAN5 = $(PERLPREFIX)/share/man/man5
+DESTINSTALLMAN5 = $(DESTDIR)$(INSTALLMAN5)
+INSTALLSITEMAN5 = $(SITEPREFIX)/share/man/man5
+DESTINSTALLSITEMAN5 = $(DESTDIR)$(INSTALLSITEMAN5)
+INSTALLVENDORMAN5 = $(VENDORPREFIX)/share/man/man5
+DESTINSTALLVENDORMAN5 = $(DESTDIR)$(INSTALLVENDORMAN5)
 
 pure_perl_install ::
-	install -d -m 0755 $(DESTINSTALLMAN5DIR)
-	install -c -m 644 $(INST_MAN5DIR)/* $(DESTINSTALLMAN5DIR)
+	$(MOD_INSTALL) $(INST_MAN5DIR) $(DESTINSTALLMAN5)
+	$(MOD_INSTALL) $(INST_SYSCONF) $(DESTINSTALLSYSCONF)/auto-build.d
+	$(MOD_INSTALL) $(INST_SELINUX) $(DESTINSTALLSELINUX)/packages
 
 pure_site_install ::
-	install -d -m 0755 $(DESTINSTALLSITEMAN5DIR)
-	install -c -m 644 $(INST_MAN5DIR)/* $(DESTINSTALLSITEMAN5DIR)
+	$(MOD_INSTALL) $(INST_MAN5DIR) $(DESTINSTALLSITEMAN5)
+	$(MOD_INSTALL) $(INST_SYSCONF) $(DESTINSTALLSYSCONF)/auto-build.d
+	$(MOD_INSTALL) $(INST_SELINUX) $(DESTINSTALLSELINUX)/packages
 
 pure_vendor_install ::
-	install -d -m 0755 $(DESTINSTALLVENDORMAN5DIR)
-	install -c -m 644 $(INST_MAN5DIR)/* $(DESTINSTALLVENDORMAN5DIR)
+	$(MOD_INSTALL) $(INST_MAN5DIR) $(DESTINSTALLVENDORMAN5)
+	$(MOD_INSTALL) $(INST_SYSCONF) $(DESTINSTALLSYSCONF)/auto-build.d
+	$(MOD_INSTALL) $(INST_SELINUX) $(DESTINSTALLSELINUX)/packages
 
 
 htmlifypods: $(HTMLDIR) $(HTMLPODS)

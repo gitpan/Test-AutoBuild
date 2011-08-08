@@ -1,49 +1,75 @@
-#!/bin/sh
+#!/usr/bin/perl
+#
+# Copyright (C) 2002-2008 Daniel P. Berrange <dan@berrange.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-if [ -z "$1" ]; then
-  BUILD_HOME=/var/lib/builder
-else
-  BUILD_HOME=$1
-fi
+use strict;
+use warnings;
 
-set -e
+use File::Path;
+use File::Glob ':glob';
+use File::Spec::Functions qw(catdir catfile rootdir);
 
-cleanit() {
-    echo "Clean $1"
-    rm -rf $BUILD_HOME/$1/*
+my $build_home = catdir(rootdir, "var", "lib", "builder");
+$build_home = shift @ARGV if @ARGV;
+
+sub cleanit {
+    my @dir = @_;
+    my $path = catdir($build_home, @dir);
+    print "Clean $path\n";
+    my $files = catfile($path, "*");
+    my @files = bsd_glob($files);
+    rmtree(\@files, 0, 0);
 }
 
-cleanit source-root
-cleanit install-root
-cleanit build-archive
-cleanit log-root
+cleanit "source-root";
+cleanit "install-root";
+cleanit "build-archive";
+cleanit "log-root";
 
-cleanit public_html
-cleanit public_ftp
+cleanit "public_html";
+cleanit "public_ftp";
 
-cleanit package-root/rpm/BUILD
-cleanit package-root/rpm/RPMS/noarch
-cleanit package-root/rpm/RPMS/i386
-cleanit package-root/rpm/RPMS/i486
-cleanit package-root/rpm/RPMS/i586
-cleanit package-root/rpm/RPMS/i686
-cleanit package-root/rpm/RPMS/x86_64
-cleanit package-root/rpm/RPMS/ia32e
-cleanit package-root/rpm/RPMS/ia64
-cleanit package-root/rpm/RPMS/sparc
-cleanit package-root/rpm/SPECS
-cleanit package-root/rpm/SOURCES
-cleanit package-root/rpm/SRPMS
-cleanit package-root/zips
-cleanit package-root/tars
-cleanit package-root/debian
+cleanit "package-root", "rpm", "BUILD";
+cleanit "package-root", "rpm", "RPMS", "noarch";
+cleanit "package-root", "rpm", "RPMS", "i386";
+cleanit "package-root", "rpm", "RPMS", "i486";
+cleanit "package-root", "rpm", "RPMS", "i586";
+cleanit "package-root", "rpm", "RPMS", "i686";
+cleanit "package-root", "rpm", "RPMS", "x86_64";
+cleanit "package-root", "rpm", "RPMS", "ia32e";
+cleanit "package-root", "rpm", "RPMS", "ia64";
+cleanit "package-root", "rpm", "RPMS", "sparc";
+cleanit "package-root", "rpm", "SPECS";
+cleanit "package-root", "rpm", "SOURCES";
+cleanit "package-root", "rpm", "SRPMS";
+cleanit "package-root", "pkg";
+cleanit "package-root", "zips";
+cleanit "package-root", "tars";
+cleanit "package-root", "debian";
 
-rm -f $BUILD_HOME/autobuild*.log
-rm -f $BUILD_HOME/.build.mutex
+my $logs = catfile($build_home, "autobuild*.log");
+my @files = bsd_glob($logs);
+push @files, catfile($build_home, ".build.mutex");
+
+print "Clean $_\n" foreach @files;
+rmtree(\@files, 0, 0);
 
 exit 0;
 
-POD=<<EOF
 =pod
 
 =head1 NAME
@@ -114,7 +140,7 @@ be exported by an FTP server.
 
 =head1 LICENSE
 
-Copyright (C) 2002-2006 Daniel P. Berrange
+Copyright (C) 2002-2008 Daniel P. Berrange
 
 Test-AutoBuild is distributed under the terms of the GNU GPL v2+.
 This is free software; see the source for copying conditions.  There is
@@ -126,4 +152,3 @@ PURPOSE.
 L<auto-build(1)>, L<auto-build.conf(5)>
 
 =cut
-EOF

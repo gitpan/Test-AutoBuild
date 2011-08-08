@@ -24,6 +24,7 @@ my $build_home = catfile($here, "t", "build-home");
 my $archive = catfile($here, "t", "110-Repository-GNUArch.tar.gz");
 
 END {
+  chdir $here;
   rmtree ($build_repos);
   rmtree ($build_home);
 }

@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Darcs.pm,v 1.1 2007/12/10 04:45:18 danpb Exp $
+# $Id: Darcs.pm,v 1.2 2011/03/28 16:26:34 danpb Exp $
 
 =pod
 
@@ -191,7 +191,7 @@ sub _get_changes {
     foreach my $change (@{$xml->{patch}}) {
 	my $date = ParseDateString($change->{date});
 	die "cannot parse date '" . $change->{date} . "'" unless $date;
-	my $time = UnixDate($date, "%o");
+	my $time = UnixDate($date, "%s");
 
 	$changes{$change->{hash}} = Test::AutoBuild::Change->new(number => $change->{date},
 								 date => $time,

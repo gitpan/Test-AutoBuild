@@ -1,49 +1,65 @@
-#!/bin/sh
+#!/usr/bin/perl
+#
+# Copyright (C) 2002-2008 Daniel P. Berrange <dan@berrange.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-if [ -z "$1" ]; then
-  BUILD_HOME=/var/lib/builder
-else
-  BUILD_HOME=$1
-fi
+use strict;
+use warnings;
 
-set -e
+use File::Path;
+use File::Spec::Functions qw(catdir rootdir);
 
-makeit() {
-    echo "Create $1"
-    install -d -m 0755 $BUILD_HOME/$1
+my $build_home = catdir(rootdir, "var", "lib", "builder");
+$build_home = shift @ARGV if @ARGV;
+
+sub makeit {
+    my @dir = @_;
+    my $path = catdir($build_home, @dir);
+    print "Create $path\n";
+    mkpath([$path], 0, 0755);
 }
 
-makeit source-root
-makeit install-root
-makeit build-archive
-makeit log-root
+makeit "source-root";
+makeit "install-root";
+makeit "build-archive";
+makeit "log-root";
 
-makeit public_html
-makeit public_ftp
+makeit "public_html";
+makeit "public_ftp";
 
-makeit package-root
-makeit package-root/rpm
-makeit package-root/rpm/BUILD
-makeit package-root/rpm/RPMS
-makeit package-root/rpm/RPMS/noarch
-makeit package-root/rpm/RPMS/i386
-makeit package-root/rpm/RPMS/i486
-makeit package-root/rpm/RPMS/i586
-makeit package-root/rpm/RPMS/i686
-makeit package-root/rpm/RPMS/x86_64
-makeit package-root/rpm/RPMS/ia32e
-makeit package-root/rpm/RPMS/ia64
-makeit package-root/rpm/RPMS/sparc
-makeit package-root/rpm/SPECS
-makeit package-root/rpm/SOURCES
-makeit package-root/rpm/SRPMS
-makeit package-root/zips
-makeit package-root/tars
-makeit package-root/debian
+makeit "package-root", "rpm", "BUILD";
+makeit "package-root", "rpm", "RPMS", "noarch";
+makeit "package-root", "rpm", "RPMS", "i386";
+makeit "package-root", "rpm", "RPMS", "i486";
+makeit "package-root", "rpm", "RPMS", "i586";
+makeit "package-root", "rpm", "RPMS", "i686";
+makeit "package-root", "rpm", "RPMS", "x86_64";
+makeit "package-root", "rpm", "RPMS", "ia32e";
+makeit "package-root", "rpm", "RPMS", "ia64";
+makeit "package-root", "rpm", "RPMS", "sparc";
+makeit "package-root", "rpm", "SPECS";
+makeit "package-root", "rpm", "SOURCES";
+makeit "package-root", "rpm", "SRPMS";
+makeit "package-root", "pkg";
+makeit "package-root", "zips";
+makeit "package-root", "tars";
+makeit "package-root", "debian";
 
 exit 0;
 
-POD=<<EOF
 =pod
 
 =head1 NAME
@@ -125,4 +141,4 @@ PURPOSE.
 L<auto-build(1)>, L<auto-build.conf(5)>
 
 =cut
-EOF
+

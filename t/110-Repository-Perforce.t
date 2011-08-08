@@ -26,6 +26,7 @@ my $archive = catfile($here, "t", "110-Repository-Perforce.tar.gz");
 my $pid;
 
 END {
+  chdir $here;
   if (defined $pid) {
     my $kid = waitpid $pid, WNOHANG;
     if ($kid != $pid) {

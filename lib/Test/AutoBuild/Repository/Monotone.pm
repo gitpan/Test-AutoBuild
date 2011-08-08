@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Monotone.pm,v 1.1 2007/12/12 03:33:00 danpb Exp $
+# $Id: Monotone.pm,v 1.2 2011/07/22 20:29:16 danpb Exp $
 
 =pod
 
@@ -113,10 +113,10 @@ sub export {
     my $sync_to;
     my $found = 0;
     foreach (sort { $all_changes->{$a}->date <=> $all_changes->{$b}->date} keys %{$all_changes}) {
-	$sync_to = $_ unless defined $sync_to;
+	$sync_to = $all_changes->{$_}->number unless defined $sync_to;
 	#$log->debug("Compare changelist $_ at " . $all_changes->{$_}->date . " to " . $runtime->timestamp);
 	last if $all_changes->{$_}->date > $runtime->timestamp;
-	$sync_to = $_;
+	$sync_to = $all_changes->{$_}->number;
 	$log->debug("Add " . $all_changes->{$_}->number) if $found;
 	$changes{$all_changes->{$_}->number} = $all_changes->{$_} if $found;
 	$found = 1 if defined $current && $current eq $_;
@@ -201,6 +201,8 @@ sub _get_changes {
 
     my @lines = split /\n/, $data;
 
+    my $indesc = 0;
+
     my %logs;
     my $hash;
     foreach my $line (@lines) {
@@ -210,6 +212,7 @@ sub _get_changes {
 	    $hash = $1;
 	    $log->debug("Changeset hash " . $hash);
 	    $logs{$hash} = { hash => $hash };
+	    $indesc = 0;
 	} elsif (defined $hash) {
 	    if ($line =~ m,^Author:\s*(.*?)\s*$,) {
 		$logs{$hash}->{user} = $1;
@@ -217,15 +220,19 @@ sub _get_changes {
 	    } elsif ($line =~ m,^Date:\s*(.*?)\s*$,) {
 		$logs{$hash}->{date} = $1;
 		$log->debug("Date " . $logs{$hash}->{date});
-	    } elsif ($line =~ m,^(?:Added|Modified|Deleted|Renamed)\s+(?:attrs|entries|directories|files):\s*$,) {
-		$logs{$hash}->{files} = [];
-		#$log->debug("Files " . $logs{$hash}->{files});
-	    } elsif ($line =~ m,^ChangeLog:\s*(.*?)\s*$,) {
+	    } elsif ($line =~ m,^\s*(?:patched)\s+(.*?)\s*$,i) {
+		$logs{$hash}->{files} = [] unless exists $logs{$hash}->{files};
+		push @{$logs{$hash}->{files}}, $1;
+		$log->debug("Files " . $logs{$hash}->{files});
+	    } elsif ($line =~ m,^ChangeLog:\s*(.*?)\s*$,i) {
 		$logs{$hash}->{description} = '';
+		$indesc = 1;
 		#$log->debug("Description started ");
+	    } elsif ($line =~ m,^\s*Changes against parent,) {
+		$indesc = 0;
 	    } elsif ($line =~ m,^\s*\-+\s*$,) {
 		$hash = undef;
-	    } elsif (defined $logs{$hash}->{description}) {
+	    } elsif ($indesc && defined $logs{$hash}->{description}) {
 		$line =~ s/(^\s*)|(\s*$)//g;
 		if ($logs{$hash}->{description} eq "") {
 		    if ($line ne "") {
@@ -235,10 +242,7 @@ sub _get_changes {
 		    $logs{$hash}->{description} .= "\n" . $line;
 		}
 		#$log->debug("Append Desc " . $line);
-	    } elsif (defined $logs{$hash}->{files}) {
-		$line =~ s/(^\s*)|(\s*$)//g;
-		push @{$logs{$hash}->{files}}, $line;
-	    } elsif ($line =~ m,^(Branch|Ancestor|Tag),) {
+	    } elsif ($line =~ m,^(Branch|Parent|Tag),) {
 		# nada
 	    } else {
 		$log->warn("Got unexpected changelist tag " . $line);
@@ -255,16 +259,19 @@ sub _get_changes {
 	my $date = ParseDateString($logs{$_}->{date});
 	die "cannot parse date '" . $logs{$_}->{date} . "'" unless $date;
 	#$log->debug("Initial parsing from '$mungedDate' gives $date");
-	my $time = UnixDate($date, "%o");
+	my $time = UnixDate($date, "%s");
+	#my $change = UnixDate($date, "%Y-%m-%dT%H:%m:%s");
+	my $change = $logs{$_}->{date};
 	#$log->debug("Date was $date and time is $time");
 
 	$log->debug("Change " . $logs{$_}->{hash} . " " . $date . " " . $logs{$_}->{description});
 
-	$changes{$_} = Test::AutoBuild::Change->new(number => $logs{$_}->{date},
-						    date => $time,
-						    user => $logs{$_}->{user},
-						    description => $logs{$_}->{description},
-						    files => $logs{$_}->{files});
+	$changes{$logs{$_}->{hash}} =
+	    Test::AutoBuild::Change->new(number => $logs{$_}->{hash},
+					 date => $time,
+					 user => $logs{$_}->{user},
+					 description => $logs{$_}->{description},
+					 files => $logs{$_}->{files});
     }
     return \%changes;
 }

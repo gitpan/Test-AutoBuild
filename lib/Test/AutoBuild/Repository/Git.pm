@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Git.pm,v 1.1 2007/12/10 02:23:35 danpb Exp $
+# $Id: Git.pm,v 1.4 2011/03/28 15:01:13 danpb Exp $
 
 =pod
 
@@ -83,29 +83,62 @@ sub export {
 	$branch = $2;
     }
 
+    my $base_url = $self->option("base-url");
+    die "base-url option is required" unless $base_url;
+    $base_url =~ s,\/$,,;
+    $src =~ s,^/,,;
+    my $url = "$base_url/$src";
+
+    $log->debug("Export [$base_url][$src][$branch][$dst]\n");
+
     my $changed = 0;
     my $current = undef;
     # Don't support using multiple paths yet
     if (-d $dst) {
+	# Determine the current working directory changeset
 	$current = $self->_get_current($dst, $logfile);
 	$log->debug("Current changeset in $dst is $current");
-	$self->_pull_repository($src, $dst, $logfile);
     } else {
-	$self->_clone_repository($src, $dst, $logfile);
+	# Get an initial local repo, but don't checkout anything
+	$self->_clone_repository($url, $dst, $logfile);
 	$changed = 1;
     }
 
+    # Figure out what (if any) branches currently exist
+    my @branches = $self->_list_branches($dst, $logfile);
+    my $newbranch = 1;
+    foreach (@branches) {
+	$newbranch = 0 if $_ eq $branch;
+    }
+    # Create a local tracking branch if it doesn't exist
+    if ($newbranch) {
+	$self->_create_branch($branch, $dst, $logfile);
+    }
+    # Checkout the local tracking branch
+    $self->_checkout_branch($branch, $dst, $logfile);
+
+    if (defined $current) {
+	# Blow away any changes build script made to local checkout
+	$self->_sync_checkout($dst, $current, $logfile);
+
+	# Pull in latest changesets from upstream
+	$self->_pull_repository($dst, $logfile);
+    }
+
+    # Figure out what timestamp we'll sync to
     my $target = $self->_get_target($runtime, $dst, $branch, $logfile);
     $log->debug("Target changeset is $target");
 
     my $changes = {};
     if (defined $current) {
+	# Get the changes between current checkout & new target
 	$changes = $self->_get_changes($dst, $current, $target, $logfile);
 	if (keys %{$changes}) {
 	    $changed = 1;
 	}
     }
 
+    # Update checkout to match desired changeset
     $self->_sync_checkout($dst, $target, $logfile);
 
     return ($changed, $changes);
@@ -113,19 +146,49 @@ sub export {
 
 sub _clone_repository {
     my $self = shift;
-    my $path = shift;
+    my $url = shift;
     my $dest = shift;
     my $logfile = shift;
     my $log = Log::Log4perl->get_logger();
 
-    my $base_url = $self->option("base-url");
-    die "base-url option is required" unless $base_url;
-    $base_url =~ s,\/$,,;
-    $path =~ s,^/,,;
-    my $url = "$base_url/$path";
-
-    $log->info("Cloning repository at $url");
+    $log->info("Cloning repository at $url to $dest");
     my ($result, $errors) = $self->_run(["git", "clone", "--no-checkout", $url, $dest], undef, $logfile);
+}
+
+sub _list_branches {
+    my $self = shift;
+    my $dest = shift;
+    my $logfile = shift;
+    my $log = Log::Log4perl->get_logger();
+
+    $log->info("Getting branches in $dest");
+    my ($result, $errors) = $self->_run(["git", "branch", "-l"], $dest, $logfile);
+
+    my @branches = map { s/^\s*\*?\s*//; $_ } split /\n/, $result;
+    $log->debug("Got branches '" . join("', '", @branches) . "'");
+    return @branches;
+}
+
+sub _create_branch {
+    my $self = shift;
+    my $branch = shift;
+    my $dest = shift;
+    my $logfile = shift;
+    my $log = Log::Log4perl->get_logger();
+
+    $log->info("Creating branch $branch in $dest");
+    my ($result, $errors) = $self->_run(["git", "branch", $branch, "origin/$branch"], $dest, $logfile);
+}
+
+sub _checkout_branch {
+    my $self = shift;
+    my $branch = shift;
+    my $dest = shift;
+    my $logfile = shift;
+    my $log = Log::Log4perl->get_logger();
+
+    $log->info("Checking out repository branch $branch in $dest");
+    my ($result, $errors) = $self->_run(["git", "checkout", $branch], $dest, $logfile);
 }
 
 sub _sync_checkout {
@@ -135,25 +198,18 @@ sub _sync_checkout {
     my $logfile = shift;
     my $log = Log::Log4perl->get_logger();
 
-    $log->info("Checking out changeset $changeset");
-    my ($result, $errors) = $self->_run(["git", "checkout", "-f", $changeset], $dest, $logfile);
+    $log->info("Checking out changeset $changeset in $dest");
+    my ($result, $errors) = $self->_run(["git", "reset", "--hard", $changeset], $dest, $logfile);
 }
 
 sub _pull_repository {
     my $self = shift;
-    my $path = shift;
     my $dest = shift;
     my $logfile = shift;
     my $log = Log::Log4perl->get_logger();
 
-    my $base_url = $self->option("base-url");
-    die "base-url option is required" unless $base_url;
-    $base_url =~ s,\/$,,;
-    $path =~ s,^/,,;
-    my $url = "$base_url/$path";
-
-    $log->info("Pulling from repository at $url");
-    my ($result, $errors) = $self->_run(["git", "pull", "$url"], $dest, $logfile);
+    $log->info("Pulling from origin");
+    my ($result, $errors) = $self->_run(["git", "pull"], $dest, $logfile);
 }
 
 sub _get_current {
@@ -239,6 +295,7 @@ sub _get_changes {
 		    # ignore
 		}
 	    } elsif (defined $logs{$hash}->{description}) {
+                next if /^\s*<unknown>\s*$/;
 		$line =~ s/(^\s*)|(\s*$)//g;
 		if ($logs{$hash}->{description} eq "") {
 		    $logs{$hash}->{description} .= $line;

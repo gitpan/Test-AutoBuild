@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: HTMLStatus.pm,v 1.24 2007/12/08 20:10:26 danpb Exp $
+# $Id: HTMLStatus.pm,v 1.25 2009/03/30 14:57:01 danpb Exp $
 
 =pod
 
@@ -106,8 +106,8 @@ sub process {
 		name => $test,
 		duration => Test::AutoBuild::Lib::pretty_time($test_end - $test_start),
 		status => $module->test_status($test),
-		output_log_file => @output_log_stat ? $module->build_output_log_file($test) : "",
-		result_log_file => @result_log_stat ? $module->build_result_log_file($test) : "",
+		output_log_file => @output_log_stat ? $module->test_output_log_file($test) : "",
+		result_log_file => @result_log_stat ? $module->test_result_log_file($test) : "",
 		output_log_size => @output_log_stat ? Test::AutoBuild::Lib::pretty_size($output_log_stat[7]) : "",
 		result_log_size => @result_log_stat ? Test::AutoBuild::Lib::pretty_size($result_log_stat[7]) : "",
 	    };

@@ -23,6 +23,7 @@ my $build_home = catfile($here, "t", "build-home");
 my $archive = catfile($here, "t", "110-Repository-Git.tar.gz");
 
 END {
+  chdir $here;
   unless ($ENV{DEBUG_TESTS}) {
     rmtree ($build_repos);
     rmtree ($build_home);
@@ -69,13 +70,13 @@ SKIP: {
 									     user => "Daniel Berrange <berrange\@t60wlan.home.berrange.com>",
 									     date => "1197239956",
 									     files => ["a"],
-									     description => "Change 1 on trunk\n<unknown>")}, 1);
+									     description => "Change 1 on trunk")}, 1);
 
   &checkout(3, "head", $head, 1197239967, "2\n", 1, { "3c4dfa7" => Test::AutoBuild::Change->new(number => "3c4dfa7",
 									     user => "Daniel Berrange <berrange\@t60wlan.home.berrange.com>",
 									     date => "1197239966",
 									     files => ["a"],
-									     description => "Change 2 on trunk\n<unknown>")}, 2);
+									     description => "Change 2 on trunk")}, 2);
 
 
   #&checkout("head", $head, 1109844423, "2\n", 0, { }, 3 );
@@ -85,12 +86,12 @@ SKIP: {
 									     user => "Daniel Berrange <berrange\@t60wlan.home.berrange.com>",
 									     date => "1197239986",
 									     files => ["a"],
-									     description => "Change 3 on branch\n<unknown>"),
+									     description => "Change 3 on branch"),
 					   "3870532" => Test::AutoBuild::Change->new(number => "3870532",
 									     user => "Daniel Berrange <berrange\@t60wlan.home.berrange.com>",
 									     date => "1197240006",
 									     files => ["a"],
-									     description => "Change 4 on trunk\n<unknown>"), }, 4 );
+									     description => "Change 4 on trunk"), }, 4 );
   &checkout(6, "branch", $branch, 1197240007, "3\n", 0, {}, 3);
 
   #&checkout("head", $head, 1109844447, "4\n", 0, { }, 7);
@@ -98,23 +99,23 @@ SKIP: {
 									     user => "Daniel Berrange <berrange\@t60wlan.home.berrange.com>",
 									       date => "1197240016",
 									       files => ["a"],
-									       description => "Change 5 on branch\n<unknown>") }, 5 );
+									       description => "Change 5 on branch") }, 5 );
 
   &checkout(8, "head", $head, 1197240027, "6\n", 1, { "10c317b" => Test::AutoBuild::Change->new(number => "10c317b",
 									     user => "Daniel Berrange <berrange\@t60wlan.home.berrange.com>",
 									     date => "1197240016",
 									     files => ["a"],
-									     description => "Change 5 on branch\n<unknown>"),
+									     description => "Change 5 on branch"),
 					   "f92574d"=> Test::AutoBuild::Change->new(number => "f92574d",
 									     user => "Daniel Berrange <berrange\@t60wlan.home.berrange.com>",
 									     date => "1197240016",
 									     files => [],
-									     description => "Merge branch 'wibble'\n<unknown>"),
+									     description => "Merge branch 'wibble'"),
 					   "0273df1"=> Test::AutoBuild::Change->new(number => "0273df1",
 									     user => "Daniel Berrange <berrange\@t60wlan.home.berrange.com>",
 									     date => "1197240026",
 									     files => ["a"],
-									     description => "Change 6 on trunk\n<unknown>") }, 6 );
+									     description => "Change 6 on trunk") }, 6 );
   &checkout(9, "branch", $branch, 1197240027, "5\n", 0, {}, 5);
 
 }

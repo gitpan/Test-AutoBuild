@@ -23,6 +23,7 @@ my $build_home = catfile($here, "t", "build-home");
 my $archive = catfile($here, "t", "110-Repository-Monotone.tar.gz");
 
 END {
+  chdir $here;
   unless ($ENV{DEBUG_TESTS}) {
     rmtree ($build_repos);
     rmtree ($build_home);
@@ -55,6 +56,8 @@ SKIP: {
 
   system "cd $build_repos && (gunzip -c $archive | tar xf -)";
 
+  system "cd $build_repos && mtn db migrate -d main.db 2> /dev/null";
+
   my $head = "main.db:trunk";
   my $branch = "main.db:wibble";
 
@@ -66,63 +69,72 @@ SKIP: {
 
   &checkout("head", $head, 1197422028, "0\n", 1, {}, 1);
   &checkout("head", $head, 1197422039, "1\n", 1,
-	    { "2007-12-12T01:13:57" => Test::AutoBuild::Change->new(number => "2007-12-12T01:13:57",
-								    user => "fred\@example.com",
-								    date => "1197422037",
-								    files => ["a"],
-								    description => "Change 1 on trunk")}, 1);
+	    { "a7830586ffba8366190062a8d97828c90e0c1538" =>
+		  Test::AutoBuild::Change->new(number => "a7830586ffba8366190062a8d97828c90e0c1538",
+					       user => "fred\@example.com",
+					       date => "1197422037",
+					       files => ["a"],
+					       description => "Change 1 on trunk")}, 1);
+
 
   &checkout("head", $head, 1197422050, "2\n", 1,
-	    { "2007-12-12T01:14:08" => Test::AutoBuild::Change->new(number => "2007-12-12T01:14:08",
-								    user => "fred\@example.com",
-								    date => "1197422048",
-								    files => ["a"],
-								    description => "Change 2 on trunk")}, 2);
+	    { "832535eb10d1898851134619f6dbeb8f6b053f9c" =>
+		  Test::AutoBuild::Change->new(number => "832535eb10d1898851134619f6dbeb8f6b053f9c",
+					       user => "fred\@example.com",
+					       date => "1197422048",
+					       files => ["a"],
+					       description => "Change 2 on trunk")}, 2);
 
   #&checkout("head", $head, 1109844423, "2\n", 0, { }, 3 );
   &checkout("branch", $branch, 1197422061, "3\n", 1, { }, 3 );
 
   &checkout("head", $head, 1197422082, "4\n", 1,
-	    { "2007-12-12T01:14:19" => Test::AutoBuild::Change->new(number => "2007-12-12T01:14:19",
-								    user => "fred\@example.com",
-								    date => "1197422059",
-								    files => ["a"],
-								    description => "Change 3 on branch"),
-	      "2007-12-12T01:14:40" => Test::AutoBuild::Change->new(number => "2007-12-12T01:14:40",
-								    user => "fred\@example.com",
-								    date => "1197422080",
-								    files => ["a"],
-								    description => "Change 4 on trunk"), }, 4 );
+	    { "5f3568edac94a15dfa537d52e4ca494f060a4ff8" =>
+		  Test::AutoBuild::Change->new(number => "5f3568edac94a15dfa537d52e4ca494f060a4ff8",
+					       user => "fred\@example.com",
+					       date => "1197422059",
+					       files => ["a"],
+					       description => "Change 3 on branch"),
+	      "b200826ef83ad0c78decfe2ef3512634629f87b0" =>
+	          Test::AutoBuild::Change->new(number => "b200826ef83ad0c78decfe2ef3512634629f87b0",
+					       user => "fred\@example.com",
+					       date => "1197422080",
+					       files => ["a"],
+					       description => "Change 4 on trunk"), }, 4 );
+
   &checkout("branch", $branch, 1197422082, "3\n", 0, {}, 3);
 
   #&checkout("head", $head, 1109844447, "4\n", 0, { }, 7);
   &checkout("branch", $branch, 1197422093, "5\n", 1,
-	    { "2007-12-12T01:14:51" => Test::AutoBuild::Change->new(number => "2007-12-12T01:14:51",
-								    user => "fred\@example.com",
-								    date => "1197422091",
-								    files => ["a"],
-								    description => "Change 5 on branch") }, 5 );
+	    { "b2578ec5695d59efbbf079d0f7fade1809f6ff03" =>
+		  Test::AutoBuild::Change->new(number => "b2578ec5695d59efbbf079d0f7fade1809f6ff03",
+					       user => "fred\@example.com",
+					       date => "1197422091",
+					       files => ["a"],
+					       description => "Change 5 on branch") }, 5 );
 
   &checkout("head", $head, 1197422205, "6\n", 1,
-	    { "2007-12-12T01:14:51" => Test::AutoBuild::Change->new(number => "2007-12-12T01:14:51",
-								    user => "fred\@example.com",
-								    date => "1197422091",
-								    files => ["a"],
-								    description => "Change 5 on branch"),
-	      "2007-12-12T01:16:32" => Test::AutoBuild::Change->new(number => "2007-12-12T01:16:32",
-								    user => "fred\@example.com",
-								    date => "1197422192",
-								    files => ["a"],
-								    description =>"propagate from branch 'wibble' (head b2578ec5695d59efbbf079d0f7fade1809f6ff03)\n" .
+	    { "b2578ec5695d59efbbf079d0f7fade1809f6ff03" =>
+		  Test::AutoBuild::Change->new(number => "b2578ec5695d59efbbf079d0f7fade1809f6ff03",
+					       user => "fred\@example.com",
+					       date => "1197422091",
+					       files => ["a"],
+					       description => "Change 5 on branch"),
+	      "e5ce170b061dd7ad047394fe6e0e5abc909cfe0c" =>
+		  Test::AutoBuild::Change->new(number => "e5ce170b061dd7ad047394fe6e0e5abc909cfe0c",
+					       user => "fred\@example.com",
+					       date => "1197422192",
+					       files => ["a"],
+					       description =>"propagate from branch 'wibble' (head b2578ec5695d59efbbf079d0f7fade1809f6ff03)\n" .
 								                  "to branch 'trunk' (head b200826ef83ad0c78decfe2ef3512634629f87b0)"),
-	      "2007-12-12T01:16:43" => Test::AutoBuild::Change->new(number => "2007-12-12T01:16:43",
-								    user => "fred\@example.com",
-								    date => "1197422203",
-								    files => ["a"],
-								    description => "Change 6 on trunk") }, 6 );
+	      "886971b8062a0cfe48c68373d60bbe3fc88fc134" =>
+	          Test::AutoBuild::Change->new(number => "886971b8062a0cfe48c68373d60bbe3fc88fc134",
+					       user => "fred\@example.com",
+					       date => "1197422203",
+					       files => ["a"],
+					       description => "Change 6 on trunk") }, 6 );
 
   &checkout("branch", $branch, 1197422205, "5\n", 0, {}, 5);
-
 }
 
 sub checkout {

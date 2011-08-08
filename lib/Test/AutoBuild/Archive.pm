@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Archive.pm,v 1.11 2007/12/08 17:35:16 danpb Exp $
+# $Id: Archive.pm,v 1.12 2008/08/28 10:05:55 danpb Exp $
 
 =pod
 
@@ -377,7 +377,7 @@ order. This method must be implemented by subclasses.
 sub _get_objects {
     my $self = shift;
 
-    die "module " . ref($self) . " forgot to implement the get_modules method";
+    die "module " . ref($self) . " forgot to implement the _get_objects method";
 }
 
 =item my @buckets = $archive->list_buckets($object)

@@ -23,6 +23,7 @@ my $build_home = catfile($here, "t", "build-home");
 my $archive = catfile($here, "t", "110-Repository-Bzr.tar.gz");
 
 END {
+  chdir $here;
   unless ($ENV{DEBUG_TESTS}) {
     rmtree ($build_repos);
     rmtree ($build_home);

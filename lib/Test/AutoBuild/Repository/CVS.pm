@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: CVS.pm,v 1.18 2007/12/08 20:10:26 danpb Exp $
+# $Id: CVS.pm,v 1.19 2008/09/23 10:51:06 danpb Exp $
 
 =pod
 
@@ -76,7 +76,7 @@ sub export {
 
     my $cmd = -e $dst ?
 	($branch ?
-	 ['cvs', '-q', 'update', '-D', $date, '-r', $branch, '-APdC'] :
+	 ['cvs', '-q', 'update', '-D', $date, '-r', $branch, '-PdC'] :
 	 ['cvs', '-q', 'update', '-D', $date, '-APdC']) :
 	 ($branch ?
 	  ['cvs', '-q', 'checkout', '-D', $date, '-d', $dst, '-r', $branch, '-P', $src] :

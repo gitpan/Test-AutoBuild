@@ -20,13 +20,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Local.pm,v 1.4 2007/12/11 05:01:11 danpb Exp $
+# $Id: Local.pm,v 1.6 2011/07/22 20:29:37 danpb Exp $
 
 =pod
 
 =head1 NAME
 
-Test::AutoBuild::Command - A locally executed command
+Test::AutoBuild::Command::Local - A locally executed command
 
 =head1 SYNOPSIS
 
@@ -77,7 +77,7 @@ sub run {
 
     my $cwd = getcwd;
     if ($self->dir) {
-	die "cannot change into " . $self->dir . ": $!" unless chdir $self->dir;
+	die "cannot change into '" . $self->dir . "': $!" unless chdir $self->dir;
     }
 
     $log->debug("running: '" . join("' '", $self->cmd) . "' in /" . getcwd  . "'");
@@ -96,7 +96,7 @@ sub run {
     };
     my $err = $@;
     if ($self->dir) {
-	die "cannot change into $cwd: $!" unless chdir $cwd;
+	die "cannot change back into '$cwd': $!" unless chdir $cwd;
     }
     die $err if $err;
     return $status;

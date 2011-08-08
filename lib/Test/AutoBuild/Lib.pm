@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Lib.pm,v 1.31 2007/12/08 17:35:16 danpb Exp $
+# $Id: Lib.pm,v 1.32 2009/03/30 14:57:43 danpb Exp $
 
 =pod
 
@@ -204,7 +204,6 @@ sub _copy {
 
     my $target = pop;
     my @source = @_;
-
     &copy_files(\@source, $target, $options);
 }
 
@@ -217,6 +216,7 @@ sub copy_files {
 
     my $attrs = ['mode','ownership','timestamps','links'];
     $options = {
+	"glob" => 1,
 	"link" => 0,
 	"preserve" => {
 	    'mode' => 0,
@@ -233,11 +233,14 @@ sub copy_files {
 	    $options->{preserve}->{$_} = 1;
 	}
     }
-
     my @expanded_sources;
     my @source = ref($source) ? @{$source} : ($source);
-    for (@source) {
-	push @expanded_sources, bsd_glob($_);
+    if ($options->{glob}) {
+	for (@source) {
+	    push @expanded_sources, bsd_glob($_);
+	}
+    } else {
+	@expanded_sources = @source;
     }
 
     if (@expanded_sources > 1 && ! -d $target) {
@@ -289,7 +292,9 @@ sub copy_files {
 		if ($@) {
 		    die "could not create directory '$new_target': $@";
 		}
-		@files > 0 && _copy (@files, $new_target);
+		my %newoptions = %{$options};
+		$newoptions{glob} = 0;
+		@files > 0 && _copy (\%newoptions, @files, $new_target);
 	    } else {
 		my @dir = File::Spec->splitdir($newfile);
 		pop @dir;

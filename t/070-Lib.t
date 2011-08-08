@@ -1,6 +1,6 @@
 # -*- perl -*-
 
-use Test::More tests => 31;
+use Test::More tests => 32;
 
 BEGIN {
   use_ok("Test::AutoBuild::Lib") or die $@;
@@ -26,10 +26,14 @@ my $scratch = tempdir(CLEANUP => 1);
 &create_file($scratch, "file-dst-a.txt");
 &create_dir($scratch, "dir-src-a");
 &create_dir($scratch, "dir-src-b");
+&create_dir($scratch, "dir-src-c");
 &create_dir($scratch, "dir-dst-a");
 &create_dir($scratch, "dir-dst-b");
 &create_dir($scratch, "dir-dst-c");
 &create_dir($scratch, "dir-dst-d");
+&create_dir($scratch, "dir-dst-f");
+&create_file($scratch, catfile("dir-src-c", "file-{src}-a.txt"));
+
 
 # Single file -> single existing file
 #  (Dest name is exact)
@@ -146,6 +150,9 @@ Test::AutoBuild::Lib::_copy(catfile($scratch, "file-src-a.txt"),
 
 ok(-f catfile($scratch, "one","two","three-b","file-src-a.txt"), "Copy file -> new deep dir ($scratch/one/two/three-b/file-src-a.txt)");
 
+Test::AutoBuild::Lib::_copy(catfile($scratch, "dir-src-c"),
+			    catfile($scratch, "dir-dst-f"));
+ok(-f catfile($scratch, "dir-dst-f", "dir-src-c", "file-{src}-a.txt"), "Copy containing {}");
 
 &create_dir($scratch, "remove-test");
 &create_file($scratch, catfile("remove-test","file-a"));

@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: File.pm,v 1.8 2007/12/08 17:35:16 danpb Exp $
+# $Id: File.pm,v 1.9 2008/08/28 10:05:55 danpb Exp $
 
 =pod
 
@@ -171,7 +171,7 @@ sub _link_files {
     $self->_persist_files($module, $bucket, $files, $newoptions);
 }
 
-sub list_modules {
+sub _get_objects {
     my $self = shift;
 
     my $dir = $self->_get_directory();

@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Bazaar.pm,v 1.1 2007/12/11 05:07:23 danpb Exp $
+# $Id: Bazaar.pm,v 1.3 2011/03/28 16:26:34 danpb Exp $
 
 =pod
 
@@ -191,7 +191,7 @@ sub _get_changes {
     foreach my $line (@lines) {
 	next if $line =~ /^\s*$/;
 	#$log->debug("[$line]");
-	if ($line =~ m,^revno:\s*(\d+(?:\.\d+)*)\s*$,i) {
+	if ($line =~ m,^revno:\s*(\d+(?:\.\d+)*)\s*(\[merge\])?\s*$,i) {
 	    $number = $1;
 	    $log->debug("Version number " . $number );
 	    $logs{$number} = { number => $number };
@@ -236,7 +236,7 @@ sub _get_changes {
 	#$log->debug("Initial parsing from '$mungedDate' gives $date");
 	$date = Date_ConvTZ($date, $timezone, "GMT");
 	#$log->debug("After adjustment from $timezone to GMT date is $date");
-	my $time = UnixDate($date, "%o");
+	my $time = UnixDate($date, "%s");
 	#$log->debug("Date was $date and time is $time");
 
 	$changes{$logs{$_}->{hash}} = Test::AutoBuild::Change->new(number => $logs{$_}->{number},

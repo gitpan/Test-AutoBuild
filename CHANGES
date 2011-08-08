@@ -1,6 +1,19 @@
 Change Log for Test::AutoBuild
 ==============================
 
+v1.2.3: (08-08-2011)
+--------------------
+
+ * Fix Monotone repository plugin & require mtn >= 0.48
+ * Fix timezone handling in Darcs, Mercurial, Subversion &
+   Bazaar repositories
+ * Rewrite GIT repository support to be more robust
+ * Make Mercurial repository history scanner more robust
+ * Rewrite auto-build-clean-root & auto-build-make-root
+   in Perl instead of Shell for portability
+ * Fix generation of HTML status page links for test logs
+ * Fix error handling in Template module
+
 v1.2.2: (16-12-2007)
 --------------------
 
