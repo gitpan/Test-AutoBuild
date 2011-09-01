@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Mercurial.pm,v 1.14 2011/03/28 16:26:34 danpb Exp $
+# $Id$
 
 =pod
 
@@ -229,6 +229,7 @@ sub _get_changes {
 	die "cannot parse date '" . $mungedDate . "'" unless $date;
 	$log->debug("Initial parsing from '$mungedDate' gives $date");
 	$date = Date_ConvTZ($date, $timezone, "GMT");
+	$date = $date . "+0000";
 	$log->debug("After adjustment from $timezone to GMT date is $date");
 	my $time = UnixDate($date, "%s");
 	$log->debug("Date was $date and time is $time");

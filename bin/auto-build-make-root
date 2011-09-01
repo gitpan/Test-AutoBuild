@@ -41,6 +41,7 @@ makeit "public_html";
 makeit "public_ftp";
 
 makeit "package-root", "rpm", "BUILD";
+makeit "package-root", "rpm", "BUILDROOT";
 makeit "package-root", "rpm", "RPMS", "noarch";
 makeit "package-root", "rpm", "RPMS", "i386";
 makeit "package-root", "rpm", "RPMS", "i486";

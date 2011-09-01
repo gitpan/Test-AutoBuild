@@ -1,6 +1,27 @@
 Change Log for Test::AutoBuild
 ==============================
 
+v1.2.4: (01-09-2011)
+--------------------
+
+ * Really fix timezone handling in Darcs, Mercurial,
+   Subversion & Bazaar repositories and make sure it
+   is tested
+ * Add rpm/BUILDROOT to auto-build-{make,clean}-root
+ * Enable cleanup of files from all package roots
+   after 1 day.
+ * Don't pass binary image through Template-Toolkit
+ * Brand new status page CSS styling
+ * Include last 30 lines of logfile in status pages
+ * Drop 'Yum' stage, since it is obsoleted by createrepo
+ * Fix code for skipping module source checkout to not
+   prevent later build
+ * Add support for rsyncing status pages to remote host
+ * Fix handling of per-module admin/group email info
+ * Allow use of build archive to be disabled per module
+ * Import latest RPM spec from Fedora
+ * Refactor RPM to allow individual repos to be disabled
+
 v1.2.3: (08-08-2011)
 --------------------
 

@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: EmailAlert.pm,v 1.12 2007/12/10 02:20:27 danpb Exp $
+# $Id$
 
 =pod
 
@@ -98,14 +98,14 @@ sub process {
 		    if (defined $module->admin_email) {
 			push @to, $module->admin_name . " <" . $module->admin_email . ">";
 		    } else {
-			push @to, $module->admin_name . " <" . $runtime->admin_email . ">";
+			push @to, $runtime->admin_name . " <" . $runtime->admin_email . ">";
 		    }
 		    $log->debug("Resolved module administrator address to '" . $to[$#to] . "'");
 		} elsif ((lc $addr) eq "group") {
 		    if (defined $module->group_email) {
 			push @to, $module->group_name . " <" . $module->group_email . ">";
 		    } else {
-			push @to, $module->admin_name . " <" . $runtime->group_email . ">";
+			push @to, $runtime->group_name . " <" . $runtime->group_email . ">";
 		    }
 		    $log->debug("Resolved module developer group address to '" . $to[$#to] . "'");
 		} else {

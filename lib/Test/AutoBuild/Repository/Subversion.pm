@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Subversion.pm,v 1.22 2011/03/28 16:26:34 danpb Exp $
+# $Id$
 
 =pod
 
@@ -235,6 +235,7 @@ sub get_change {
     my $date = ParseDate($datestr);
     die "cannot parse date '$datestr'" unless defined $date;
     $date = Date_ConvTZ($date, $tz, "GMT");
+    $date = $date . "+0000";
 
     return Test::AutoBuild::Change->new(number => $revision,
 					user => $author,

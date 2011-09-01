@@ -4,23 +4,38 @@
   [% IF name == module %]
   <h2>Module: [% label | html %]</h2>
 
-  <table id="summary" class="properties">
+  <table id="summary" class="data">
     <tr class="odd">
       <th>SCM checkout status:</th>
-      <td class="[%checkout_status%]">[%checkout_status%]</td>
+      <td class="status_[%checkout_status%] big">[%checkout_status%]</td>
     </tr>
     <tr class="even">
       <th>Build status:</th>
-      <td class="[%build_status%]">[%build_status%]</td>
+      <td class="status_[%build_status%]">[%build_status%]</td>
     </tr>
+    [% IF logs.size() > 0 %]
+    [% FOREACH logs %]
     <tr class="odd">
+      [% IF loop.index() == 0 %]
       <th>Logs:</th>
+      [% ELSE %]
+      <th></th>
+      [% END %]
       <td class="filename">
-         [% IF checkout_output_log_file %]<a href="logs/modules/[% checkout_output_log_file %]">SCM checkout</a> ([% checkout_output_log_size %])<br>[% END %]
-         [% IF build_output_log_file %]<a href="logs/modules/[% build_output_log_file %]">Build output</a> ([% build_output_log_size %])<br>[% END %]
-         [% IF build_result_log_file %]<a href="logs/modules/[% build_result_log_file %]">Test results</a> ([% build_result_log_size %])<br>[% END %]
+         [% SWITCH type %]
+           [% CASE 'checkout' %]
+           <a href="logs/modules/[% file %]">SCM checkout</a> ([% size %])
+           [% CASE 'build_output' %]
+           <a href="logs/modules/[% file %]">Build output</a> ([% size %])
+           [% CASE 'build_result' %]
+           <a href="logs/modules/[% file %]">Test results</a> ([% size %])
+           [% CASE %]
+           <a href="logs/modules/[% file %]">Output</a> ([% size %])
+         [% END %]
       </td>
     </tr>
+    [% END %]
+    [% END %]
     <tr class="even">
       <th>SCM checkout time:</th>
       <td>[% checkout_duration %]</td>
@@ -50,6 +65,28 @@
     [% END %]
   </table>
 
+  [% IF checkout_status == 'failed' and checkout_lines.size() > 0 %]
+  <h3>Checkout log files</h3>
+
+  <pre>
+...
+[% FOREACH l IN checkout_lines -%]
+[%- l | html -%]
+    [%- END -%]
+  </pre>
+  [% END %]
+
+  [% IF build_status == 'failed' and build_lines.size() > 0 %]
+  <h3>Build log files</h3>
+
+  <pre>
+...
+[% FOREACH l IN build_lines -%]
+[%- l | html -%]
+    [%- END -%]
+  </pre>
+  [% END %]
+
   [% IF tests.size > 0 %]
     <h3>Test results</h3>
          
@@ -71,7 +108,7 @@
             [% IF output_log_file %]<a class="filename" href="logs/modules/[% output_log_file %]">Test output</a> ([% output_log_size %])<br>[% END %]
             [% IF result_log_file %]<a class="filename" href="logs/modules/[% result_log_file %]">Test results</a> ([% result_log_size %])<br>[% END %]
           </td>
-          <td class="[%status%]">[% status %]</td>
+          <td class="status_[%status%]">[% status %]</td>
         </tr>
       [% END %]
       </tbody>
@@ -108,11 +145,11 @@
     [% END %]
   [% ELSE %]
     [% IF build_status == 'failed' %]
-      <p class="failed">Build failed on this module</p>
+      <p class="status_failed">Build failed on this module</p>
     [% ELSIF checkout_status == 'failed' %]
-      <p class="skipped">Module skipped because SCM checkout failed</p>
+      <p class="status_skipped">Module skipped because SCM checkout failed</p>
     [% ELSIF build_status == 'skipped' %]
-      <p class="skipped">Module skipped because dependency failed during build</p>
+      <p class="status_skipped">Module skipped because dependency failed during build</p>
     [% ELSE %]
       <p>Module not built. Status: [% build_status %]</p>
     [% END %]

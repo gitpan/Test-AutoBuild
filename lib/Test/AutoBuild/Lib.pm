@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Lib.pm,v 1.32 2009/03/30 14:57:43 danpb Exp $
+# $Id$
 
 =pod
 
@@ -61,6 +61,7 @@ use File::Glob ':glob';
 use File::Path;
 use File::stat;
 use File::Spec::Functions;
+use File::ReadBackwards;
 use Log::Log4perl;
 use POSIX qw(strftime);
 use Sys::Hostname;
@@ -449,6 +450,34 @@ sub load_templated_config {
     }
     return ($config, join("", @data_file), $err);
 }
+
+
+sub log_file_lines {
+    my $filename = shift;
+    my $limit = shift;
+
+    my $io;
+    my $rev = 0;
+    if ($limit < 0) {
+	$limit = $limit * -1;
+	$rev = 1;
+	$io = File::ReadBackwards->new($filename) or die "cannot read $filename: $!";
+    } else {
+	$io = IO::File->new($filename) or die "cannot read $filename: $!";
+    }
+
+    my @lines;
+    for (my $i = 0 ; !$limit || ($i < $limit) ; $i++) {
+	my $line = $io->getline;
+	last unless defined $line;
+	push @lines, $line;
+    }
+
+    @lines = reverse @lines if $rev;
+
+    return @lines;
+}
+
 
 1 # So that the require or use succeeds.
 

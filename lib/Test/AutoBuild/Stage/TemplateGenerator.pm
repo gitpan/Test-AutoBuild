@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: TemplateGenerator.pm,v 1.17 2008/08/28 10:04:36 danpb Exp $
+# $Id$
 
 =pod
 
@@ -51,6 +51,7 @@ use File::Spec;
 use Log::Log4perl;
 use POSIX qw(strftime);
 use Sys::Hostname;
+use File::Copy qw(copy);
 use Template;
 
 sub prepare {
@@ -115,29 +116,35 @@ sub _generate_templates {
 	$log->info("Got $src, $dst: " . join (',', map {$_ . "=" . $localvars->{$_}} keys %{$localvars}));
 
 	my $dest = File::Spec->catfile($self->option("template-dest-dir"), $dst);
-	my $fh = IO::File->new(">$dest")
-	    or die "cannot  create $dest: $!";
 
-	my $customvars = $self->option("variables") || {};
+	if ($src =~ /^.*\.(png|jpeg|jpg|gif)$/) {
+	    my $srcpath = File::Spec->catfile($path, $src);
+	    copy($srcpath, $dest) or die "cannot copy $srcpath to $dest: $!";
+	} else {
+	    my $fh = IO::File->new(">$dest")
+		or die "cannot  create $dest: $!";
 
-	my %vars;
-	foreach (keys %{$globalvars}) {
-	    $vars{$_} = $globalvars->{$_};
-	}
-	foreach (keys %{$localvars}) {
-	    $vars{$_} = $localvars->{$_};
-	}
-	foreach (keys %{$customvars}) {
-	    $vars{$_} = $customvars->{$_};
-	}
+	    my $customvars = $self->option("variables") || {};
 
-	if (!$template->process($src, \%vars, $fh)) {
-	    my $err = $template->error;
-	    push @failed, "$err";
-	    $log->warn("$err");
-	}
+	    my %vars;
+	    foreach (keys %{$globalvars}) {
+		$vars{$_} = $globalvars->{$_};
+	    }
+	    foreach (keys %{$localvars}) {
+		$vars{$_} = $localvars->{$_};
+	    }
+	    foreach (keys %{$customvars}) {
+		$vars{$_} = $customvars->{$_};
+	    }
 
-	$fh->close;
+	    if (!$template->process($src, \%vars, $fh)) {
+		my $err = $template->error;
+		push @failed, "$err";
+		$log->warn("$err");
+	    }
+
+	    $fh->close;
+	}
     }
 
     if (@failed) {

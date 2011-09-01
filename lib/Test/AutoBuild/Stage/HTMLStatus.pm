@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: HTMLStatus.pm,v 1.25 2009/03/30 14:57:01 danpb Exp $
+# $Id$
 
 =pod
 
@@ -102,14 +102,19 @@ sub process {
 	    my @output_log_stat = stat catfile($runtime->log_root, $module->test_output_log_file($test));
 	    my @result_log_stat = stat catfile($runtime->log_root, $module->test_result_log_file($test));
 
+	    my @logs;
+	    push @logs, { type => "test_output", file => $module->test_output_log_file($test),
+			  size => Test::AutoBuild::Lib::pretty_size($output_log_stat[7]) }
+	      if @output_log_stat;
+	    push @logs, { type => "test_result", file => $module->test_result_log_file($test),
+			  size => Test::AutoBuild::Lib::pretty_size($result_log_stat[7]) }
+	      if @result_log_stat;
+
 	    push @tests, {
 		name => $test,
 		duration => Test::AutoBuild::Lib::pretty_time($test_end - $test_start),
 		status => $module->test_status($test),
-		output_log_file => @output_log_stat ? $module->test_output_log_file($test) : "",
-		result_log_file => @result_log_stat ? $module->test_result_log_file($test) : "",
-		output_log_size => @output_log_stat ? Test::AutoBuild::Lib::pretty_size($output_log_stat[7]) : "",
-		result_log_size => @result_log_stat ? Test::AutoBuild::Lib::pretty_size($result_log_stat[7]) : "",
+		logs => \@logs,
 	    };
 	}
 
@@ -141,6 +146,26 @@ sub process {
 	my @output_log_stat = stat catfile($runtime->log_root, $module->build_output_log_file);
 	my @result_log_stat = stat catfile($runtime->log_root, $module->build_result_log_file);
 
+	my @logs;
+	push @logs, { type => "checkout", file => $module->checkout_output_log_file,
+		      size => Test::AutoBuild::Lib::pretty_size($checkout_log_stat[7]) }
+	  if @checkout_log_stat;
+	push @logs, { type => "build_output", file => $module->build_output_log_file,
+		      size => Test::AutoBuild::Lib::pretty_size($output_log_stat[7]) }
+	  if @output_log_stat;
+	push @logs, { type => "build_result", file => $module->build_result_log_file,
+		      size => Test::AutoBuild::Lib::pretty_size($result_log_stat[7]) }
+	  if @result_log_stat;
+
+	my @checkout_lines;
+	my @build_lines;
+	if ($module->checkout_status eq "failed") {
+	    @checkout_lines = Test::AutoBuild::Lib::log_file_lines(catfile($runtime->log_root, $module->checkout_output_log_file), -30);
+	}
+	if ($module->build_status eq "failed") {
+	    @build_lines = Test::AutoBuild::Lib::log_file_lines(catfile($runtime->log_root, $module->build_output_log_file), -30);
+	}
+
 	my $mod = {
 	    'name' => $name,
 	    'label' => $module->label,
@@ -150,16 +175,14 @@ sub process {
 	    'checkout_status' => $module->checkout_status,
 	    'checkout_duration' => Test::AutoBuild::Lib::pretty_time($checkout_end - $checkout_start),
 	    'checkout_date' => scalar (Test::AutoBuild::Lib::pretty_date($checkout_start)),
-	    'checkout_output_log_file' => @checkout_log_stat ? $module->checkout_output_log_file : "",
-	    'checkout_output_log_size' => @checkout_log_stat ? Test::AutoBuild::Lib::pretty_size($checkout_log_stat[7]) : "",
+	    'checkout_lines' => \@checkout_lines,
 
 	    'build_status' => $module->build_status,
 	    'build_duration' => Test::AutoBuild::Lib::pretty_time($build_end - $build_start),
 	    'build_date' => scalar (Test::AutoBuild::Lib::pretty_date($build_start)),
-	    'build_output_log_file' => @output_log_stat ? $module->build_output_log_file : "",
-	    'build_result_log_file' => @result_log_stat ? $module->build_result_log_file : "",
-	    'build_output_log_size' => @output_log_stat ? Test::AutoBuild::Lib::pretty_size($output_log_stat[7]) : "",
-	    'build_result_log_size' => @result_log_stat ? Test::AutoBuild::Lib::pretty_size($result_log_stat[7]) : "",
+	    'build_lines' => \@build_lines,
+
+	    'logs' => \@logs,
 
 	    'admin_email' => $module->admin_email,
 	    'admin_name' => $module->admin_name,

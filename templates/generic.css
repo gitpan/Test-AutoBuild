@@ -1,46 +1,76 @@
-/***********************************************
- * Some generic style settings for the whole page,
- * which try to reset the browser defaults to some
- * known state
- ***********************************************/
-
-/* Set out the default styles for the document */
+/*
 body {
-  font-family: Verdana,Helvetica,Arial,sans-serif;
+  margin: 0em;
+  padding: 0px;
+  color: rgb(0,0,0);
+  font-family: Verdana, Arial, Helvetica, sans-serif;
   font-size: 76%;
 }
 
-p,ul,ol,dl {
-  font-size: 1em;
+p, ul, ol, dl {
+  padding: 0px;
+  margin: 0px;
 }
 
-th {
+ol,ul {
+  margin-left: 3em;
+}
+
+ol,ul,dl,p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+p:first-line {
+  margin-right: 1em;
+}
+
+div.body p:first-letter {
+  font-size: 1.2em;
   font-weight: bold;
 }
 
-/* Set the attributes which are common to all headings */
 h1,h2,h3,h4,h5,h6 {
   font-weight: bold;
+  margin: 0px;
+  padding: 0px;
+  margin-top: 0.5em;
 }
 
-/* Now simply give each heading its own font size */
-h1 { font-size: 2em; }
-h2 { font-size: 1.8em; }
-h3 { font-size: 1.6em; }
-h4 { font-size: 1.4em; }
-h5 { font-size: 1.2em; }
-h6 { font-size: 1em; }
+div.footer {
+  margin-top: 1em;
+}
 
-/* Want to make sure that pre uses a fixed width font */
-pre { font-family: Courier, monospace; font-size: 1em }
+h1 {
+  font-size: 2em;
+}
+h2 {
+  font-size: 1.6em;
+}
+h3 {
+  font-size: 1.4em;
+}
+h4 {
+  font-size: 1.2em;
+}
+h5 {
+  font-size: 1em;
+}
+h6 {
+  font-size: 0.8em;
+}
 
-/* All of these tags are use bold font by default */
-strong,b { font-weight: bold; }
+dl dt {
+  margin-left: 1em;
+  font-weight: bold;
+  font-size: larger;
+  border-top: 1px dotted white;
+}
 
-/* All of these tags use italic font by default */
-em,i,cite,dfn,var { font-style: italic; }
 
-/* All of these tags use fixed width font by default */
-samp,code,tt,kbd { font-family: Courier, monospace; }
-
-/* End */
+dl dd {
+  background: rgb(230,230,230);
+  margin-right: 2em;
+  margin-bottom: 0.5em;
+}
+*/

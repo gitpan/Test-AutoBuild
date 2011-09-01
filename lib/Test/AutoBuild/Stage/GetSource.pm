@@ -103,12 +103,6 @@ sub process {
     # Check out code
     MODULE: foreach my $name (@modules) {
 	$log->debug("Checking out $name");
-	foreach my $depend (@{$runtime->module($name)->depends}) {
-	    if ($runtime->module($depend)->build_status() eq 'failed') {
-		$log->info("skipping $name");
-		next MODULE;
-	    }
-	}
 	$runtime->notify("beginCheckout", $name, time);
 	my $module = $runtime->module($name);
 	$module->checkout($runtime);

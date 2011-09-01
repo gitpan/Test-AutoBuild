@@ -21,6 +21,7 @@ $counter->set(2);
 my @runtime = (counter => $counter,
 	       timestamp => 123);
 
+diag "Test zero";
 TEST_ZERO: {
   my $stage = Test::AutoBuild::Stage::EmailAlert->new(name => "send-alerts",
 						      label => "Send email alerts",
@@ -28,6 +29,7 @@ TEST_ZERO: {
   isa_ok($stage, "Test::AutoBuild::Stage::EmailAlert");
 }
 
+diag "Global one";
 TEST_GLOBAL_ONE: {
   # 1 module, global, single admin, always
 
@@ -62,6 +64,7 @@ TEST_GLOBAL_ONE: {
   is($messages[0]->[2], "Build Administrator <test\@example.com>", "got message to text\@example.com");
 }
 
+diag "Global two";
 TEST_GLOBAL_TWO: {
   # 2 module, global, single admin, always
 
@@ -100,6 +103,7 @@ TEST_GLOBAL_TWO: {
   is($messages[0]->[2], "Build Administrator <test\@example.com>", "got message to text\@example.com");
 }
 
+diag "Global three";
 TEST_GLOBAL_THREE: {
   # 2 module, global, single admin, fail
 
@@ -138,7 +142,7 @@ TEST_GLOBAL_THREE: {
   is($messages[0]->[2], "Build Administrator <test\@example.com>", "got message to text\@example.com");
 }
 
-
+diag "Global four";
 TEST_GLOBAL_FOUR: {
   # 2 module, global, single admin, first-fail, no-cache
 
@@ -177,6 +181,7 @@ TEST_GLOBAL_FOUR: {
   is($messages[0]->[2], "Build Administrator <test\@example.com>", "got message to text\@example.com");
 }
 
+diag "Global five";
 TEST_GLOBAL_FIVE: {
   # 2 module, global, single admin, first-fail, same status
 
@@ -218,7 +223,7 @@ TEST_GLOBAL_FIVE: {
   is($#messages, -1, "zero message sent");
 }
 
-
+diag "Global six";
 TEST_GLOBAL_SIX: {
   # 2 module, global, single admin, fist-fail, different status
 
@@ -261,7 +266,7 @@ TEST_GLOBAL_SIX: {
   is($messages[0]->[2], "Build Administrator <test\@example.com>", "got message to text\@example.com");
 }
 
-
+diag "Global seven";
 TEST_GLOBAL_SEVEN: {
   # 1 module, global, single admin, always many recipients
 
@@ -299,7 +304,7 @@ TEST_GLOBAL_SEVEN: {
   is($messages[2]->[2], "bob\@noddy.com", "got message to bob\@noddy.com");
 }
 
-
+diag "Module one";
 TEST_MODULE_ONE: {
   # 1 module, global, developer, always
 
@@ -336,6 +341,7 @@ TEST_MODULE_ONE: {
   is($messages[0]->[2], "Joe Bloggs <joe\@example.com>", "got message to joe\@example.com");
 }
 
+diag "Module two";
 TEST_MODULE_TWO: {
   # 2 module, global, developer, always
 
@@ -378,6 +384,7 @@ TEST_MODULE_TWO: {
   is($messages[1]->[2], "Fred Jones <fred\@example.com>", "got message to fred\@example.com");
 }
 
+diag "Module three";
 TEST_MODULE_THREE: {
   # 2 module, global, developer, fail
 
@@ -419,6 +426,7 @@ TEST_MODULE_THREE: {
   is($messages[0]->[2], "Fred Jones <fred\@example.com>", "got message to fred\@example.com");
 }
 
+diag "Module four";
 TEST_MODULE_FOUR: {
   # 2 module, global, developer, first-fail, no cache
 
@@ -460,6 +468,7 @@ TEST_MODULE_FOUR: {
   is($messages[0]->[2], "Fred Jones <fred\@example.com>", "got message to fred\@example.com");
 }
 
+diag "Module five";
 TEST_MODULE_FIVE: {
   # 2 module, global, developer, first-fail, cached-same
 
@@ -504,6 +513,7 @@ TEST_MODULE_FIVE: {
   is($#messages, -1, "zero message sent");
 }
 
+diag "Module six";
 TEST_MODULE_SIX: {
   # 2 module, global, developer, first-fail, cached success
 
@@ -549,6 +559,7 @@ TEST_MODULE_SIX: {
   is($messages[0]->[2], "Fred Jones <fred\@example.com>", "got message to fred\@example.com");
 }
 
+diag "Module seven";
 TEST_MODULE_SEVEN: {
   # 1 module, global, many recipients, always
 

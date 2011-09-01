@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Monotone.pm,v 1.2 2011/07/22 20:29:16 danpb Exp $
+# $Id$
 
 =pod
 
@@ -258,7 +258,8 @@ sub _get_changes {
     foreach (keys %logs) {
 	my $date = ParseDateString($logs{$_}->{date});
 	die "cannot parse date '" . $logs{$_}->{date} . "'" unless $date;
-	#$log->debug("Initial parsing from '$mungedDate' gives $date");
+	$log->debug("Initial parsing from '" . $logs{$_}->{date} . "' gives $date");
+	$date = $date . "+0000";
 	my $time = UnixDate($date, "%s");
 	#my $change = UnixDate($date, "%Y-%m-%dT%H:%m:%s");
 	my $change = $logs{$_}->{date};

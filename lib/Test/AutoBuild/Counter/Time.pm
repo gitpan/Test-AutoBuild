@@ -21,7 +21,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Time.pm,v 1.4 2007/12/08 17:35:16 danpb Exp $
+# $Id$
 
 =pod
 

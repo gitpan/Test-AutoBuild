@@ -136,7 +136,7 @@ sub init {
     $self->group_email(exists $params{group_email} ? $params{group_email} : undef);
     $self->group_name(exists $params{group_name} ? $params{group_name} : $self->label . " developers");
 
-    $self->use_archive(exists $params{'use-archive'} ? $params{'use-archive'} : 1);
+    $self->use_archive(exists $params{use_archive} ? $params{use_archive} : 1);
     $self->{options} = exists $params{options} ? $params{options} : {};
     $self->{is_installed} = {};
     $self->{results} = {
@@ -767,7 +767,7 @@ sub cachable_run_task {
 	return;
     }
 
-    if ($self->{use_archive} &&
+    if ($self->use_archive &&
 	defined $arcman) {
 	my $cache = $arcman->get_previous_archive($runtime);
 	if ($self->archive_usable($runtime, $cache, $taskname)) {
@@ -1008,6 +1008,20 @@ sub checkout {
     $self->_add_result("checkout", "success", $start, time);
 
     $self->changes(\%changes);
+}
+
+
+sub check_source {
+    my $self = shift;
+
+    my $now = time;
+    if ($self->checkout_status() eq "pending") {
+	if (! -d $self->dir) {
+	    $self->_add_result("checkout", "failed", $now, $now);
+	} elsif ($self->checkout_status eq "pending") {
+	    $self->_add_result("checkout", "success", $now, $now);
+	}
+    }
 }
 
 =item $module->build($runtime, $controlfile);

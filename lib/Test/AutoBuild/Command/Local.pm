@@ -20,7 +20,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Local.pm,v 1.6 2011/07/22 20:29:37 danpb Exp $
+# $Id$
 
 =pod
 

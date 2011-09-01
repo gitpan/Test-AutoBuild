@@ -44,7 +44,7 @@ if [ -z "$SKIP_TESTS" -o "$SKIP_TESTS" = "0" ]; then
     cover -delete
     rm -rf coverage-report
     set -o pipefail
-    HARNESS_PERL_SWITCHES=-MDevel::Cover make test TEST_VERBOSE=1 | tee $TEST_RESULTS
+    TZ=GMT HARNESS_PERL_SWITCHES=-MDevel::Cover make test TEST_VERBOSE=1 | tee $TEST_RESULTS
     cover
     mkdir coverage-report
     mv cover_db/*.html cover_db/*.css coverage-report
@@ -52,9 +52,11 @@ if [ -z "$SKIP_TESTS" -o "$SKIP_TESTS" = "0" ]; then
     rm -rf cover_db
   else
     set -o pipefail
-    make test TEST_VERBOSE=1 | tee $TEST_RESULTS
+    TZ=GMT make test TEST_VERBOSE=1 | tee $TEST_RESULTS
   fi
 fi
+# Repeat in different timezone to verify Repo functionality
+TZ=EDT make test TEST_VERBOSE=1 TEST_FILES=t/110-Repository-*.t | tee $TEST_RESULTS
 
 
 make INSTALLMAN3DIR=$AUTOBUILD_INSTALL_ROOT/share/man/man3 install

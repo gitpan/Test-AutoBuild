@@ -44,6 +44,7 @@ cleanit "public_html";
 cleanit "public_ftp";
 
 cleanit "package-root", "rpm", "BUILD";
+cleanit "package-root", "rpm", "BUILDROOT";
 cleanit "package-root", "rpm", "RPMS", "noarch";
 cleanit "package-root", "rpm", "RPMS", "i386";
 cleanit "package-root", "rpm", "RPMS", "i486";

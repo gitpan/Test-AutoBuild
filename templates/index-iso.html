@@ -13,9 +13,9 @@
       <tbody>
         [% FOREACH isos %]
           <tr class="[% IF loop.index() % 2 == 0 %]odd[%ELSE%]even[%END%]">
-            <td class="filename"><a href="isos/[% filename | html %]">[% label | html %]</a></td>
+            <th class="filename"><a href="isos/[% filename | html %]">[% label | html %]</a></th>
             <td class="size">[% size %]</td>
-            <td class="md5sum">[% md5sum %]</td>
+            <td class="md5sum big">[% md5sum %]</td>
           </tr>
         [% END %]
       </tbody>

@@ -1,4 +1,4 @@
-CVS/
+.git/
 ~$
 ^blib/
 ^MakeMaker-\d

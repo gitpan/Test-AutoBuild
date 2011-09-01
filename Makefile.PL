@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.34 2008/01/06 20:27:58 danpb Exp $
+# $Id$
 # -*- perl -*-
 
 use strict;
@@ -26,6 +26,7 @@ WriteMakefile(
                   'File::Find' => '0',
 		  'File::Glob' => '0',
                   'File::Path' => '0',
+		  'File::ReadBackwards' => '0',
 		  'File::Spec' => '0',
 		  'File::stat' => '0',
 		  'IO::File' => '0',
@@ -51,21 +52,15 @@ WriteMakefile(
               },
               depend => {
                   Makefile => '$(VERSION_FROM)',
-                  #'Test-AutoBuild.spec' => '$(VERSION_FROM)',
-                  dist => 'Test-AutoBuild.spec META.yml',
+                  #'perl-Test-AutoBuild.spec' => '$(VERSION_FROM)',
+                  dist => 'perl-Test-AutoBuild.spec META.yml',
               },
               realclean => {
-                  FILES => 'Test-AutoBuild-*.tar.gz Test-AutoBuild.spec',
+                  FILES => 'Test-AutoBuild-*.tar.gz perl-Test-AutoBuild.spec',
               },
               );
 
 package MY;
-
-sub libscan {
-    my ($self, $path) = @_;
-    ($path =~ /\~$/ || $path =~ m,/CVS/,) ? undef : $path;
-}
-
 
 sub postamble {
     '

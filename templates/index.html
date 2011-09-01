@@ -2,22 +2,23 @@
   <h2>Module groups</h2>
 
   [% IF groups.size > 0 %]
+    <table id="modules" class="data">
     [% FOREACH groups %]
       [% IF modules.size > 0 %]
-        <h3>[% label | html %]</h3>
- 
-        <table id="modules" class="data">
+          <thead>
+            <tr><th colspan="2">[% label | html %]</th></tr>
+          </thead>
           <tbody>
           [% FOREACH modules %]
             <tr class="[% IF loop.index() % 2 == 0 %]odd[%ELSE%]even[%END%]">
-              <td><a href="module-[% name | html %].html">[% label | html %]</a></td>
-              <td class="[% status %]">[% status %]</td>
+              <th><a href="module-[% name | html %].html">[% label | html %]</a></th>
+              <td class="status_[% status %]">[% status %]</td>
             </tr>
           [% END %]
           </tbody>
-        </table>
       [% END %]
     [% END %]
+    </table>
   [% ELSE %]
     <p>There are no module groups defined</p>
   [% END %]

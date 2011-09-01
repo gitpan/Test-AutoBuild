@@ -440,6 +440,18 @@ the nested C<modules> block:
 This defines a free text display name for the module, and will be
 used in email alerts, web status pages & related areas.
 
+=item useArchive = 1|0
+
+Controls whether builds can be cached, if no SCM changes were
+detected. Defaults to 1, if set to 0, then the module will be
+built on every build cycle, even if no SCM changes were detected.
+
+=item enabled = 1|0
+
+Use to temporarily hide a module from the build. If set to 0, the
+effect will be just as if the module was never included in the
+config file.
+
 =item admin-email = admin@example.com
 
 Define the email address of a module-specific build administrator.

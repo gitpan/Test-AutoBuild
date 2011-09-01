@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# $Id: Darcs.pm,v 1.2 2011/03/28 16:26:34 danpb Exp $
+# $Id$
 
 =pod
 
@@ -190,6 +190,7 @@ sub _get_changes {
     my %changes;
     foreach my $change (@{$xml->{patch}}) {
 	my $date = ParseDateString($change->{date});
+	$date = $date . "+0000";
 	die "cannot parse date '" . $change->{date} . "'" unless $date;
 	my $time = UnixDate($date, "%s");
 
